@@ -26,59 +26,76 @@ window.__ModuleLoader__.load({
    色彩全部映射 DSH 的 --dsw-alias-*，亮/暗主题自动切换。
    ══════════════════════════════════════════════════════════ */
 [data-cm-page]{display:flex;flex-direction:column;height:100%;min-height:0;overflow:hidden;box-sizing:border-box;
-  padding-top:var(--dsh-frame-top-clearance,0px);color:var(--cm-text);background:var(--cm-base);
+  padding-top:var(--dsh-frame-top-clearance,0px);color:var(--cm-text);
+  background:var(--cm-canvas-glow),var(--cm-base);
   font-size:var(--cm-f-md);line-height:1.5;-webkit-font-smoothing:antialiased;
-  /* ── 文本与线条 ── */
-  --cm-text:var(--dsw-alias-label-primary,currentColor);
-  --cm-text-2:var(--dsw-alias-label-secondary,currentColor);
-  --cm-text-dim:var(--dsw-alias-label-tertiary,#8b9096);
-  --cm-line:var(--dsw-alias-border-l2,rgba(128,128,128,.25));
-  --cm-line-soft:var(--dsw-alias-border-l1,rgba(128,128,128,.15));
-  --cm-line-strong:var(--dsw-alias-border-l3,rgba(128,128,128,.3));
-  /* ── 三层明暗：底 / 抬一层 / 悬浮 ── */
-  --cm-base:var(--dsw-alias-bg-base,transparent);
-  --cm-surface:var(--dsw-alias-card-fill,rgba(128,128,128,.08));
-  --cm-surface-hover:var(--dsw-alias-card-fill-hover,rgba(128,128,128,.12));
-  --cm-layer-2:var(--dsw-alias-bg-layer-2,rgba(128,128,128,.1));
-  --cm-selected:var(--dsw-alias-border-selected,#adb2b8);
-  --cm-hover:var(--dsw-alias-interactive-bg-hover,rgba(128,128,128,.16));
-  --cm-active:var(--dsw-alias-interactive-bg-active,rgba(128,128,128,.22));
-  /* 主按钮是反色底：亮色近黑、暗色近白，字必须用 label-primary-foreground */
-  --cm-accent:var(--dsw-alias-button-primary-fill,#3b82f6);
-  --cm-accent-hover:var(--dsw-alias-button-primary-hover,#2563eb);
-  --cm-on-accent:var(--dsw-alias-label-primary-foreground,#fff);
-  --cm-ok:var(--dsw-alias-state-success-primary,#22c55e);
-  --cm-warn:var(--dsw-alias-state-warn-primary,#f59e0b);
-  --cm-warn-text:var(--dsw-alias-state-warn-label,#dd8629);
-  --cm-danger:var(--dsw-alias-state-error-primary,#ef4444);
-  --cm-idle:var(--dsw-alias-label-tertiary,#8b9096);
+  /* ── Obsidian Glass HUD 调色板 ──
+     v0.10.0 起面板是**固定深空 HUD**，不再跟随宿主明暗：光在玻璃后面、线是切面，
+     颜色只出现在三个语义上（青＝交互/在线指标、绿＝健康、琥珀＝待确认与告警）。
+     色值只允许写在这一批 --cm-* 定义行里（test/theme.test.mjs 会过滤这些行）。 */
+  --cm-base:#090C10;
+  --cm-surface:rgba(17,22,31,.85);
+  --cm-surface-hover:rgba(24,32,45,.92);
+  --cm-layer-2:#0D1117;
+  --cm-glass:rgba(17,22,31,.72);
+  --cm-hairline:1px solid rgba(255,255,255,.07);
+  --cm-toplight:linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent);
+  --cm-canvas-glow:radial-gradient(1100px 520px at 88% -12%,rgba(56,189,248,.05),transparent 68%),radial-gradient(900px 480px at 6% 108%,rgba(16,185,129,.035),transparent 70%);
+  --cm-text:#E6EDF6;
+  --cm-text-2:#A7B4C6;
+  --cm-text-dim:#6B7A90;
+  --cm-line:rgba(255,255,255,.09);
+  --cm-line-soft:rgba(255,255,255,.055);
+  --cm-line-strong:rgba(255,255,255,.15);
+  --cm-selected:var(--dsw-alias-border-selected,#38BDF8);
+  --cm-hover:rgba(255,255,255,.055);
+  --cm-active:#1E293B;
+  --cm-accent:#38BDF8;
+  --cm-accent-hover:#5AC8FA;
+  --cm-on-accent:#04121B;
+  --cm-ok:#10B981;
+  --cm-warn:#F59E0B;
+  --cm-warn-text:#FBBF24;
+  --cm-danger:#F87171;
+  --cm-idle:#5B6779;
+  /* 光晕与切面高光：卡片边缘那道 1px 微亮，是精密硬件感的关键 */
+  --cm-glow-accent:0 0 12px rgba(56,189,248,.35);
+  --cm-glow-ok:0 0 8px rgba(16,185,129,.5);
+  --cm-glow-warn:0 0 10px rgba(245,158,11,.4);
+  --cm-glow-top:inset 0 1px 0 rgba(255,255,255,.06);
+  --cm-inset-groove:inset 0 1px 3px rgba(0,0,0,.35);
+  --cm-blur:blur(12px);
   /* ── 派生柔色：徽标、选中底、hover 都用它，避免满屏实心色块 ── */
-  --cm-accent-soft:color-mix(in srgb,var(--cm-accent) 12%,transparent);
-  --cm-accent-line:color-mix(in srgb,var(--cm-accent) 40%,transparent);
-  --cm-danger-soft:color-mix(in srgb,var(--cm-danger) 12%,transparent);
+  --cm-accent-soft:color-mix(in srgb,var(--cm-accent) 14%,transparent);
+  --cm-accent-line:color-mix(in srgb,var(--cm-accent) 42%,transparent);
+  --cm-danger-soft:color-mix(in srgb,var(--cm-danger) 14%,transparent);
   --cm-danger-line:color-mix(in srgb,var(--cm-danger) 42%,transparent);
-  --cm-ok-soft:color-mix(in srgb,var(--cm-ok) 12%,transparent);
+  --cm-ok-soft:color-mix(in srgb,var(--cm-ok) 14%,transparent);
   --cm-ok-line:color-mix(in srgb,var(--cm-ok) 42%,transparent);
-  --cm-warn-soft:color-mix(in srgb,var(--cm-warn) 14%,transparent);
+  --cm-warn-soft:color-mix(in srgb,var(--cm-warn) 16%,transparent);
   --cm-warn-line:color-mix(in srgb,var(--cm-warn) 42%,transparent);
-  /* ── 间距刻度：只有这几档，不再出现 7px / 9px 这种散值 ── */
-  --cm-s1:4px;--cm-s2:6px;--cm-s3:8px;--cm-s4:12px;--cm-s5:16px;--cm-s6:20px;--cm-s7:28px;
-  /* ── 圆角刻度：卡片 8、控件 6、胶囊 4。工业控制台不要 10 以上的圆角 ── */
-  --cm-r-xs:4px;--cm-r-sm:6px;--cm-r-md:8px;--cm-r-lg:8px;--cm-r-full:999px;
-  /* ── 字号刻度：封死 5 档（11 / 12 / 13 / 16 / 22），不再出现 10.5 / 11.5 / 12.5 ── */
-  --cm-f-xs:11px;--cm-f-sm:12px;--cm-f-md:13px;--cm-f-lg:16px;--cm-f-xl:22px;
+  /* ── 间距刻度：8px 基准（4 / 8 / 12 / 16 / 20 / 24 / 32），卡片内边距 20、外边距 16 ── */
+  --cm-s1:4px;--cm-s2:8px;--cm-s3:12px;--cm-s4:16px;--cm-s5:20px;--cm-s6:24px;--cm-s7:32px;
+  /* ── 圆角刻度：大卡片 14、列表项与输入框 10、标签胶囊 6 ── */
+  --cm-r-xs:6px;--cm-r-sm:10px;--cm-r-md:10px;--cm-r-lg:14px;--cm-r-full:999px;
+  /* ── 字号刻度：封死 6 档（11 / 12 / 13 / 16 / 22 / 28），2xl 只给 Bento 大号指标 ── */
+  --cm-f-xs:11px;--cm-f-sm:12px;--cm-f-md:13px;--cm-f-lg:16px;--cm-f-xl:22px;--cm-f-2xl:28px;
   /* ── 动效：一条曲线走到底，时长克制 ── */
   --cm-ease:cubic-bezier(.2,.7,.3,1);
   --cm-fast:.14s;--cm-slow:.24s;
-  /* ── 阴影：亮色极轻，暗色主要靠边框分层，两套都不脏 ── */
-  --cm-shadow-sm:0 1px 2px rgba(0,0,0,.05);
-  --cm-shadow-md:0 2px 8px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
-  --cm-shadow-lg:0 8px 24px rgba(0,0,0,.12),0 2px 6px rgba(0,0,0,.06);
+  /* ── 阴影：深空背景靠分层暗影托起来，配 1px 内高光做切面 ── */
+  --cm-shadow-sm:0 1px 2px rgba(0,0,0,.35);
+  --cm-shadow-md:0 6px 20px rgba(0,0,0,.45),0 1px 2px rgba(0,0,0,.4);
+  --cm-shadow-lg:0 18px 48px rgba(0,0,0,.55),0 2px 8px rgba(0,0,0,.4);
   --cm-ring:0 0 0 3px var(--cm-accent-soft);}
 
 /* ── 顶栏 ── */
-[data-cm-top]{display:flex;align-items:center;gap:var(--cm-s3);padding:var(--cm-s3) var(--cm-s6);
-  border-bottom:1px solid var(--cm-line);flex:none;background:var(--cm-base);position:relative;z-index:2;}
+[data-cm-top]{display:flex;align-items:center;gap:var(--cm-s3);padding:var(--cm-s4) var(--cm-s6);
+  border-bottom:1px solid var(--cm-line-soft);flex:none;position:relative;z-index:2;
+  background:var(--cm-glass);backdrop-filter:var(--cm-blur);-webkit-backdrop-filter:var(--cm-blur);}
+/* 顶栏底缘一道渐隐高光，把标题区和内容区切开，而不是靠一条实线 */
+[data-cm-top]::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:1px;
+  background:var(--cm-toplight);pointer-events:none;}
 [data-cm-title]{font-size:var(--cm-f-lg);font-weight:650;letter-spacing:-.01em;line-height:1.3;}
 [data-cm-sub]{font-size:var(--cm-f-xs);color:var(--cm-text-dim);letter-spacing:.01em;}
 [data-cm-grow]{flex:1;min-width:0;}
@@ -108,14 +125,21 @@ window.__ModuleLoader__.load({
 [data-cm-subbar]{flex:none;min-width:0;}
 [data-cm-subbar]:empty{display:none;}
 [data-cm-subbar] [data-cm-tabs]{margin-bottom:0;}
-[data-cm-list]{width:300px;flex:none;border-right:1px solid var(--cm-line);
-  background:var(--cm-surface);display:flex;flex-direction:column;min-height:0;}
-[data-cm-search]{padding:var(--cm-s3) var(--cm-s4);border-bottom:1px solid var(--cm-line-soft);flex:none;}
+[data-cm-list]{width:300px;flex:none;border-right:1px solid var(--cm-line-soft);
+  background:var(--cm-layer-2);display:flex;flex-direction:column;min-height:0;}
+[data-cm-search]{padding:var(--cm-s3) var(--cm-s3);border-bottom:1px solid var(--cm-line-soft);flex:none;}
+/* 放大镜是装饰，不抢焦点：绝对定位压在输入框左侧，input 自己加左内边距让位 */
+[data-cm-searchwrap]{position:relative;display:flex;align-items:center;}
+[data-cm-sicon]{position:absolute;left:9px;top:50%;transform:translateY(-50%);
+  display:flex;color:var(--cm-text-dim);pointer-events:none;}
 [data-cm-search] input{width:100%;box-sizing:border-box;background:var(--cm-base);
   border:1px solid var(--cm-line-strong);border-radius:var(--cm-r-sm);color:inherit;
-  padding:6px 10px;font-size:var(--cm-f-sm);font-family:inherit;outline:none;
-  transition:border-color var(--cm-fast) var(--cm-ease),box-shadow var(--cm-fast) var(--cm-ease);}
-[data-cm-search] input:focus{border-color:var(--cm-accent);box-shadow:var(--cm-ring);}
+  padding:7px 10px 7px 30px;font-size:var(--cm-f-sm);font-family:inherit;outline:none;
+  transition:border-color var(--cm-fast) var(--cm-ease),box-shadow var(--cm-fast) var(--cm-ease),
+    background-color var(--cm-fast) var(--cm-ease);}
+[data-cm-search] input::placeholder{color:var(--cm-text-dim);}
+[data-cm-search] input:focus{border-color:var(--cm-accent);box-shadow:var(--cm-ring),var(--cm-glow-accent);
+  background:var(--cm-layer-2);}
 [data-cm-scroll]{overflow:auto;min-height:0;flex:1;padding:var(--cm-s2) var(--cm-s3) var(--cm-s6);}
 
 /* ── 滚动条：细、半透明、hover 才显形 ── */
@@ -235,12 +259,24 @@ window.__ModuleLoader__.load({
 [data-cm-dot][data-bad]{background:var(--cm-danger);color:var(--cm-danger);}
 
 
-/* ── 列表行 ── */
-[data-cm-row]{display:flex;align-items:center;gap:var(--cm-s3);padding:7px 9px;
-  border-radius:var(--cm-r-sm);cursor:pointer;border:1px solid transparent;
+/* ── 列表行：一张微遥测卡（左指示条 + 双色 2px 进度） ── */
+[data-cm-row]{position:relative;display:flex;align-items:center;gap:var(--cm-s2);padding:9px 10px;
+  margin-bottom:var(--cm-s1);border-radius:var(--cm-r-sm);cursor:pointer;
+  border:var(--cm-hairline);background:var(--cm-surface);overflow:hidden;
   transition:background-color var(--cm-fast) var(--cm-ease),border-color var(--cm-fast) var(--cm-ease);}
-[data-cm-row]:hover{background:var(--cm-hover);}
-[data-cm-row][data-active]{background:var(--cm-accent-soft);border-color:var(--cm-accent-line);}
+[data-cm-row]:hover{background:var(--cm-surface-hover);border-color:var(--cm-line-strong);}
+[data-cm-row][data-active]{border-color:var(--cm-accent-line);
+  background:linear-gradient(90deg,var(--cm-accent-soft),transparent 68%),var(--cm-surface);}
+/* 选中态：左侧 2px 电光青竖条，比整行变色更安静也更准 */
+[data-cm-row][data-active]::before{content:'';position:absolute;left:0;top:9px;bottom:9px;width:2px;
+  border-radius:0 2px 2px 0;background:var(--cm-accent);box-shadow:var(--cm-glow-accent);}
+/* 双色微进度：CPU 青、内存绿；内存那条只在有上限时才渲染 */
+[data-cm-bars]{display:flex;gap:4px;margin-top:6px;height:2px;}
+[data-cm-bars]>i{display:block;flex:1;height:2px;border-radius:2px;
+  background:var(--cm-line);overflow:hidden;}
+[data-cm-bars]>i>b{display:block;height:100%;border-radius:2px;}
+[data-cm-bars]>i[data-kind='cpu']>b{background:var(--cm-accent);}
+[data-cm-bars]>i[data-kind='mem']>b{background:var(--cm-ok);}
 [data-cm-rmain]{flex:1;min-width:0;}
 [data-cm-rname]{font-size:var(--cm-f-md);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.45;}
 [data-cm-rmeta]{font-size:var(--cm-f-xs);color:var(--cm-text-dim);overflow:hidden;
@@ -283,19 +319,26 @@ window.__ModuleLoader__.load({
 [data-cm-detail]{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;}
 [data-cm-tabs]{display:flex;gap:var(--cm-s1);padding:var(--cm-s3) var(--cm-s5) 0;
   border-bottom:1px solid var(--cm-line-soft);flex:none;}
-[data-cm-tab]{padding:6px 13px;font-size:var(--cm-f-sm);border-radius:var(--cm-r-sm);cursor:pointer;
-  border:1px solid transparent;background:transparent;color:var(--cm-text-2);
+/* 二级 tab：不堆边框，只留一条发光下划线 —— 描边越少，界面越整齐 */
+[data-cm-tab]{position:relative;padding:8px 14px;font-size:var(--cm-f-sm);border-radius:0;cursor:pointer;
+  border:0;background:transparent;color:var(--cm-text-dim);
   font-family:inherit;line-height:1.4;
-  transition:background-color var(--cm-fast) var(--cm-ease),color var(--cm-fast) var(--cm-ease),
-    border-color var(--cm-fast) var(--cm-ease);}
-[data-cm-tab]:hover{background:var(--cm-hover);color:var(--cm-text);}
-[data-cm-tab][data-on]{background:var(--cm-active);color:var(--cm-text);border-color:var(--cm-line);}
+  transition:color var(--cm-fast) var(--cm-ease);}
+[data-cm-tab]:hover{color:var(--cm-text);}
+[data-cm-tab][data-on]{color:var(--cm-text);}
+[data-cm-tab][data-on]::after{content:'';position:absolute;left:10px;right:10px;bottom:-1px;
+  height:2px;border-radius:2px;background:var(--cm-accent);box-shadow:var(--cm-glow-accent);}
 [data-cm-dbody]{overflow:auto;min-height:0;flex:1;padding:var(--cm-s4) var(--cm-s6) var(--cm-s7);}
 
-/* ── 卡片：细边 + 极轻阴影，hover 抬半层 ── */
-[data-cm-card]{border:1px solid var(--cm-line-soft);border-radius:var(--cm-r-lg);
-  background:var(--cm-surface);padding:var(--cm-s4) var(--cm-s5);margin-bottom:var(--cm-s4);
-  transition:box-shadow var(--cm-slow) var(--cm-ease),border-color var(--cm-slow) var(--cm-ease);}
+/* ── 卡片：深色微透玻璃 + 1px 切面高光（悬浮只换边色，不抬升、不缩放） ── */
+[data-cm-card]{position:relative;border:var(--cm-hairline);border-radius:var(--cm-r-lg);
+  background:var(--cm-surface);padding:var(--cm-s5);margin-bottom:var(--cm-s4);
+  backdrop-filter:var(--cm-blur);-webkit-backdrop-filter:var(--cm-blur);
+  box-shadow:var(--cm-shadow-md),var(--cm-glow-top);
+  transition:border-color var(--cm-slow) var(--cm-ease);}
+/* 顶缘中间亮、两头透明的细线：整块卡片的精致感就来自这一道 */
+[data-cm-card]::before{content:'';position:absolute;top:0;left:12%;right:12%;height:1px;
+  background:var(--cm-toplight);pointer-events:none;}
 [data-cm-card]:hover{border-color:var(--cm-line-strong);}
 [data-cm-kv]{display:grid;grid-template-columns:96px 1fr;gap:var(--cm-s2) var(--cm-s4);font-size:var(--cm-f-sm);}
 [data-cm-kv] b{font-weight:500;color:var(--cm-text-dim);}
@@ -355,15 +398,16 @@ window.__ModuleLoader__.load({
 
 /* ── 顶部导航：分段控件质感 ── */
 [data-cm-nav]{display:flex;gap:2px;align-items:center;padding:3px;
-  border-radius:var(--cm-r-md);background:var(--cm-layer-2);}
+  border-radius:var(--cm-r-md);background:var(--cm-layer-2);
+  border:1px solid var(--cm-line-soft);box-shadow:var(--cm-inset-groove);}
 [data-cm-nav] button{border:1px solid transparent;background:transparent;color:var(--cm-text-dim);
   font-family:inherit;font-size:var(--cm-f-sm);border-radius:var(--cm-r-sm);padding:5px 12px;cursor:pointer;
   line-height:1.4;
   transition:background-color var(--cm-fast) var(--cm-ease),color var(--cm-fast) var(--cm-ease),
     box-shadow var(--cm-fast) var(--cm-ease);}
 [data-cm-nav] button:hover{background:var(--cm-hover);color:var(--cm-text);}
-[data-cm-nav] button[data-on]{background:var(--cm-base);color:var(--cm-text);
-  border-color:var(--cm-line);box-shadow:var(--cm-shadow-sm);}
+[data-cm-nav] button[data-on]{background:var(--cm-active);color:var(--cm-text);
+  border-color:var(--cm-accent-line);box-shadow:var(--cm-glow-top),var(--cm-glow-accent);}
 
 /* ── compose 项目卡片 ── */
 [data-cm-projgrid]{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:var(--cm-s3);}
@@ -493,6 +537,86 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
   /* 活动日志五行并排挤不下，改两列自动换行 */
   [data-cm-audit-row]{grid-template-columns:1fr auto;}
 }
+
+/* ═══ Obsidian Glass HUD：新增部件的材质与刻度 ═══ */
+
+/* 主按钮：电光青渐变 + 外发光。整个界面只有它和选中态发光，亮度才有意义。 */
+[data-cm-btn][data-primary]{background:linear-gradient(180deg,var(--cm-accent-hover),var(--cm-accent));
+  border-color:transparent;color:var(--cm-on-accent);font-weight:600;
+  box-shadow:var(--cm-glow-accent),var(--cm-glow-top);}
+[data-cm-btn][data-primary]:hover{background:linear-gradient(180deg,var(--cm-accent),var(--cm-accent-hover));
+  box-shadow:var(--cm-glow-accent),var(--cm-shadow-md);}
+
+/* 刷新按钮的 4 秒脉冲环：和数据刷新同一个节拍，不是装饰动画 */
+[data-cm-pulsedot]{position:relative;width:6px;height:6px;flex:none;border-radius:var(--cm-r-full);
+  background:var(--cm-ok);box-shadow:var(--cm-glow-ok);}
+[data-cm-pulsedot]::after{content:'';position:absolute;inset:-2px;border-radius:inherit;
+  border:1px solid var(--cm-ok);opacity:0;animation:cm-pulse 4s var(--cm-ease) infinite;}
+@keyframes cm-pulse{
+  0%{opacity:.5;transform:scale(.72);}
+  45%{opacity:0;transform:scale(1.55);}
+  100%{opacity:0;transform:scale(1.55);}}
+
+/* 待确认计数：0 条时是灰字，有货才点亮成琥珀胶囊 —— 别用常亮的红点逼人习惯警报 */
+[data-cm-pendingbadge]{color:var(--cm-text-dim);}
+[data-cm-pendingbadge][data-on]{margin-left:6px;padding:0 7px;border-radius:var(--cm-r-xs);
+  color:var(--cm-warn);font-weight:600;background:var(--cm-warn-soft);
+  box-shadow:inset 0 0 0 1px var(--cm-warn-line);}
+
+/* ── Bento：宿主三格遥测（负载 / 内存 / 主盘） ── */
+[data-cm-bento]{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--cm-s3);
+  margin-top:var(--cm-s1);}
+[data-cm-tile]{position:relative;border:var(--cm-hairline);border-radius:var(--cm-r-sm);
+  background:var(--cm-layer-2);padding:var(--cm-s3);min-width:0;overflow:hidden;}
+[data-cm-tilehead]{display:flex;align-items:center;gap:6px;font-size:var(--cm-f-xs);
+  color:var(--cm-text-dim);letter-spacing:.04em;}
+[data-cm-tileicon]{display:flex;color:var(--cm-accent);opacity:.85;}
+[data-cm-big]{font-size:var(--cm-f-2xl);font-weight:600;line-height:1.15;margin-top:4px;
+  font-variant-numeric:tabular-nums;letter-spacing:-.02em;}
+[data-cm-bigunit]{font-size:var(--cm-f-md);font-weight:500;color:var(--cm-text-2);margin-left:1px;}
+[data-cm-tilesub]{font-size:var(--cm-f-xs);color:var(--cm-text-2);margin-top:2px;
+  font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+[data-cm-hint]{font-size:var(--cm-f-xs);color:var(--cm-text-dim);}
+
+/* 负载折线：线细、面积淡，最后一点标一个实心圆（当前值） */
+[data-cm-spark]{display:block;width:100%;height:28px;margin-top:var(--cm-s2);}
+[data-cm-spark-area]{fill:var(--cm-accent-soft);stroke:none;}
+[data-cm-spark-line]{fill:none;stroke:var(--cm-accent);stroke-width:1.5;
+  stroke-linejoin:round;stroke-linecap:round;}
+[data-cm-spark-dot]{fill:var(--cm-accent);}
+
+/* ── 三格信息矩阵（面板 / 危险操作 / AI） ── */
+[data-cm-matrix]{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--cm-s3);}
+[data-cm-cell]{border:var(--cm-hairline);border-radius:var(--cm-r-sm);
+  background:var(--cm-layer-2);padding:var(--cm-s3);min-width:0;}
+[data-cm-cellhead]{display:flex;align-items:center;gap:6px;font-size:var(--cm-f-sm);
+  margin-bottom:var(--cm-s1);}
+[data-cm-cellhead] strong{font-weight:600;}
+[data-cm-cellbody]{font-size:var(--cm-f-xs);color:var(--cm-text-2);line-height:1.65;}
+
+/* ── 节点：两张子卡 + 等宽技术徽章 ── */
+[data-cm-nodes]{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--cm-s3);}
+[data-cm-nodecard]{border:var(--cm-hairline);border-radius:var(--cm-r-sm);
+  background:var(--cm-layer-2);padding:var(--cm-s3);min-width:0;}
+[data-cm-nodehead]{display:flex;align-items:center;gap:6px;font-size:var(--cm-f-sm);
+  margin-bottom:var(--cm-s1);}
+[data-cm-tech]{display:flex;flex-wrap:wrap;gap:4px;}
+[data-cm-tip]{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:var(--cm-f-xs);
+  line-height:1.7;padding:0 6px;border-radius:var(--cm-r-xs);
+  border:1px solid var(--cm-line-soft);background:var(--cm-base);
+  color:var(--cm-text-2);white-space:nowrap;}
+
+/* 配置页的分段控件：同一套凹槽 + 亮药丸语言 */
+[data-cm-seg]{display:inline-flex;gap:2px;padding:3px;margin-bottom:var(--cm-s4);
+  border-radius:var(--cm-r-md);background:var(--cm-layer-2);
+  border:1px solid var(--cm-line-soft);box-shadow:var(--cm-inset-groove);}
+[data-cm-segitem][data-active]{background:var(--cm-active);color:var(--cm-text);
+  box-shadow:var(--cm-glow-top);}
+
+/* 窄屏：三格与两格全部退成单列，别横向挤成一坨 */
+@media (max-width:600px){
+  [data-cm-bento],[data-cm-matrix],[data-cm-nodes]{grid-template-columns:1fr;}
+}
 /* ── 尊重系统的降低动效偏好 ── */
 @media (prefers-reduced-motion:reduce){
   [data-cm-page] *,[data-cm-page] *::before,[data-cm-page] *::after{
@@ -542,6 +666,46 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
       const props = { 'data-cm-dot': '' }
       if (tone) props['data-' + tone] = ''
       return h('span', props)
+    }
+
+    /**
+     * 内联线性图标。只留几条能一眼认出的形状，全部 24×24 网格、随 currentColor 上色，
+     * 不引图标库 —— 一个面板为七个图标背一整个 iconfont 是没必要的。
+     */
+    const GLYPHS = {
+      search: [['circle', { cx: 11, cy: 11, r: 8 }], ['path', { d: 'm21 21-4.3-4.3' }]],
+      refresh: [['path', { d: 'M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8' }],
+        ['path', { d: 'M21 3v5h-5' }],
+        ['path', { d: 'M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16' }],
+        ['path', { d: 'M8 16H3v5' }]],
+      shield: [['path', { d: 'M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z' }]],
+      wrench: [['path', { d: 'M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z' }]],
+      activity: [['path', { d: 'M22 12h-4l-3 9L9 3l-3 9H2' }]],
+      cpu: [['rect', { x: 4, y: 4, width: 16, height: 16, rx: 2 }],
+        ['rect', { x: 9, y: 9, width: 6, height: 6 }],
+        ['path', { d: 'M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2' }]],
+      disk: [['path', { d: 'M22 12H2' }],
+        ['path', { d: 'M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z' }],
+        ['path', { d: 'M6 16h.01M10 16h.01' }]],
+    }
+
+    function Glyph({ name, size }) {
+      const parts = GLYPHS[name] || []
+      const px = size || 14
+      return h('svg', {
+        width: px, height: px, viewBox: '0 0 24 24', fill: 'none',
+        stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round',
+        'aria-hidden': 'true', focusable: 'false',
+      }, ...parts.map((part, index) => h(part[0], { key: index, ...part[1] })))
+    }
+
+    /** 三格信息位：一个图标、一句标题、一段说明。比 96px 宽的 kv 表更好扫。 */
+    function InfoCell({ icon, title, hint }) {
+      return h('div', { 'data-cm-cell': '' },
+        h('div', { 'data-cm-cellhead': '' },
+          h('span', { 'data-cm-tileicon': '' }, h(Glyph, { name: icon, size: 14 })),
+          h('strong', null, title)),
+        h('div', { 'data-cm-cellbody': '' }, hint))
     }
 
     function kv(entries) {
@@ -726,6 +890,27 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
       if (delta < -1.5) return { dir: 'down', text: '↘', title: '近 ' + span + '在落' }
       return { dir: 'flat', text: '→', title: '近 ' + span + '基本持平' }
     }
+
+    /*
+     * 宿主负载的环形缓冲：10 秒一个点、最多 20 个（约 3 分钟）。
+     *
+     * 和容器 CPU 那条「只给箭头不给曲线」不冲突：容器是每台一个数组、采样 10 秒一次，
+     * 每条曲线的起伏大半来自采样间隔，画出来是假毛刺；这里一台机一个数、x 轴等距、
+     * 点还够密，折线才真的在描述负载。少于 2 点不画 —— 一个点连不成线。
+     */
+    const LOAD_HISTORY = []
+    const LOAD_SAMPLES = 20
+
+    function pushHostLoad(byNode) {
+      for (const value of byNode.values()) {
+        const host = value && value.host
+        const one = host && host.ok && host.load ? Number(host.load.one) : NaN
+        if (!Number.isFinite(one)) continue
+        LOAD_HISTORY.push(one)
+        while (LOAD_HISTORY.length > LOAD_SAMPLES) LOAD_HISTORY.shift()
+        return
+      }
+    }
     /**
      * 实时占用：按节点批量取，返回 Map<节点 id, {value, problem, rows, byName}>。
      * 左侧列表是所有节点混在一起显示的，所以每个节点各要一份 ——
@@ -755,6 +940,7 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
           }))
           if (cancelled) return
           pushCpuSamples(values)
+          pushHostLoad(values)
           setByNode(values)
           setProblems(failures)
           timer = window.setTimeout(tick, 10000)
@@ -842,6 +1028,54 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
      * 画在 100% 位置等于装饰，会让读者以为那里另有一条线。
      * `tall` 把轨道从 3px 抬到 6px，用在真正要看的水位线上。
      */
+    /**
+     * 宿主负载折线：只连真实采样点，不插值、不平滑、不做面积阴影以外的装饰。
+     * 点少于 2 个直接不渲染 —— 一个点画成折线是在骗人。
+     */
+    function HostSpark({ series }) {
+      const list = (Array.isArray(series) ? series : []).map(Number).filter(Number.isFinite)
+      if (list.length < 2) return null
+      const width = 100
+      const height = 26
+      const peak = Math.max(...list)
+      const scale = peak > 0 ? peak : 1
+      const step = width / (list.length - 1)
+      const at = (value, index) => (index * step).toFixed(2) + ','
+        + (height - (value / scale) * (height - 3) - 1.5).toFixed(2)
+      const points = list.map(at).join(' ')
+      const tail = at(list[list.length - 1], list.length - 1).split(',')
+      return h('svg', {
+        'data-cm-spark': '', viewBox: '0 0 ' + width + ' ' + height,
+        preserveAspectRatio: 'none', 'aria-hidden': 'true', focusable: 'false',
+        title: '近 ' + list.length + ' 次采样，峰值 ' + peak.toFixed(2),
+      },
+        h('polygon', { 'data-cm-spark-area': '', points: '0,' + height + ' ' + points + ' ' + width + ',' + height }),
+        h('polyline', { 'data-cm-spark-line': '', points, vectorEffect: 'non-scaling-stroke' }),
+        h('circle', { 'data-cm-spark-dot': '', cx: tail[0], cy: tail[1], r: 1.5 }))
+    }
+
+    /**
+     * 列表行里的双色微进度：CPU 一条青色、内存一条绿色。
+     * 内存那条只在容器真的设了上限时才画 —— 没有上限时「已用 / 0」算不出百分比，
+     * 拿它当分母画一根 100% 的条是在骗人，所以宁可少画一条。
+     */
+    function RowBars({ usage }) {
+      if (!usage) return null
+      const cpu = Math.max(0, Math.min(100, Number(usage.cpuPercent) || 0))
+      const limit = Number(usage.memLimit) || 0
+      const mem = limit > 0
+        ? Math.max(0, Math.min(100, (Number(usage.memUsed) || 0) / limit * 100))
+        : null
+      if (!(cpu > 0.5) && (mem === null || !(mem > 0.5))) return null
+      const bars = [h('i', { key: 'cpu', 'data-kind': 'cpu', title: 'CPU ' + cpu.toFixed(1) + '%' },
+        h('b', { style: { width: cpu.toFixed(1) + '%' } }))]
+      if (mem !== null) {
+        bars.push(h('i', { key: 'mem', 'data-kind': 'mem', title: '占内存上限 ' + mem.toFixed(0) + '%' },
+          h('b', { style: { width: mem.toFixed(1) + '%' } })))
+      }
+      return h('div', { 'data-cm-bars': '' }, bars)
+    }
+
     function Meter({ percent, tick, tall }) {
       const value = Math.max(0, Math.min(100, Number(percent) || 0))
       const props = { 'data-cm-meter': '' }
@@ -1153,7 +1387,17 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
         h('div', { key: 'title' },
           h('div', { 'data-cm-title': '' }, '容器台'),
           h('div', { 'data-cm-sub': '' },
-            loading ? '读取中…' : `${containers.length} 个容器 · ${networks.length} 个网络 · ${pending.length} 条待确认`)),
+            loading
+              ? '读取中…'
+              /* 待确认 > 0 时单独挂琥珀色，这是整个页面唯一需要人动手的信号 */
+              : [
+                containers.length + ' 个容器 · ' + networks.length + ' 个网络',
+                h('span', {
+                  key: 'pending',
+                  'data-cm-pendingbadge': '',
+                  ...(pending.length > 0 ? { 'data-on': '' } : {}),
+                }, pending.length > 0 ? pending.length + ' 条待确认' : ' · ' + pending.length + ' 条待确认'),
+              ])),
         h('div', { key: 'nav', 'data-cm-nav': '' },
           ...VIEWS.map(entry => h('button', {
             key: entry[0],
@@ -1180,17 +1424,19 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
           'data-cm-btn': '',
           disabled: busy,
           onClick: () => run(load(true), '已刷新'),
-        }, '刷新'),
+        }, h('span', { 'data-cm-pulsedot': '' }), '刷新'),
       )
 
       /* ── 左侧列表 ── */
       const listChildren = []
       listChildren.push(h('div', { 'data-cm-search': '' },
-        h('input', {
-          placeholder: '筛选容器 / 镜像 / 状态',
-          value: filter,
-          onChange: event => setFilter(event.target.value),
-        })))
+        h('div', { 'data-cm-searchwrap': '' },
+          h('span', { 'data-cm-sicon': '' }, h(Glyph, { name: 'search', size: 14 })),
+          h('input', {
+            placeholder: '筛选容器 / 镜像 / 状态',
+            value: filter,
+            onChange: event => setFilter(event.target.value),
+          }))))
       // 页面已经按运行时分开了，列表就只遍历当前这一类的节点。
       const activeKind = view === 'lxc' ? 'lxc' : 'podman'
       const kindNodes = nodes.filter(node => node.kind === activeKind)
@@ -1299,7 +1545,8 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
             usage
               ? h('div', { 'data-cm-rmeta': '', 'data-cm-live': '' },
                 'CPU ' + usage.cpuPercent.toFixed(2) + '% · 内存 ' + sizeText(usage.memUsed))
-              : null),
+              : null,
+            h(RowBars, { usage })),
           container.state === 'running'
             ? h('button', {
               'data-cm-btn': '',
@@ -1380,21 +1627,63 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
         const memory = host.memory || {}
         const disks = host.disks || []
         const load = host.load || {}
+        const tower = disks[0] || null
+        const two = value => Number(value || 0).toFixed(2)
+        /* 三格 Bento：负载（带折线）/ 内存 / 主盘。数字用同一档大号等宽字，扫一眼就能对齐比较。 */
         return h('div', { 'data-cm-card': '' },
-          h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } }, '这台机'),
-          h('div', { 'data-cm-host': '' },
-            h('div', null,
-              h('div', { 'data-cm-dim': '', style: { fontSize: 'var(--cm-f-xs)' } }, '负载 · 1 / 5 / 15 分钟'),
-              h('div', { 'data-cm-mono': '', style: { fontSize: 'var(--cm-f-md)' } },
-                [load.one, load.five, load.fifteen].map(value => Number(value || 0).toFixed(2)).join(' / '))),
-            h('div', null,
-              h('div', { 'data-cm-dim': '', style: { fontSize: 'var(--cm-f-xs)' } }, '内存 · ' + (memory.percent || 0) + '%'),
-              h('div', { 'data-cm-mono': '', style: { fontSize: 'var(--cm-f-md)' } }, sizeText(memory.used) + ' / ' + sizeText(memory.total)),
-              h(Meter, { percent: memory.percent }))),
-          ...disks.map(disk => h('div', { key: disk.mount, style: { marginTop: '8px' } },
-            h('div', { 'data-cm-dim': '', style: { fontSize: 'var(--cm-f-xs)' } }, '磁盘 ' + disk.mount + ' · ' + disk.percent + '%'),
-            h('div', { 'data-cm-mono': '', style: { fontSize: 'var(--cm-f-sm)' } }, sizeText(disk.used) + ' / ' + sizeText(disk.total)),
-            h(Meter, { percent: disk.percent }))))
+          h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } },
+            '这台机',
+            h('div', { 'data-cm-grow': '' }),
+            h('span', { 'data-cm-hint': '' }, '每 10 秒采样')),
+          h('div', { 'data-cm-bento': '' },
+            h('div', { key: 'load', 'data-cm-tile': '' },
+              h('div', { 'data-cm-tilehead': '' },
+                h('span', { 'data-cm-tileicon': '' }, h(Glyph, { name: 'activity', size: 13 })),
+                '负载'),
+              h('div', { 'data-cm-big': '' }, two(load.one)),
+              h('div', { 'data-cm-tilesub': '' }, '5 分 ' + two(load.five) + ' · 15 分 ' + two(load.fifteen)),
+              h(HostSpark, { series: LOAD_HISTORY.slice() })),
+            h('div', { key: 'mem', 'data-cm-tile': '' },
+              h('div', { 'data-cm-tilehead': '' },
+                h('span', { 'data-cm-tileicon': '' }, h(Glyph, { name: 'cpu', size: 13 })),
+                '内存'),
+              h('div', { 'data-cm-big': '' }, String(memory.percent || 0),
+                h('span', { 'data-cm-bigunit': '' }, '%')),
+              h('div', { 'data-cm-tilesub': '' }, sizeText(memory.used) + ' / ' + sizeText(memory.total)),
+              h(Meter, { percent: memory.percent, tall: true })),
+            h('div', { key: 'disk', 'data-cm-tile': '' },
+              h('div', { 'data-cm-tilehead': '' },
+                h('span', { 'data-cm-tileicon': '' }, h(Glyph, { name: 'disk', size: 13 })),
+                '磁盘' + (tower ? ' ' + tower.mount : '')),
+              tower
+                ? h('div', { 'data-cm-big': '' }, String(tower.percent || 0),
+                  h('span', { 'data-cm-bigunit': '' }, '%'))
+                : h('div', { 'data-cm-big': '' }, '—'),
+              h('div', { 'data-cm-tilesub': '' },
+                tower ? sizeText(tower.used) + ' / ' + sizeText(tower.total) : '读不到磁盘'),
+              tower ? h(Meter, { percent: tower.percent, tall: true }) : null)))
+      }
+
+      /**
+       * 节点技术栈拆成独立徽章。以前是一串 · 拼起来的灰字，扫不出「哪一版 / 是不是 rootless」；
+       * 拆成等宽小胶囊之后，两台节点的差异一眼就能对齐比。
+       */
+      function techBadges(node) {
+        const detail = node.detail || {}
+        if (node.kind === 'podman') {
+          return [
+            'podman ' + (detail.version ?? '?'),
+            detail.rootless ? 'rootless' : 'rootful',
+            detail.networkBackend ? 'net ' + detail.networkBackend : '',
+            detail.kernel ? 'kernel ' + detail.kernel : '',
+            detail.cgroupVersion ? 'cgroup v' + detail.cgroupVersion : '',
+          ].filter(Boolean)
+        }
+        return [
+          'lxc ' + (detail.version ?? '?'),
+          detail.macvlan ? 'macvlan 已加载' : 'macvlan 未加载',
+          detail.lxcbr0 ? 'lxcbr0 在' : 'lxcbr0 没起',
+        ].filter(Boolean)
       }
 
       function overviewView() {
@@ -1402,30 +1691,26 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
         return h('div', null,
           hostCard(),
           h('div', { 'data-cm-card': '' },
-            h('div', { 'data-cm-kv': '' },
-              h('b', null, '面板'),
-              h('span', null, '左侧「容器」——数据每 4 秒刷新一次。'),
-              h('b', null, '危险操作'),
-              h('span', null, '删除容器、改网络会先挂起，在本页底部「待确认」里点确认才执行。'),
-              h('b', null, 'AI'),
-              h('span', null, 'AI 有 20 个工具，能读、能建、能改名、能提交镜像，但确认按钮只在人手里。'))),
+            h('div', { 'data-cm-matrix': '' },
+              h(InfoCell, { icon: 'refresh', title: '面板',
+                hint: '左侧「容器」——数据每 4 秒刷新一次。' }),
+              h(InfoCell, { icon: 'shield', title: '危险操作',
+                hint: '删除容器、改网络会先挂起，在本页底部「待确认」里点确认才执行。' }),
+              h(InfoCell, { icon: 'wrench', title: 'AI',
+                hint: 'AI 有 20 个工具，能读、能建、能改名、能提交镜像，但确认按钮只在人手里。' }))),
           h('div', { 'data-cm-card': '' },
             h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } }, '节点'),
-            ...nodes.map(node => h('div', { key: node.id, style: { marginTop: '6px' } },
-              h('div', { style: { display: 'flex', gap: '6px', alignItems: 'center' } },
-                h(Dot, { tone: node.available ? 'on' : 'off' }),
-                h('strong', null, node.label),
-                h('span', { 'data-cm-dim': '' }, ` ${node.kind} / ${node.transport}`)),
-              node.available
-                ? h('div', { 'data-cm-dim': '', 'data-cm-mono': '' },
-                  node.kind === 'podman'
-                    ? ['podman ' + (node.detail?.version ?? '?'), node.detail?.rootless ? 'rootless' : 'rootful',
-                      node.detail?.networkBackend ? 'net ' + node.detail.networkBackend : '',
-                      node.detail?.kernel ? 'kernel ' + node.detail.kernel : '',
-                      node.detail?.cgroupVersion ? 'cgroup v' + node.detail.cgroupVersion : ''].filter(Boolean).join(' · ')
-                    : ['lxc ' + (node.detail?.version ?? '?'), node.detail?.macvlan ? 'macvlan 已加载' : 'macvlan 未加载',
-                      node.detail?.lxcbr0 ? 'lxcbr0 在' : 'lxcbr0 没起'].filter(Boolean).join(' · '))
-                : h('div', { 'data-cm-nodehint': '' }, node.reason || '不可用', node.hintText ? h('div', { 'data-cm-mono': '' }, node.hintText) : null)))),
+            h('div', { 'data-cm-nodes': '' },
+              nodes.map(node => h('div', { key: node.id, 'data-cm-nodecard': '' },
+                h('div', { 'data-cm-nodehead': '' },
+                  h(Dot, { tone: node.available ? 'on' : 'off' }),
+                  h('strong', null, node.label),
+                  h('span', { 'data-cm-dim': '' }, node.kind + ' / ' + node.transport)),
+                node.available
+                  ? h('div', { 'data-cm-tech': '' },
+                    techBadges(node).map((badge, index) => h('span', { key: index, 'data-cm-tip': '' }, badge)))
+                  : h('div', { 'data-cm-nodehint': '' }, node.reason || '不可用',
+                    node.hintText ? h('div', { 'data-cm-mono': '' }, node.hintText) : null))))),
         )
       }
 
