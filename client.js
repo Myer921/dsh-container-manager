@@ -751,6 +751,26 @@ window.__ModuleLoader__.load({
       return (size >= 100 ? Math.round(size) : Math.round(size * 10) / 10) + ' ' + units[index]
     }
 
+    /**
+     * 秒数 → 中文短时长：`2天14小时` / `3小时20分` / `5分` / `42秒`。
+     *
+     * 只给两级精度：看运行时长是为了判断「刚重启过没 / 跑了多久」，给到秒是噪声。
+     * 拿不到合法秒数（undefined / NaN / 负数）就返回空串，让调用方整段不显示 —— 不编。
+     */
+    function formatUptime(seconds) {
+      // null / undefined / 空串是「没有这个数据」，不是「0 秒」—— 后者会显示成
+      // 「已运行 0秒」，看着像刚启动，其实是根本没读到 startedAt。
+      if (seconds === null || seconds === undefined || seconds === '') return ''
+      const total = Math.floor(Number(seconds))
+      if (!Number.isFinite(total) || total < 0) return ''
+      const days = Math.floor(total / 86400)
+      const hours = Math.floor((total % 86400) / 3600)
+      const minutes = Math.floor((total % 3600) / 60)
+      if (days > 0) return days + '天' + (hours ? hours + '小时' : '')
+      if (hours > 0) return hours + '小时' + (minutes ? minutes + '分' : '')
+      if (minutes > 0) return minutes + '分'
+      return (total % 60) + '秒'
+    }
     /** 把文本存成文件：DSH 里没有文件对话框，用 Blob + a[download]。 */
     function downloadText(filename, text) {
       try {
