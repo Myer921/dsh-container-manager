@@ -1,0 +1,55 @@
+{
+  "name": "dsh-container-manager",
+  "version": "0.8.0",
+  "description": "DSH 容器台：Cockpit 风格面板 + AI 工具，用 podman-compose 分组管理 Podman、直管 LXC，能改端口、开终端、改网络",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "vendor",
+    "client.js",
+    "cordis.patch.yml",
+    "dsh-plugin.json",
+    "README.md",
+    "helper",
+    "docs",
+    "scripts",
+    "test"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime"
+      ]
+    }
+  },
+  "engines": {
+    "dsh": ">=0.2.0"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "selfcheck": "node scripts/selfcheck.mjs"
+  },
+  "os": [
+    "linux"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "podman",
+    "lxc",
+    "container",
+    "network",
+    "容器台"
+  ]
+}

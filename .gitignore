@@ -1,0 +1,10 @@
+# 依赖与构建产物
+node_modules/
+
+# 运行期生成的东西
+*.log
+*.cm-bak-*
+
+# 编辑器 / 系统
+.DS_Store
+*.swp

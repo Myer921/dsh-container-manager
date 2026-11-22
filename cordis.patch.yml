@@ -1,0 +1,13 @@
+# dsh-container-manager 的 bundle patch：把「容器台」挂进 DSH 配置树。
+#
+# 用户层可以按 id 覆盖这些 config 键（profiles/web/cordis.patch.yml 里写 - id: container-manager）。
+- insert:
+    - id: container-manager
+      name: 'dsh-container-manager'
+      config:
+        # 危险操作（删除容器、改网络）一律先挂起，等人到面板点确认。
+        confirmRequired: true
+        # 待确认单的有效期（秒）。
+        confirmTtlSeconds: 600
+        # 是否允许在容器里执行命令（AI 工具不提供 exec；面板也不开放）。
+        allowExec: false

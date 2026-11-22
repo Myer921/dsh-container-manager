@@ -1,0 +1,28 @@
+[Unit]
+Description=DSH Container Manager LXC helper (dsh-lxcd)
+Documentation=https://github.com/deepseek-ai/deepseek-harness
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# __NODE__ 由 install-helper.sh 替换成真实的 node 绝对路径
+ExecStart=__NODE__ /usr/local/lib/dsh-container-manager/dsh-lxcd.mjs
+Restart=always
+RestartSec=3
+User=root
+Group=root
+Environment=LXCD_SOCKET=/run/dsh-container-manager/lxcd.sock
+Environment=LXCD_GROUP=__GROUP__
+Environment=LXCD_AUDIT=/var/log/dsh-container-manager/audit.jsonl
+# /run/dsh-container-manager 由 helper 自己创建（组 __GROUP__、0770），
+# 这样运行 DSH 的那个用户能连进 socket；不交给 RuntimeDirectory，免得目录变成 root:root 0750。
+# 这个服务本来就要 root：它只做白名单里的 lxc / 网络操作，不执行任意命令。
+NoNewPrivileges=no
+# yes：/usr、/boot 只读；/etc 仍可写（要改 /etc/default/lxc-net）。
+ProtectSystem=yes
+ProtectHome=read-only
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target

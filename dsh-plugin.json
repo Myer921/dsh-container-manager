@@ -1,0 +1,32 @@
+{
+  "$schema": "https://raw.githubusercontent.com/T-Auto/dsh-std/8a15541117cb3c13ddb8f2468308691b6051d162/packages/manifest/schema/dsh-plugin-0.15.schema.json",
+  "manifestVersion": "0.15",
+  "id": "dsh-container-manager.local",
+  "name": "dsh-container-manager",
+  "version": "0.8.0",
+  "license": "MIT",
+  "description": "DSH 容器台：Cockpit 风格面板 + AI 工具，用 podman-compose 分组管理 Podman、直管 LXC，能改端口、开终端、改网络",
+  "facets": {
+    "host": {
+      "entry": "lib/index.js",
+      "apiVersion": "v1alpha1"
+    }
+  },
+  "requires": {
+    "contracts": [
+      {
+        "apiVersion": "tools.dsh/v1alpha1",
+        "kind": "Tool"
+      }
+    ]
+  },
+  "permissions": [],
+  "contributes": {
+    "x-display": [
+      {
+        "title": "dsh-container-manager",
+        "description": "左侧「容器」主面板（项目/容器/镜像/卷/网络 + 终端）+ 17 个工具；危险操作走面板确认"
+      }
+    ]
+  }
+}
