@@ -29,41 +29,46 @@ window.__ModuleLoader__.load({
   padding-top:var(--dsh-frame-top-clearance,0px);color:var(--cm-text);
   background:var(--cm-canvas-glow),var(--cm-base);
   font-size:var(--cm-f-md);line-height:1.5;-webkit-font-smoothing:antialiased;
-  /* ── Obsidian Glass HUD 调色板 ──
-     v0.10.0 起面板是**固定深空 HUD**，不再跟随宿主明暗：光在玻璃后面、线是切面，
-     颜色只出现在三个语义上（青＝交互/在线指标、绿＝健康、琥珀＝待确认与告警）。
+  /* ── 颜色全部派生自 DSH 主题令牌 ──
+     这里写的是**亮色基线**；暗色只覆盖 6 个会发光的令牌，见下面 body[data-ds-dark-theme] 那一块。
+     宿主换主题 = 换这套 alias 令牌，面板自动跟上，不需要再改一次。
      色值只允许写在这一批 --cm-* 定义行里（test/theme.test.mjs 会过滤这些行）。 */
-  --cm-base:#090C10;
-  --cm-surface:rgba(17,22,31,.85);
-  --cm-surface-hover:rgba(24,32,45,.92);
-  --cm-layer-2:#0D1117;
-  --cm-glass:rgba(17,22,31,.72);
-  --cm-hairline:1px solid rgba(255,255,255,.07);
-  --cm-toplight:linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent);
-  --cm-canvas-glow:radial-gradient(1100px 520px at 88% -12%,rgba(56,189,248,.05),transparent 68%),radial-gradient(900px 480px at 6% 108%,rgba(16,185,129,.035),transparent 70%);
-  --cm-text:#E6EDF6;
-  --cm-text-2:#A7B4C6;
-  --cm-text-dim:#6B7A90;
-  --cm-line:rgba(255,255,255,.09);
-  --cm-line-soft:rgba(255,255,255,.055);
-  --cm-line-strong:rgba(255,255,255,.15);
-  --cm-selected:var(--dsw-alias-border-selected,#38BDF8);
-  --cm-hover:rgba(255,255,255,.055);
-  --cm-active:#1E293B;
-  --cm-accent:#38BDF8;
-  --cm-accent-hover:#5AC8FA;
-  --cm-on-accent:#04121B;
-  --cm-ok:#10B981;
-  --cm-warn:#F59E0B;
-  --cm-warn-text:#FBBF24;
-  --cm-danger:#F87171;
-  --cm-idle:#5B6779;
-  /* 光晕与切面高光：卡片边缘那道 1px 微亮，是精密硬件感的关键 */
-  --cm-glow-accent:0 0 12px rgba(56,189,248,.35);
-  --cm-glow-ok:0 0 8px rgba(16,185,129,.5);
-  --cm-glow-warn:0 0 10px rgba(245,158,11,.4);
-  --cm-glow-top:inset 0 1px 0 rgba(255,255,255,.06);
-  --cm-inset-groove:inset 0 1px 3px rgba(0,0,0,.35);
+  --cm-text:var(--dsw-alias-label-primary,currentColor);
+  --cm-text-2:var(--dsw-alias-label-secondary,currentColor);
+  --cm-text-dim:var(--dsw-alias-label-tertiary,#8b9096);
+  --cm-base:var(--dsw-alias-bg-base,transparent);
+  --cm-surface:var(--dsw-alias-card-fill,rgba(128,128,128,.08));
+  --cm-surface-hover:var(--dsw-alias-card-fill-hover,rgba(128,128,128,.12));
+  /* 凹槽 / 子卡 / 左栏：在底色与卡面之间取一档，亮暗两边都能分层 */
+  --cm-layer-2:color-mix(in srgb,var(--cm-surface) 55%,var(--cm-base));
+  --cm-active:var(--dsw-alias-button-elevated-fill,#e6e7ea);
+  --cm-hover:var(--dsw-alias-interactive-bg-hover,rgba(128,128,128,.1));
+  --cm-selected:var(--dsw-alias-border-selected,#adb2b8);
+  /* 强调色用 DSH 自己的静态蓝（和终端 readTermTheme() 同一套），不用 brand-primary ——
+     那是反色令牌（亮色近黑、暗色近白），拿它当强调色会得到黑药丸 / 白药丸。 */
+  --cm-accent:var(--dsw-static-blue-600,#2563eb);
+  --cm-accent-hover:color-mix(in srgb,var(--cm-accent) 82%,var(--cm-text));
+  --cm-on-accent:var(--dsw-static-neutral-bluish-00,#ffffff);
+  --cm-ok:var(--dsw-alias-state-success-primary,#22c55e);
+  --cm-warn:var(--dsw-alias-state-warn-primary,#f59e0b);
+  --cm-warn-text:var(--dsw-alias-state-warn-label,#dd8629);
+  --cm-danger:var(--dsw-alias-state-error-primary,#ef4444);
+  --cm-idle:var(--dsw-alias-label-tertiary,#8b9096);
+  /* 线条由文字色派生：亮色得「黑 8%」、暗色得「白 8%」，一条公式两套成立 */
+  --cm-line-soft:color-mix(in srgb,var(--cm-text) 8%,transparent);
+  --cm-line:color-mix(in srgb,var(--cm-text) 12%,transparent);
+  --cm-line-strong:color-mix(in srgb,var(--cm-text) 20%,transparent);
+  --cm-hairline:1px solid var(--cm-line-soft);
+  /* 亮色不发光：用一圈强调色细描边代替光晕，同一个令牌名，两套视觉 */
+  --cm-edge-light:color-mix(in srgb,var(--cm-text) 10%,transparent);
+  --cm-toplight:linear-gradient(90deg,transparent,var(--cm-edge-light),transparent);
+  --cm-glass:color-mix(in srgb,var(--cm-base) 84%,transparent);
+  --cm-canvas-glow:linear-gradient(transparent,transparent);
+  --cm-glow-accent:0 0 0 1px var(--cm-accent-line);
+  --cm-glow-ok:0 0 0 1px var(--cm-ok-line);
+  --cm-glow-warn:0 0 0 1px var(--cm-warn-line);
+  --cm-glow-top:inset 0 1px 0 color-mix(in srgb,var(--cm-text) 4%,transparent);
+  --cm-inset-groove:inset 0 1px 2px color-mix(in srgb,var(--cm-text) 6%,transparent);
   --cm-blur:blur(12px);
   /* ── 派生柔色：徽标、选中底、hover 都用它，避免满屏实心色块 ── */
   --cm-accent-soft:color-mix(in srgb,var(--cm-accent) 14%,transparent);
@@ -83,11 +88,29 @@ window.__ModuleLoader__.load({
   /* ── 动效：一条曲线走到底，时长克制 ── */
   --cm-ease:cubic-bezier(.2,.7,.3,1);
   --cm-fast:.14s;--cm-slow:.24s;
-  /* ── 阴影：深空背景靠分层暗影托起来，配 1px 内高光做切面 ── */
+  /* ── 阴影：亮色是轻灰影，暗色靠分层暗影托起来（见分支） ── */
+  --cm-shadow-sm:0 1px 2px rgba(0,0,0,.06);
+  --cm-shadow-md:0 4px 14px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
+  --cm-shadow-lg:0 12px 32px rgba(0,0,0,.12),0 2px 6px rgba(0,0,0,.06);
+  --cm-ring:0 0 0 3px var(--cm-accent-soft);}
+
+/* ── 暗色分支：只换这 9 个令牌，其余全部由上面派生 ──
+   DSH 用 body[data-ds-dark-theme] 表示暗色（client.js 的 MutationObserver 已经在盯它给终端用），
+   面板 CSS 注入在 document.head，所以这个后代选择器能命中面板根节点。 */
+body[data-ds-dark-theme] [data-cm-page]{
+  --cm-accent:var(--dsw-static-blue-400,#60a5fa);
+  --cm-on-accent:#08131F;
+  --cm-edge-light:rgba(255,255,255,.14);
+  --cm-canvas-glow:radial-gradient(1100px 520px at 88% -12%,color-mix(in srgb,var(--cm-accent) 7%,transparent),transparent 68%),radial-gradient(900px 480px at 6% 108%,color-mix(in srgb,var(--cm-ok) 5%,transparent),transparent 70%);
+  --cm-glow-accent:0 0 12px color-mix(in srgb,var(--cm-accent) 35%,transparent);
+  --cm-glow-ok:0 0 8px color-mix(in srgb,var(--cm-ok) 50%,transparent);
+  --cm-glow-warn:0 0 10px color-mix(in srgb,var(--cm-warn) 40%,transparent);
+  --cm-glow-top:inset 0 1px 0 rgba(255,255,255,.06);
+  --cm-inset-groove:inset 0 1px 3px rgba(0,0,0,.35);
   --cm-shadow-sm:0 1px 2px rgba(0,0,0,.35);
   --cm-shadow-md:0 6px 20px rgba(0,0,0,.45),0 1px 2px rgba(0,0,0,.4);
   --cm-shadow-lg:0 18px 48px rgba(0,0,0,.55),0 2px 8px rgba(0,0,0,.4);
-  --cm-ring:0 0 0 3px var(--cm-accent-soft);}
+}
 
 /* ── 顶栏 ── */
 [data-cm-top]{display:flex;align-items:center;gap:var(--cm-s3);padding:var(--cm-s4) var(--cm-s6);
@@ -603,7 +626,7 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
 [data-cm-tech]{display:flex;flex-wrap:wrap;gap:4px;}
 [data-cm-tip]{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:var(--cm-f-xs);
   line-height:1.7;padding:0 6px;border-radius:var(--cm-r-xs);
-  border:1px solid var(--cm-line-soft);background:var(--cm-base);
+  border:1px solid var(--cm-line-soft);background:var(--cm-layer-2);
   color:var(--cm-text-2);white-space:nowrap;}
 
 /* 配置页的分段控件：同一套凹槽 + 亮药丸语言 */
