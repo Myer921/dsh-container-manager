@@ -471,6 +471,28 @@ window.__ModuleLoader__.load({
   color:var(--cm-text-dim);}
 [data-cm-audit-tag][data-panel]{border-color:var(--cm-ok-line);color:var(--cm-ok);background:var(--cm-ok-soft);}
 
+/* ── 端口胶囊：能点开的那种 ── */
+a[data-cm-portpill]{text-decoration:none;}
+a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);}
+[data-cm-portext]{margin-left:3px;font-size:var(--cm-f-xs);opacity:.85;}
+
+/* 退出码后面跟一个短标签（SIGKILL / SIGSEGV），完整解释留在 title 里 */
+[data-cm-exitshort]{font-style:normal;margin-left:5px;font-size:var(--cm-f-xs);
+  opacity:.85;letter-spacing:.02em;}
+
+/* ── 窄屏（≤600px）：只修会溢出、会被裁的地方，不动信息密度 ── */
+@media (max-width:600px){
+  /* tab 栏：不换行、可横滚，别把四个标签竖着堆起来 */
+  [data-cm-tabs]{overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+  [data-cm-tabs]::-webkit-scrollbar{display:none;}
+  /* 容器行：允许折行，长镜像名不撑破 */
+  [data-cm-row]{flex-wrap:wrap;row-gap:3px;}
+  [data-cm-row]>*{min-width:0;}
+  /* 宿主信息两块并排 → 单列 */
+  [data-cm-host]{grid-template-columns:1fr;}
+  /* 活动日志五行并排挤不下，改两列自动换行 */
+  [data-cm-audit-row]{grid-template-columns:1fr auto;}
+}
 /* ── 尊重系统的降低动效偏好 ── */
 @media (prefers-reduced-motion:reduce){
   [data-cm-page] *,[data-cm-page] *::before,[data-cm-page] *::after{
@@ -569,6 +591,21 @@ window.__ModuleLoader__.load({
       if (n === 143) return '被 SIGTERM 终止'
       if (n === 126) return '命令不可执行'
       if (n === 127) return '命令不存在'
+      return ''
+    }
+    /**
+     * 退出码 → 一个短标签，跟在数字后面。
+     * 只写**确定**的信号名：137 就是 SIGKILL，至于它是不是 OOM 杀的，
+     * 那个猜测留在 exitCodeHint 的 title 里，不在界面上当结论。
+     */
+    function exitCodeShort(code) {
+      const n = Number(code)
+      if (!Number.isFinite(n) || n === 0) return ''
+      if (n === 137) return 'SIGKILL'
+      if (n === 139) return 'SIGSEGV'
+      if (n === 143) return 'SIGTERM'
+      if (n === 126) return 'EACCES'
+      if (n === 127) return 'ENOENT'
       return ''
     }
 
@@ -1405,6 +1442,7 @@ window.__ModuleLoader__.load({
         const usage = liveOne && liveOne.byName ? liveOne.byName.get(container.name) : null
         const tone = containerTone(container)
         const exitHint = exitCodeHint(container.exitCode)
+        const exitShort = exitCodeShort(container.exitCode)
         const trend = trendOf(CPU_HISTORY.get(container.nodeId + '/' + container.name))
         const isPodman = container.runtime === 'podman'
 
@@ -1433,7 +1471,8 @@ window.__ModuleLoader__.load({
             // 这个数字比「异常退出」四个字有用得多。
             tone === 'bad' && container.exitCode !== null && container.exitCode !== undefined && Number(container.exitCode) !== 0
               ? h('span', { 'data-cm-exitbad': '', title: exitHint || '退出码 ' + container.exitCode },
-                'code ' + container.exitCode)
+                'code ' + container.exitCode,
+                exitShort ? h('i', { 'data-cm-exitshort': '' }, exitShort) : null)
               : null,
             h('strong', { 'data-cm-heroname': '' }, container.name),
             h('div', { 'data-cm-grow': '' }),
@@ -1483,12 +1522,31 @@ window.__ModuleLoader__.load({
         // ── 4. 网络 + 端口 ──
         // 端口改成结构化胶囊：`0.0.0.0:8080->80/tcp` 这种整行字符串扫不动，
         // 拆成「宿主端口 → 容器端口 / 协议」三段之后，一眼就知道服务从哪进来。
+        // 常见 web 端口才做成链接：点了能进去的才值得点。
+        // 22 / 3306 / 5432 这些放进浏览器只会报错，所以保持纯文本。
+        const WEB_PORTS = new Set([80, 443, 3000, 3001, 4000, 5000, 5001, 5601, 7860,
+          8000, 8008, 8080, 8081, 8088, 8443, 8888, 9000, 9090, 9091, 9443])
+        // 目标地址：LXC 是桥接容器、有自己的 IP，直接用；
+        // Podman rootless 的端口发布在宿主上，容器内 IP 浏览器根本够不到，只能用当前 host。
+        const ownIp = (Array.isArray(container.networks) ? container.networks : [])
+          .map(net => net && net.ip).filter(Boolean)[0] || ''
+        const hereHost = typeof window !== 'undefined' && window.location ? window.location.hostname : ''
+        const webHost = container.runtime === 'lxc' ? (ownIp || hereHost) : (hereHost || ownIp)
         const portChips = (container.ports || []).map((port, index) => {
           const hostIp = port.hostIp && port.hostIp !== '0.0.0.0' ? port.hostIp : ''
           const hostText = port.hostPort == null ? '随机' : String(port.hostPort)
+          const portNo = Number(port.hostPort)
+          const linkable = Boolean(webHost) && Number.isFinite(portNo) && WEB_PORTS.has(portNo)
+          const scheme = portNo === 443 || portNo === 8443 || portNo === 9443 ? 'https' : 'http'
+          const href = linkable ? scheme + '://' + webHost + ':' + portNo : ''
           return h('div', { key: 'p' + index, 'data-cm-portrow': '' },
             hostIp ? h('span', { 'data-cm-portpill': '', 'data-muted': '' }, hostIp) : null,
-            h('span', { 'data-cm-portpill': '' }, hostText),
+            linkable
+              ? h('a', {
+                'data-cm-portpill': '', 'data-cm-portlink': '', href, target: '_blank', rel: 'noreferrer',
+                title: '在新标签打开 ' + href,
+              }, hostText, h('span', { 'data-cm-portext': '' }, '↗'))
+              : h('span', { 'data-cm-portpill': '' }, hostText),
             h('span', { 'data-cm-portarrow': '' }, '→'),
             h('span', { 'data-cm-portpill': '', 'data-muted': '' }, String(port.containerPort)),
             h('span', { 'data-cm-portpill': '', 'data-muted': '' }, String(port.protocol || 'tcp')))
@@ -2018,8 +2076,13 @@ window.__ModuleLoader__.load({
      * 命中就默认打码，要看得单独点开，避免一次操作把整屏密钥摊在投影上。
      */
     const SECRET_ENV_KEY = /(SECRET|KEY|PASS|TOKEN|PWD|AUTH|CREDENTIAL)/i
+    // 这些键名里带着「像秘密」的词，值却是数字、枚举或地址，糊掉只是让人看不清配置：
+    // TOKEN_EXPIRY=3600、AUTH_MODE=oauth、PASSWORD_MIN_LEN=8 都曾被误伤。
+    const NOT_SECRET_KEY = /(_EXPIRY|_TTL|_TIMEOUT|_MS|_SECONDS?|_COUNT|_LEN|_LENGTH|_SIZE|_URL|_URI|_MODE|_ENABLED|_ENABLE|_TYPE|_NAME|_PATH|_PORT|_HOST|_FILE|_DIR|_MAX|_MIN|_AGE|_AT|_INTERVAL|_RETRY)$/i
     function isSecretKey(key) {
-      return SECRET_ENV_KEY.test(String(key || ''))
+      const text = String(key || '')
+      if (NOT_SECRET_KEY.test(text)) return false
+      return SECRET_ENV_KEY.test(text)
     }
 
     /** 重建会牵动的字段，以及它们在界面上叫什么。 */
@@ -2381,12 +2444,16 @@ window.__ModuleLoader__.load({
             h('button', { 'data-cm-btn': '', onClick: () => setField('volumes', draft.volumes.filter((_, i) => i !== index)) }, '删除'))),
           h('button', { 'data-cm-btn': '', onClick: () => setField('volumes', draft.volumes.concat([{ source: '', destination: '', ro: false }])) }, '＋ 加一条挂载'),
 
-          h('div', { 'data-cm-sec': '' }, '环境变量'),
-          // 不做「一键全显」：一次点击把整屏密钥摊在投影上，代价太大。
-          // 只按键名判断该不该打码，要看哪条单独点开。
+          // 只给「全部隐藏」这一个方向：一键把已经点开的又盖回去是安全的，
+          // 反过来的「全部显示」不给 —— 一次点击把整屏密钥摊在投影上，代价太大。
+          h('div', { 'data-cm-sec': '', style: { display: 'flex', alignItems: 'center', gap: 'var(--cm-s3)' } },
+            '环境变量',
+            Object.keys(revealedEnv).some(k => revealedEnv[k])
+              ? h('button', { 'data-cm-btn': '', onClick: () => setRevealedEnv({}) }, '全部隐藏')
+              : null),
           h('div', { 'data-cm-dim': '', style: { marginBottom: 'var(--cm-s2)' } },
-            '键名里带 SECRET / KEY / PASS / TOKEN / PWD / AUTH / CREDENTIAL 的默认打码，',
-            '要看单独点「显示」。'),
+            '键名里带 SECRET / KEY / PASS / TOKEN / PWD / AUTH / CREDENTIAL 的默认打码；',
+            'TOKEN_EXPIRY / AUTH_MODE 这类明显不是口令的键不打码。要看哪条单独点「显示」。'),
           ...draft.env.map((one, index) => {
             const secret = isSecretKey(one.key)
             const plain = !secret || Boolean(revealedEnv[index])
