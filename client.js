@@ -27,7 +27,7 @@ window.__ModuleLoader__.load({
    ══════════════════════════════════════════════════════════ */
 [data-cm-page]{display:flex;flex-direction:column;height:100%;min-height:0;overflow:hidden;box-sizing:border-box;
   padding-top:var(--dsh-frame-top-clearance,0px);color:var(--cm-text);background:var(--cm-base);
-  font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased;
+  font-size:var(--cm-f-md);line-height:1.5;-webkit-font-smoothing:antialiased;
   /* ── 文本与线条 ── */
   --cm-text:var(--dsw-alias-label-primary,currentColor);
   --cm-text-2:var(--dsw-alias-label-secondary,currentColor);
@@ -63,8 +63,10 @@ window.__ModuleLoader__.load({
   --cm-warn-line:color-mix(in srgb,var(--cm-warn) 42%,transparent);
   /* ── 间距刻度：只有这几档，不再出现 7px / 9px 这种散值 ── */
   --cm-s1:4px;--cm-s2:6px;--cm-s3:8px;--cm-s4:12px;--cm-s5:16px;--cm-s6:20px;--cm-s7:28px;
-  /* ── 圆角刻度 ── */
-  --cm-r-sm:6px;--cm-r-md:10px;--cm-r-lg:14px;--cm-r-full:999px;
+  /* ── 圆角刻度：卡片 8、控件 6、胶囊 4。工业控制台不要 10 以上的圆角 ── */
+  --cm-r-xs:4px;--cm-r-sm:6px;--cm-r-md:8px;--cm-r-lg:8px;--cm-r-full:999px;
+  /* ── 字号刻度：封死 5 档（11 / 12 / 13 / 16 / 22），不再出现 10.5 / 11.5 / 12.5 ── */
+  --cm-f-xs:11px;--cm-f-sm:12px;--cm-f-md:13px;--cm-f-lg:16px;--cm-f-xl:22px;
   /* ── 动效：一条曲线走到底，时长克制 ── */
   --cm-ease:cubic-bezier(.2,.7,.3,1);
   --cm-fast:.14s;--cm-slow:.24s;
@@ -77,14 +79,14 @@ window.__ModuleLoader__.load({
 /* ── 顶栏 ── */
 [data-cm-top]{display:flex;align-items:center;gap:var(--cm-s3);padding:var(--cm-s3) var(--cm-s6);
   border-bottom:1px solid var(--cm-line);flex:none;background:var(--cm-base);position:relative;z-index:2;}
-[data-cm-title]{font-size:15px;font-weight:650;letter-spacing:-.01em;line-height:1.3;}
-[data-cm-sub]{font-size:11px;color:var(--cm-text-dim);letter-spacing:.01em;}
+[data-cm-title]{font-size:var(--cm-f-lg);font-weight:650;letter-spacing:-.01em;line-height:1.3;}
+[data-cm-sub]{font-size:var(--cm-f-xs);color:var(--cm-text-dim);letter-spacing:.01em;}
 [data-cm-grow]{flex:1;min-width:0;}
 
 /* ── 按钮：软底 + 细描边 + focus ring，按下有 0.5px 位移 ── */
 [data-cm-btn]{display:inline-flex;align-items:center;justify-content:center;gap:var(--cm-s2);
   border:1px solid var(--cm-line-strong);background:var(--cm-base);color:inherit;
-  border-radius:var(--cm-r-sm);padding:5px 11px;font-size:12px;line-height:1.4;
+  border-radius:var(--cm-r-sm);padding:5px 11px;font-size:var(--cm-f-sm);line-height:1.4;
   cursor:pointer;font-family:inherit;white-space:nowrap;
   transition:background-color var(--cm-fast) var(--cm-ease),border-color var(--cm-fast) var(--cm-ease),
     color var(--cm-fast) var(--cm-ease),box-shadow var(--cm-fast) var(--cm-ease),
@@ -111,7 +113,7 @@ window.__ModuleLoader__.load({
 [data-cm-search]{padding:var(--cm-s3) var(--cm-s4);border-bottom:1px solid var(--cm-line-soft);flex:none;}
 [data-cm-search] input{width:100%;box-sizing:border-box;background:var(--cm-base);
   border:1px solid var(--cm-line-strong);border-radius:var(--cm-r-sm);color:inherit;
-  padding:6px 10px;font-size:12px;font-family:inherit;outline:none;
+  padding:6px 10px;font-size:var(--cm-f-sm);font-family:inherit;outline:none;
   transition:border-color var(--cm-fast) var(--cm-ease),box-shadow var(--cm-fast) var(--cm-ease);}
 [data-cm-search] input:focus{border-color:var(--cm-accent);box-shadow:var(--cm-ring);}
 [data-cm-scroll]{overflow:auto;min-height:0;flex:1;padding:var(--cm-s2) var(--cm-s3) var(--cm-s6);}
@@ -142,7 +144,84 @@ window.__ModuleLoader__.load({
 /* ── 分组标题 ── */
 [data-cm-group]{margin-top:var(--cm-s3);}
 [data-cm-ghead]{display:flex;align-items:center;gap:var(--cm-s2);padding:var(--cm-s1) var(--cm-s2);
-  font-size:10.5px;font-weight:650;color:var(--cm-text-dim);text-transform:uppercase;letter-spacing:.07em;}
+  font-size:var(--cm-f-xs);font-weight:650;color:var(--cm-text-dim);letter-spacing:.06em;}
+
+
+
+/* ── 分段控件：同一页里几组性质相近、量级不同的配置 ── */
+[data-cm-seg]{display:inline-flex;gap:2px;padding:2px;margin-bottom:var(--cm-s4);
+  background:var(--cm-base);border:1px solid var(--cm-line-soft);border-radius:var(--cm-r-md);}
+[data-cm-segitem]{appearance:none;border:0;background:transparent;cursor:pointer;
+  font-family:inherit;font-size:var(--cm-f-sm);font-weight:500;color:var(--cm-text-dim);
+  padding:5px 12px;border-radius:var(--cm-r-sm);
+  transition:background-color var(--cm-fast) var(--cm-ease),color var(--cm-fast) var(--cm-ease);}
+[data-cm-segitem]:hover{color:var(--cm-text-2);}
+[data-cm-segitem][data-active]{background:var(--cm-surface);color:var(--cm-text);
+  box-shadow:inset 0 0 0 1px var(--cm-line);}
+
+/* ── 概览页：状态头 / 数字块 / 折叠 / 危险区 ── */
+[data-cm-hero]{display:flex;flex-direction:column;gap:var(--cm-s2);}
+[data-cm-heroline]{display:flex;gap:var(--cm-s3);align-items:center;flex-wrap:wrap;}
+[data-cm-heroname]{font-size:var(--cm-f-lg);font-weight:600;color:var(--cm-text);letter-spacing:-.01em;}
+[data-cm-herosub]{font-size:var(--cm-f-md);color:var(--cm-text-2);font-variant-numeric:tabular-nums;}
+
+/* 状态词本身带色 —— 色只在「状态 / 可交互 / 危险」三个语义上出现。 */
+[data-cm-statelabel]{font-size:var(--cm-f-sm);font-weight:600;letter-spacing:.02em;}
+[data-cm-statelabel][data-tone="on"]{color:var(--cm-ok);}
+[data-cm-statelabel][data-tone="warn"]{color:var(--cm-warn-text);}
+[data-cm-statelabel][data-tone="off"]{color:var(--cm-text-dim);}
+[data-cm-statelabel][data-tone="bad"]{color:var(--cm-danger);}
+
+/* CPU / 内存 / 进程 三块并排：这是首屏最该被看见的数字。 */
+[data-cm-numbers]{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:var(--cm-s4);margin:var(--cm-s4) 0;}
+[data-cm-numblock]{border:1px solid var(--cm-line-soft);border-radius:var(--cm-r-md);
+  padding:var(--cm-s4);display:flex;flex-direction:column;gap:4px;min-width:0;}
+[data-cm-numlabel]{font-size:var(--cm-f-xs);color:var(--cm-text-dim);letter-spacing:.04em;}
+[data-cm-numvalue]{font-size:var(--cm-f-xl);font-weight:600;color:var(--cm-text);
+  line-height:1.15;font-variant-numeric:tabular-nums;letter-spacing:-.02em;}
+[data-cm-numsub]{font-size:var(--cm-f-xs);color:var(--cm-text-2);font-variant-numeric:tabular-nums;}
+/* 趋势符号：三次轮询的走向。代替 sparkline —— 4 秒采一个点画折线，
+   线条的抖动来自轮询间隔而不是负载，那是撒谎。 */
+[data-cm-trend]{font-size:var(--cm-f-xs);font-weight:600;margin-left:var(--cm-s1);}
+[data-cm-trend][data-dir="up"]{color:var(--cm-warn-text);}
+[data-cm-trend][data-dir="down"]{color:var(--cm-ok);}
+[data-cm-trend][data-dir="flat"]{color:var(--cm-text-dim);}
+/* 退出码徽标：只在对得上退出码非 0 时出现，红色但不铺满。 */
+[data-cm-exitbad]{display:inline-flex;align-items:center;gap:4px;padding:1px 7px;
+  border-radius:var(--cm-r-xs);font-size:var(--cm-f-xs);font-weight:600;
+  color:var(--cm-danger);background:var(--cm-danger-soft);border:1px solid var(--cm-danger-line);
+  font-variant-numeric:tabular-nums;}
+/* 端口胶囊：把 0.0.0.0:8080->80/tcp 拆成能一眼扫的几段，而不是一整行字符串。 */
+[data-cm-ports]{display:flex;flex-direction:column;gap:var(--cm-s2);margin-top:var(--cm-s3);}
+[data-cm-portrow]{display:flex;align-items:center;gap:var(--cm-s2);flex-wrap:wrap;
+  padding:var(--cm-s2) var(--cm-s3);border:1px solid var(--cm-line-soft);
+  border-radius:var(--cm-r-sm);background:var(--cm-base);}
+[data-cm-portpill]{display:inline-flex;align-items:center;padding:1px 7px;
+  border-radius:var(--cm-r-xs);background:var(--cm-accent-soft);color:var(--cm-accent);
+  border:1px solid var(--cm-accent-line);
+  font-family:ui-monospace,Menlo,Consolas,monospace;font-size:var(--cm-f-xs);
+  font-variant-numeric:tabular-nums;}
+[data-cm-portpill][data-muted]{background:transparent;color:var(--cm-text-2);
+  border-color:var(--cm-line);}
+[data-cm-portarrow]{color:var(--cm-text-dim);font-size:var(--cm-f-xs);}
+
+/* 身份信息折叠：原生 details，零 JS。 */
+[data-cm-details]{border:1px solid var(--cm-line-soft);border-radius:var(--cm-r-md);
+  padding:var(--cm-s3) var(--cm-s4);margin-bottom:var(--cm-s4);}
+[data-cm-details] summary{cursor:pointer;font-size:var(--cm-f-sm);font-weight:600;
+  color:var(--cm-text-dim);letter-spacing:.04em;list-style:none;}
+[data-cm-details] summary::-webkit-details-marker{display:none;}
+[data-cm-details] summary::before{content:"\\25B8 ";display:inline-block;
+  transition:transform var(--cm-fast) var(--cm-ease);}
+[data-cm-details][open] summary::before{content:"\\25BE ";}
+[data-cm-details] summary:hover{color:var(--cm-text-2);}
+[data-cm-details] [data-cm-kv]{margin-top:var(--cm-s3);}
+
+/* 危险操作视觉后退：一条警示边框把它们圈住，不靠大红色块抢注意力。 */
+[data-cm-dangerzone]{display:flex;gap:var(--cm-s2);align-items:center;flex-wrap:wrap;
+  margin-top:var(--cm-s3);padding-top:var(--cm-s3);
+  border-top:1px dashed var(--cm-danger-line);}
 
 /* ── 状态点：带一圈同色光晕，比纯色点更有辨识度 ── */
 [data-cm-dot]{width:8px;height:8px;border-radius:var(--cm-r-full);flex:none;
@@ -152,6 +231,9 @@ window.__ModuleLoader__.load({
 [data-cm-dot][data-on]{background:var(--cm-ok);color:var(--cm-ok);}
 [data-cm-dot][data-off]{background:var(--cm-text-dim);color:var(--cm-text-dim);}
 [data-cm-dot][data-warn]{background:var(--cm-warn);color:var(--cm-warn);}
+/* 异常退出以前和「已停止」长得一模一样（都是灰点），这两个人必须分得开。 */
+[data-cm-dot][data-bad]{background:var(--cm-danger);color:var(--cm-danger);}
+
 
 /* ── 列表行 ── */
 [data-cm-row]{display:flex;align-items:center;gap:var(--cm-s3);padding:7px 9px;
@@ -160,27 +242,38 @@ window.__ModuleLoader__.load({
 [data-cm-row]:hover{background:var(--cm-hover);}
 [data-cm-row][data-active]{background:var(--cm-accent-soft);border-color:var(--cm-accent-line);}
 [data-cm-rmain]{flex:1;min-width:0;}
-[data-cm-rname]{font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.45;}
-[data-cm-rmeta]{font-size:10.5px;color:var(--cm-text-dim);overflow:hidden;
+[data-cm-rname]{font-size:var(--cm-f-md);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.45;}
+[data-cm-rmeta]{font-size:var(--cm-f-xs);color:var(--cm-text-dim);overflow:hidden;
   text-overflow:ellipsis;white-space:nowrap;line-height:1.45;}
-[data-cm-live]{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10px;
+[data-cm-live]{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:var(--cm-f-xs);
   color:var(--cm-text-2);font-variant-numeric:tabular-nums;}
 
+/* ── 重建差量表：点之前得看清改了哪几项、原来是什么 ── */
+[data-cm-diff]{margin-top:var(--cm-s4);padding-top:var(--cm-s3);
+  border-top:1px dashed var(--cm-warn-line);display:flex;flex-direction:column;
+  gap:var(--cm-s2);}
+[data-cm-diff] [data-cm-portrow]{background:transparent;border-color:var(--cm-line);}
 /* ── 占用条 ── */
-[data-cm-meter]{height:3px;border-radius:var(--cm-r-full);background:var(--cm-line);
-  overflow:hidden;margin-top:var(--cm-s1);}
+/* 数据类元素只给「位移」一点过渡（0.22s，远小于 4 秒轮询，不会蠕动）；
+   数字本身一律不加 transition —— 轮询重绘时数字滑动比瞬变更难读。 */
+[data-cm-meter]{position:relative;height:3px;border-radius:var(--cm-r-full);
+  background:var(--cm-line);margin-top:var(--cm-s1);}
+[data-cm-meter][data-tall]{height:6px;}
 [data-cm-meter] i{display:block;height:100%;background:var(--cm-ok);border-radius:inherit;
-  transition:width .35s var(--cm-ease),background-color var(--cm-fast) var(--cm-ease);}
+  transition:width .22s var(--cm-ease),background-color var(--cm-fast) var(--cm-ease);}
 [data-cm-meter][data-warn] i{background:var(--cm-warn);}
 [data-cm-meter][data-bad] i{background:var(--cm-danger);}
+/* 第二阈值刻度：只在真有第二个上限（如 memory-reservation < memory）时才画。 */
+[data-cm-meter] u{position:absolute;top:-2px;bottom:-2px;width:0;
+  border-left:1px solid var(--cm-text-dim);pointer-events:none;}
 [data-cm-host]{display:grid;grid-template-columns:1fr 1fr;gap:var(--cm-s4);margin-top:var(--cm-s2);}
 [data-cm-formrow]{display:flex;gap:var(--cm-s2);align-items:center;margin:var(--cm-s3) 0;flex-wrap:wrap;}
 [data-cm-check]{accent-color:var(--cm-accent);margin:0 2px 0 0;flex:none;width:13px;height:13px;cursor:pointer;}
 [data-cm-bulk]{display:flex;gap:var(--cm-s2);align-items:center;padding:var(--cm-s2) var(--cm-s4);
-  border-bottom:1px solid var(--cm-line);background:var(--cm-surface-hover);flex:none;font-size:11px;}
-[data-cm-bulk] [data-cm-btn]{padding:2px 8px;font-size:11px;}
+  border-bottom:1px solid var(--cm-line);background:var(--cm-surface-hover);flex:none;font-size:var(--cm-f-xs);}
+[data-cm-bulk] [data-cm-btn]{padding:2px 8px;font-size:var(--cm-f-xs);}
 [data-cm-formrow] [data-cm-input]{flex:1;min-width:160px;}
-[data-cm-nodehint]{font-size:10.5px;color:var(--cm-warn-text);padding:2px var(--cm-s2) var(--cm-s2);
+[data-cm-nodehint]{font-size:var(--cm-f-xs);color:var(--cm-warn-text);padding:2px var(--cm-s2) var(--cm-s2);
   line-height:1.5;word-break:break-all;}
 
 /* ── 详情区 ── */
@@ -190,7 +283,7 @@ window.__ModuleLoader__.load({
 [data-cm-detail]{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;}
 [data-cm-tabs]{display:flex;gap:var(--cm-s1);padding:var(--cm-s3) var(--cm-s5) 0;
   border-bottom:1px solid var(--cm-line-soft);flex:none;}
-[data-cm-tab]{padding:6px 13px;font-size:12px;border-radius:var(--cm-r-sm);cursor:pointer;
+[data-cm-tab]{padding:6px 13px;font-size:var(--cm-f-sm);border-radius:var(--cm-r-sm);cursor:pointer;
   border:1px solid transparent;background:transparent;color:var(--cm-text-2);
   font-family:inherit;line-height:1.4;
   transition:background-color var(--cm-fast) var(--cm-ease),color var(--cm-fast) var(--cm-ease),
@@ -202,48 +295,47 @@ window.__ModuleLoader__.load({
 /* ── 卡片：细边 + 极轻阴影，hover 抬半层 ── */
 [data-cm-card]{border:1px solid var(--cm-line-soft);border-radius:var(--cm-r-lg);
   background:var(--cm-surface);padding:var(--cm-s4) var(--cm-s5);margin-bottom:var(--cm-s4);
-  box-shadow:var(--cm-shadow-sm);
   transition:box-shadow var(--cm-slow) var(--cm-ease),border-color var(--cm-slow) var(--cm-ease);}
-[data-cm-card]:hover{box-shadow:var(--cm-shadow-md);border-color:var(--cm-line);}
-[data-cm-kv]{display:grid;grid-template-columns:96px 1fr;gap:var(--cm-s2) var(--cm-s4);font-size:12px;}
+[data-cm-card]:hover{border-color:var(--cm-line-strong);}
+[data-cm-kv]{display:grid;grid-template-columns:96px 1fr;gap:var(--cm-s2) var(--cm-s4);font-size:var(--cm-f-sm);}
 [data-cm-kv] b{font-weight:500;color:var(--cm-text-dim);}
-[data-cm-mono]{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;word-break:break-all;}
+[data-cm-mono]{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:var(--cm-f-sm);word-break:break-all;}
 [data-cm-pre]{background:var(--cm-base);border-radius:var(--cm-r-md);border:1px solid var(--cm-line-soft);
   padding:var(--cm-s3) var(--cm-s4);overflow:auto;max-height:60vh;
-  font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;white-space:pre-wrap;
+  font-family:ui-monospace,Menlo,Consolas,monospace;font-size:var(--cm-f-sm);white-space:pre-wrap;
   word-break:break-word;margin:0;line-height:1.55;}
 [data-cm-actions]{display:flex;flex-wrap:wrap;row-gap:var(--cm-s2);gap:var(--cm-s2);margin-top:var(--cm-s4);}
 
 /* ── 表单控件：focus 用光晕而不是只换边框色 ── */
 [data-cm-input],[data-cm-select]{background:var(--cm-base);border:1px solid var(--cm-line-strong);
-  border-radius:var(--cm-r-sm);color:inherit;padding:5px 9px;font-size:12px;font-family:inherit;
+  border-radius:var(--cm-r-sm);color:inherit;padding:5px 9px;font-size:var(--cm-f-sm);font-family:inherit;
   outline:none;box-sizing:border-box;
   transition:border-color var(--cm-fast) var(--cm-ease),box-shadow var(--cm-fast) var(--cm-ease);}
 [data-cm-input]:focus,[data-cm-select]:focus{border-color:var(--cm-accent);box-shadow:var(--cm-ring);}
 [data-cm-form]{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
   gap:var(--cm-s3) var(--cm-s4);align-items:end;max-width:1000px;}
-[data-cm-sec]{grid-column:1 / -1;margin:var(--cm-s5) 0 var(--cm-s1);font-size:11px;font-weight:650;
+[data-cm-sec]{grid-column:1 / -1;margin:var(--cm-s5) 0 var(--cm-s1);font-size:var(--cm-f-xs);font-weight:650;
   color:var(--cm-text-dim);letter-spacing:.04em;text-transform:uppercase;}
 [data-cm-field]{display:flex;flex-direction:column;gap:var(--cm-s1);min-width:0;}
-[data-cm-field] label{font-size:10.5px;color:var(--cm-text-dim);}
+[data-cm-field] label{font-size:var(--cm-f-xs);color:var(--cm-text-dim);}
 
 /* ── 待确认区 ── */
 [data-cm-pending]{flex:none;border-top:1px solid var(--cm-line);background:var(--cm-layer-2);
   max-height:34vh;overflow:auto;}
 [data-cm-phead]{display:flex;align-items:center;gap:var(--cm-s3);padding:var(--cm-s3) var(--cm-s6);
-  font-size:12px;font-weight:650;}
+  font-size:var(--cm-f-sm);font-weight:650;}
 [data-cm-prow]{display:flex;align-items:center;gap:var(--cm-s4);padding:var(--cm-s2) var(--cm-s6);
   border-top:1px solid var(--cm-line-soft);
   transition:background-color var(--cm-fast) var(--cm-ease);}
 [data-cm-prow]:hover{background:var(--cm-hover);}
-[data-cm-psummary]{flex:1;min-width:0;font-size:12px;}
-[data-cm-pexpiry]{font-size:10.5px;color:var(--cm-text-dim);font-variant-numeric:tabular-nums;}
+[data-cm-psummary]{flex:1;min-width:0;font-size:var(--cm-f-sm);}
+[data-cm-pexpiry]{font-size:var(--cm-f-xs);color:var(--cm-text-dim);font-variant-numeric:tabular-nums;}
 
 /* ── 空态 / 提示条 ── */
 [data-cm-empty]{padding:var(--cm-s7) var(--cm-s5);text-align:center;color:var(--cm-text-dim);
-  font-size:12px;line-height:1.7;}
+  font-size:var(--cm-f-sm);line-height:1.7;}
 [data-cm-toast]{position:sticky;bottom:var(--cm-s4);margin:0 var(--cm-s6) var(--cm-s4);
-  padding:var(--cm-s3) var(--cm-s4);border-radius:var(--cm-r-md);font-size:12px;line-height:1.5;
+  padding:var(--cm-s3) var(--cm-s4);border-radius:var(--cm-r-md);font-size:var(--cm-f-sm);line-height:1.5;
   background:var(--cm-layer-2);border:1px solid var(--cm-line-strong);
   box-shadow:var(--cm-shadow-lg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
 [data-cm-toast][data-bad]{border-color:var(--cm-danger-line);color:var(--cm-danger);}
@@ -253,7 +345,7 @@ window.__ModuleLoader__.load({
 /* ── 胶囊标签 ── */
 [data-cm-chips]{display:flex;gap:var(--cm-s2);flex-wrap:wrap;}
 [data-cm-chip]{border:1px solid var(--cm-line-strong);border-radius:var(--cm-r-full);
-  padding:3px 11px;font-size:11px;cursor:pointer;background:transparent;color:var(--cm-text-2);
+  padding:3px 11px;font-size:var(--cm-f-xs);cursor:pointer;background:transparent;color:var(--cm-text-2);
   font-family:inherit;line-height:1.4;
   transition:background-color var(--cm-fast) var(--cm-ease),border-color var(--cm-fast) var(--cm-ease),
     color var(--cm-fast) var(--cm-ease);}
@@ -265,7 +357,7 @@ window.__ModuleLoader__.load({
 [data-cm-nav]{display:flex;gap:2px;align-items:center;padding:3px;
   border-radius:var(--cm-r-md);background:var(--cm-layer-2);}
 [data-cm-nav] button{border:1px solid transparent;background:transparent;color:var(--cm-text-dim);
-  font-family:inherit;font-size:12px;border-radius:var(--cm-r-sm);padding:5px 12px;cursor:pointer;
+  font-family:inherit;font-size:var(--cm-f-sm);border-radius:var(--cm-r-sm);padding:5px 12px;cursor:pointer;
   line-height:1.4;
   transition:background-color var(--cm-fast) var(--cm-ease),color var(--cm-fast) var(--cm-ease),
     box-shadow var(--cm-fast) var(--cm-ease);}
@@ -284,8 +376,8 @@ window.__ModuleLoader__.load({
 [data-cm-projcard][data-on]{border-color:var(--cm-accent-line);background:var(--cm-accent-soft);}
 
 /* ── 表格：独立边框 + 行 hover ── */
-[data-cm-table]{width:100%;border-collapse:separate;border-spacing:0;font-size:12px;}
-[data-cm-table] th{text-align:left;font-weight:650;font-size:11px;color:var(--cm-text-dim);
+[data-cm-table]{width:100%;border-collapse:separate;border-spacing:0;font-size:var(--cm-f-sm);}
+[data-cm-table] th{text-align:left;font-weight:650;font-size:var(--cm-f-xs);color:var(--cm-text-dim);
   padding:var(--cm-s2) var(--cm-s3);border-bottom:1px solid var(--cm-line-soft);
   white-space:nowrap;letter-spacing:.02em;}
 [data-cm-table] td{padding:7px var(--cm-s3);border-bottom:1px solid var(--cm-line-soft);vertical-align:top;}
@@ -299,10 +391,10 @@ window.__ModuleLoader__.load({
 [data-cm-editor]{width:100%;box-sizing:border-box;min-height:320px;resize:vertical;outline:none;
   background:var(--cm-base);color:inherit;border:1px solid var(--cm-line-strong);
   border-radius:var(--cm-r-md);padding:var(--cm-s3);
-  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.6;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:var(--cm-f-sm);line-height:1.6;
   transition:border-color var(--cm-fast) var(--cm-ease),box-shadow var(--cm-fast) var(--cm-ease);}
 [data-cm-editor]:focus{border-color:var(--cm-accent);box-shadow:var(--cm-ring);}
-[data-cm-logbox]{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;
+[data-cm-logbox]{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:var(--cm-f-sm);
   line-height:1.6;white-space:pre-wrap;word-break:break-all;max-height:360px;overflow:auto;
   background:var(--cm-base);border:1px solid var(--cm-line-soft);border-radius:var(--cm-r-md);
   padding:var(--cm-s3);margin:0;}
@@ -312,14 +404,14 @@ window.__ModuleLoader__.load({
 /* 容器视图的返回入口：跟普通 tab 同形，但更暗一档，读起来像「往回」 */
 [data-cm-back]{margin-right:var(--cm-s3);color:var(--cm-text-dim);}
 [data-cm-back]:hover{color:var(--cm-accent);}
-[data-cm-tag]{font-size:10.5px;border-radius:var(--cm-r-full);padding:2px 8px;line-height:1.5;
+[data-cm-tag]{font-size:var(--cm-f-xs);border-radius:var(--cm-r-full);padding:2px 8px;line-height:1.5;
   border:1px solid var(--cm-line-strong);white-space:nowrap;
   transition:border-color var(--cm-fast) var(--cm-ease),color var(--cm-fast) var(--cm-ease),
     background-color var(--cm-fast) var(--cm-ease);}
 [data-cm-tag][data-ok]{border-color:var(--cm-ok-line);color:var(--cm-ok);background:var(--cm-ok-soft);}
 [data-cm-tag][data-bad]{border-color:var(--cm-danger-line);color:var(--cm-danger);background:var(--cm-danger-soft);}
 [data-cm-tag][data-warn]{border-color:var(--cm-warn-line);color:var(--cm-warn-text);background:var(--cm-warn-soft);}
-[data-cm-hintbox]{font-size:11.5px;color:var(--cm-text-dim);margin-top:var(--cm-s2);line-height:1.6;}
+[data-cm-hintbox]{font-size:var(--cm-f-sm);color:var(--cm-text-dim);margin-top:var(--cm-s2);line-height:1.6;}
 /* ── 终端 ── */
 [data-cm-term-wrap]{display:flex;flex-direction:column;min-height:0;gap:var(--cm-s2);}
 [data-cm-term-bar]{display:flex;align-items:center;gap:var(--cm-s2);flex-wrap:wrap;}
@@ -327,13 +419,13 @@ window.__ModuleLoader__.load({
   border:1px solid var(--cm-line-strong);border-radius:var(--cm-r-sm);
   background:var(--cm-surface);overflow:hidden;}
 [data-cm-term-bar-group]>button{border:0;background:transparent;color:var(--cm-text-dim);
-  font:inherit;font-size:11.5px;line-height:1;padding:5px 8px;cursor:pointer;
+  font:inherit;font-size:var(--cm-f-sm);line-height:1;padding:5px 8px;cursor:pointer;
   transition:background-color var(--cm-fast) var(--cm-ease),color var(--cm-fast) var(--cm-ease);}
 [data-cm-term-bar-group]>button+button{border-left:1px solid var(--cm-line-soft);}
 [data-cm-term-bar-group]>button:hover:not([disabled]){background:var(--cm-hover);color:var(--cm-text);}
 [data-cm-term-bar-group]>button[disabled]{opacity:.4;cursor:not-allowed;}
 [data-cm-term-bar-group]>[data-cm-term-size]{min-width:34px;text-align:center;
-  font-variant-numeric:tabular-nums;color:var(--cm-text);cursor:default;font-size:11.5px;padding:5px 2px;}
+  font-variant-numeric:tabular-nums;color:var(--cm-text);cursor:default;font-size:var(--cm-f-sm);padding:5px 2px;}
 [data-cm-term]{position:relative;height:clamp(260px,60vh,560px);min-height:0;
   border:1px solid var(--cm-line-strong);border-radius:var(--cm-r-md);
   padding:6px 4px 6px 8px;background:var(--cm-base);overflow:hidden;
@@ -351,21 +443,21 @@ window.__ModuleLoader__.load({
   background:color-mix(in srgb,var(--cm-base) 86%,transparent);
   backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);}
 [data-cm-term-overlay][data-bad]{background:color-mix(in srgb,var(--cm-danger-soft) 45%,var(--cm-base));}
-[data-cm-term-overlay] [data-cm-overlay-title]{font-size:12.5px;font-weight:650;color:var(--cm-text);}
-[data-cm-term-overlay] [data-cm-overlay-msg]{font-size:12px;color:var(--cm-text-dim);
+[data-cm-term-overlay] [data-cm-overlay-title]{font-size:var(--cm-f-md);font-weight:650;color:var(--cm-text);}
+[data-cm-term-overlay] [data-cm-overlay-msg]{font-size:var(--cm-f-sm);color:var(--cm-text-dim);
   max-width:46ch;line-height:1.6;word-break:break-word;}
 /* 全屏：铺到视口上，Esc 退出 */
 [data-cm-term-wrap][data-cm-full]{position:fixed;inset:0;z-index:9000;
   background:var(--cm-base);padding:var(--cm-s4);gap:var(--cm-s3);}
 [data-cm-term-wrap][data-cm-full] [data-cm-term]{flex:1;height:auto;}
 [data-cm-term-wrap][data-cm-full]::after{content:'Esc 退出全屏';position:absolute;
-  right:var(--cm-s5);bottom:var(--cm-s3);font-size:10.5px;color:var(--cm-text-dim);
+  right:var(--cm-s5);bottom:var(--cm-s3);font-size:var(--cm-f-xs);color:var(--cm-text-dim);
   pointer-events:none;}
 
 /* ── 活动日志 ── */
 [data-cm-audit]{display:flex;flex-direction:column;gap:1px;}
 [data-cm-audit-row]{display:grid;grid-template-columns:88px 54px minmax(90px,1fr) minmax(90px,1.2fr) 70px;
-  gap:var(--cm-s3);padding:6px var(--cm-s3);border-radius:var(--cm-r-sm);font-size:11.5px;
+  gap:var(--cm-s3);padding:6px var(--cm-s3);border-radius:var(--cm-r-sm);font-size:var(--cm-f-sm);
   align-items:center;min-width:0;transition:background-color var(--cm-fast) var(--cm-ease);}
 [data-cm-audit-row]>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 [data-cm-audit-row]:hover{background:var(--cm-hover);}
@@ -374,7 +466,7 @@ window.__ModuleLoader__.load({
   background:var(--cm-base);z-index:1;}
 [data-cm-audit-row][data-bad]{color:var(--cm-danger);}
 [data-cm-audit-row][data-bad] span:last-child{font-weight:600;}
-[data-cm-audit-tag]{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;
+[data-cm-audit-tag]{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:var(--cm-f-xs);
   padding:1px 6px;border:1px solid var(--cm-line);border-radius:var(--cm-r-sm);
   color:var(--cm-text-dim);}
 [data-cm-audit-tag][data-panel]{border-color:var(--cm-ok-line);color:var(--cm-ok);background:var(--cm-ok-soft);}
@@ -440,10 +532,71 @@ window.__ModuleLoader__.load({
       return h('div', { 'data-cm-kv': '' }, children)
     }
 
+    /**
+     * 状态 → 色调，只留四档：on（跑着）/ bad（崩了）/ warn（正在变或没在服务）/ off（停着）。
+     *
+     * 以前 on/warn/off 三档时，「已停止」和「异常退出」都是灰点，运维一眼分不开 ——
+     * 这是最要命的一条，所以 bad 必须独立。反过来，档位也不能多到需要背：
+     * created / paused 都归 warn，因为它们的共同点是「现在没在提供服务」。
+     */
     function stateTone(state) {
-      if (state === 'running') return 'on'
-      if (state === 'paused' || state === 'frozen' || state === 'starting' || state === 'stopping') return 'warn'
+      const text = String(state || '').toLowerCase()
+      if (text === 'running' || text === 'up') return 'on'
+      // 自己崩掉 / 被 OOM 杀掉的，跟「手动停掉」不是一个性质。
+      if (text === 'dead' || text === 'error' || text === 'oomkilled' || text === 'failed') return 'bad'
+      // 正在切换：重启 / 启动 / 停止 / 暂停 / 删除 —— 都是瞬态。
+      if (/^(restarting|starting|stopping|pausing|unpausing|removing|created|configured|paused|frozen)$/.test(text)) return 'warn'
       return 'off'
+    }
+
+    /**
+     * 容器 → 色调。退出码非 0 的「已退出」是崩的，不是停的。
+     * podman 的 137 是 OOM/被 SIGKILL，139 是段错误 —— 这两个数字值得直接露在脸上。
+     */
+    function containerTone(container) {
+      const tone = stateTone(container && container.state)
+      const code = container && container.exitCode
+      if (tone === 'off' && code !== null && code !== undefined && Number(code) !== 0) return 'bad'
+      return tone
+    }
+
+    /** 退出码 → 一句人话。只解释能确定的，猜的不说。 */
+    function exitCodeHint(code) {
+      const n = Number(code)
+      if (!Number.isFinite(n) || n === 0) return ''
+      if (n === 137) return '被 SIGKILL（常见于内存超限）'
+      if (n === 139) return '段错误 SIGSEGV'
+      if (n === 143) return '被 SIGTERM 终止'
+      if (n === 126) return '命令不可执行'
+      if (n === 127) return '命令不存在'
+      return ''
+    }
+
+    /** 状态词的显示名。容器状态在接口里是英文，中文运维台不该把它原样丢到界面上。 */
+    const STATE_LABELS = {
+      running: '运行中',
+      up: '运行中',
+      exited: '已退出',
+      stopped: '已停止',
+      paused: '已暂停',
+      pausing: '暂停中',
+      unpausing: '恢复中',
+      frozen: '已冻结',
+      created: '未启动',
+      configured: '未启动',
+      restarting: '重启中',
+      starting: '启动中',
+      stopping: '停止中',
+      removing: '删除中',
+      dead: '异常退出',
+      error: '异常',
+      failed: '失败',
+      oomkilled: '内存超限被杀',
+    }
+
+    function stateLabel(state) {
+      const text = String(state || '').toLowerCase()
+      return STATE_LABELS[text] ?? (text || '未知')
     }
 
     function containerIps(container) {
@@ -504,6 +657,39 @@ window.__ModuleLoader__.load({
      * 跟着 /state 的 4 秒轮询跑会把面板拖慢。切节点或卸载就停。
      */
     /**
+     * CPU 走向：每个容器只留最近 3 个采样（/stats 是 10 秒一次，约 30 秒窗口）。
+     *
+     * 为什么不做 sparkline：10 秒才采一个点，折线的起伏来自采样间隔而不是负载本身，
+     * 那种图会让人以为自己看见了毛刺。一个 ↗ / → / ↘ 足够回答「在涨还是在落」，
+     * 而且不撒谎。
+     */
+    const CPU_HISTORY = new Map()
+    const CPU_SAMPLES = 3
+
+    function pushCpuSamples(byNode) {
+      for (const [nodeId, value] of byNode) {
+        const rows = value && Array.isArray(value.containers) ? value.containers : []
+        for (const row of rows) {
+          const key = nodeId + '/' + row.name
+          const series = CPU_HISTORY.get(key) || []
+          series.push(Number(row.cpuPercent) || 0)
+          while (series.length > CPU_SAMPLES) series.shift()
+          CPU_HISTORY.set(key, series)
+        }
+      }
+    }
+
+    /** 三次采样判走向：差 1.5 个百分点以内算平。 */
+    function trendOf(series) {
+      const list = Array.isArray(series) ? series.map(Number).filter(Number.isFinite) : []
+      if (list.length < 2) return null
+      const delta = list[list.length - 1] - list[0]
+      const span = list.length + ' 次采样'
+      if (delta > 1.5) return { dir: 'up', text: '↗', title: '近 ' + span + '在涨' }
+      if (delta < -1.5) return { dir: 'down', text: '↘', title: '近 ' + span + '在落' }
+      return { dir: 'flat', text: '→', title: '近 ' + span + '基本持平' }
+    }
+    /**
      * 实时占用：按节点批量取，返回 Map<节点 id, {value, problem, rows, byName}>。
      * 左侧列表是所有节点混在一起显示的，所以每个节点各要一份 ——
      * 以前只取 podman 那一份，LXC 行就永远空着。
@@ -531,6 +717,7 @@ window.__ModuleLoader__.load({
             }
           }))
           if (cancelled) return
+          pushCpuSamples(values)
           setByNode(values)
           setProblems(failures)
           timer = window.setTimeout(tick, 10000)
@@ -590,13 +777,24 @@ window.__ModuleLoader__.load({
       return 'local/' + String(containerName || 'container') + ':' + day + '-' + time
     }
 
-    /** 一条细进度条：70% 起黄，90% 起红。 */
-    function Meter({ percent }) {
+    /**
+     * 一条细进度条：75% 起黄，90% 起红。
+     *
+     * `tick` 是可选的第二阈值刻度（0–100），只在确实存在第二个上限时才传
+     * —— 比如 podman 的 memory-reservation 比 memory 小。没有第二阈值就不画，
+     * 画在 100% 位置等于装饰，会让读者以为那里另有一条线。
+     * `tall` 把轨道从 3px 抬到 6px，用在真正要看的水位线上。
+     */
+    function Meter({ percent, tick, tall }) {
       const value = Math.max(0, Math.min(100, Number(percent) || 0))
       const props = { 'data-cm-meter': '' }
+      if (tall) props['data-tall'] = ''
       if (value >= 90) props['data-bad'] = ''
-      else if (value >= 70) props['data-warn'] = ''
-      return h('div', props, h('i', { style: { width: value + '%' } }))
+      else if (value >= 75) props['data-warn'] = ''
+      const mark = Number(tick) > 0 && Number(tick) < 100
+        ? h('u', { 'data-cm-tick': '', style: { left: Number(tick) + '%' } })
+        : null
+      return h('div', props, h('i', { style: { width: value + '%' } }), mark)
     }
 
     /**
@@ -951,7 +1149,7 @@ window.__ModuleLoader__.load({
             h('div', { 'data-cm-grow': '' }),
             h('button', {
               'data-cm-btn': '',
-              style: { padding: '1px 7px', fontSize: '11px' },
+              style: { padding: '1px 7px', fontSize: 'var(--cm-f-xs)' },
               onClick: () => openNodeNetworks(node),
             }, '网络')),
           node.available
@@ -985,9 +1183,9 @@ window.__ModuleLoader__.load({
       // 层级分开：新建容器、宿主网络都是「整台机器」的事，挂在单个容器底下会让人以为
       // 是在这个容器里新建什么。选中容器时只留属于它的那几页。
       // 快照与挂载点是 LXC 独有的，Podman 那边靠 compose 文件与卷。
-      const containerTabs = isLxc
-        ? ['overview', 'logs', 'config', 'snapshots', 'mounts', 'terminal']
-        : ['overview', 'logs', 'config', 'terminal']
+      // 快照与挂载不再是独立 tab：它们跟网卡一样都是「这个容器的配置」，
+      // 只是低频得多，收进配置页的分段控件里。容器级只剩四页。
+      const containerTabs = ['overview', 'logs', 'config', 'terminal']
       const nodeTabs = ['overview', 'create']
       const tabs = selectedContainer ? containerTabs : nodeTabs
       // tab 是跨层级共用的状态，切换选中对象后旧值可能已经不在这一层里了。
@@ -1048,13 +1246,13 @@ window.__ModuleLoader__.load({
           container.state === 'running'
             ? h('button', {
               'data-cm-btn': '',
-              style: { padding: '1px 7px', fontSize: '11px' },
+              style: { padding: '1px 7px', fontSize: 'var(--cm-f-xs)' },
               disabled: busy,
               onClick: event => { event.stopPropagation(); act(container, 'stop') },
             }, '停')
             : h('button', {
               'data-cm-btn': '',
-              style: { padding: '1px 7px', fontSize: '11px' },
+              style: { padding: '1px 7px', fontSize: 'var(--cm-f-xs)' },
               disabled: busy,
               onClick: event => { event.stopPropagation(); act(container, 'start') },
             }, '启'),
@@ -1071,12 +1269,7 @@ window.__ModuleLoader__.load({
         if (activeTab === 'create') return createView()
         if (activeTab === 'logs') return logsView()
         if (activeTab === 'config') return configView()
-        if (activeTab === 'snapshots' && isLxc) {
-          return h(SnapshotsPane, { container: { nodeId: selected.node, name: selected.ref }, onToast: setToast })
-        }
-        if (activeTab === 'mounts' && isLxc) {
-          return h(MountsPane, { container: { nodeId: selected.node, name: selected.ref }, onToast: setToast })
-        }
+
         if (activeTab === 'terminal') return terminalView()
         return overviewView()
       }
@@ -1134,16 +1327,16 @@ window.__ModuleLoader__.load({
           h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } }, '这台机'),
           h('div', { 'data-cm-host': '' },
             h('div', null,
-              h('div', { 'data-cm-dim': '', style: { fontSize: '10.5px' } }, '负载 · 1 / 5 / 15 分钟'),
-              h('div', { 'data-cm-mono': '', style: { fontSize: '13px' } },
+              h('div', { 'data-cm-dim': '', style: { fontSize: 'var(--cm-f-xs)' } }, '负载 · 1 / 5 / 15 分钟'),
+              h('div', { 'data-cm-mono': '', style: { fontSize: 'var(--cm-f-md)' } },
                 [load.one, load.five, load.fifteen].map(value => Number(value || 0).toFixed(2)).join(' / '))),
             h('div', null,
-              h('div', { 'data-cm-dim': '', style: { fontSize: '10.5px' } }, '内存 · ' + (memory.percent || 0) + '%'),
-              h('div', { 'data-cm-mono': '', style: { fontSize: '13px' } }, sizeText(memory.used) + ' / ' + sizeText(memory.total)),
+              h('div', { 'data-cm-dim': '', style: { fontSize: 'var(--cm-f-xs)' } }, '内存 · ' + (memory.percent || 0) + '%'),
+              h('div', { 'data-cm-mono': '', style: { fontSize: 'var(--cm-f-md)' } }, sizeText(memory.used) + ' / ' + sizeText(memory.total)),
               h(Meter, { percent: memory.percent }))),
           ...disks.map(disk => h('div', { key: disk.mount, style: { marginTop: '8px' } },
-            h('div', { 'data-cm-dim': '', style: { fontSize: '10.5px' } }, '磁盘 ' + disk.mount + ' · ' + disk.percent + '%'),
-            h('div', { 'data-cm-mono': '', style: { fontSize: '12px' } }, sizeText(disk.used) + ' / ' + sizeText(disk.total)),
+            h('div', { 'data-cm-dim': '', style: { fontSize: 'var(--cm-f-xs)' } }, '磁盘 ' + disk.mount + ' · ' + disk.percent + '%'),
+            h('div', { 'data-cm-mono': '', style: { fontSize: 'var(--cm-f-sm)' } }, sizeText(disk.used) + ' / ' + sizeText(disk.total)),
             h(Meter, { percent: disk.percent }))))
       }
 
@@ -1179,114 +1372,214 @@ window.__ModuleLoader__.load({
         )
       }
 
+      /**
+       * 容器概览。
+       *
+       * 这一屏要一秒内答出三件事：在不在跑、占多少内存、跑了多久。
+       * 所以顺序是「状态头 → 两个数字块 → 身份折叠 → 网络端口 → 操作」，
+       * 而不是把七个语义完全不同的按钮和身份信息挤在一张卡里。
+       */
       function containerOverview(container) {
         const node = nodes.find(item => item.id === container.nodeId)
         const liveOne = liveByNode.get(container.nodeId) || null
         const usage = liveOne && liveOne.byName ? liveOne.byName.get(container.name) : null
-        const usageCard = usage
-          ? h('div', { 'data-cm-card': '' },
-            h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } }, '实时占用'),
-            h('div', { 'data-cm-kv': '' },
-              h('b', null, 'CPU'),
-              h('span', { 'data-cm-mono': '' }, usage.cpuPercent.toFixed(2) + '%' + (usage.cpuTime ? ' · ' + usage.cpuTime : '')),
-              h('b', null, '内存'),
-              h('span', { 'data-cm-mono': '' }, sizeText(usage.memUsed) + ' / ' + sizeText(usage.memLimit) + '（' + usage.memPercent.toFixed(1) + '%）'),
-              h('b', null, '进程'),
-              h('span', { 'data-cm-mono': '' }, String(usage.pids || 0)),
-              h('b', null, '网络 IO'),
-              h('span', { 'data-cm-mono': '' }, usage.netIo || '—')),
-            h(Meter, { percent: usage.memPercent }))
+        const tone = containerTone(container)
+        const exitHint = exitCodeHint(container.exitCode)
+        const trend = trendOf(CPU_HISTORY.get(container.nodeId + '/' + container.name))
+        const isPodman = container.runtime === 'podman'
+
+        // 运行时长：拿不到 startedAt 就空着，不编。
+        let uptime = ''
+        if (container.state === 'running' && container.startedAt) {
+          const began = new Date(container.startedAt).getTime()
+          if (Number.isFinite(began) && began > 0) {
+            const seconds = Math.max(0, Math.floor((Date.now() - began) / 1000))
+            uptime = formatUptime(seconds)
+          }
+        }
+
+        const heroLine = [
+          usage ? usage.cpuPercent.toFixed(1) + '% CPU' : '',
+          usage ? sizeText(usage.memUsed) + ' / ' + sizeText(usage.memLimit) : '',
+          uptime ? '已运行 ' + uptime : '',
+        ].filter(Boolean).join('  ·  ')
+
+        // ── 1. 状态头 ──
+        const hero = h('div', { 'data-cm-card': '', 'data-cm-hero': '' },
+          h('div', { 'data-cm-heroline': '' },
+            h(Dot, { tone }),
+            h('span', { 'data-cm-statelabel': '', 'data-tone': tone }, stateLabel(container.state)),
+            // 退出码非 0 就直接摆在状态旁边：137 是 OOM，139 是段错误，
+            // 这个数字比「异常退出」四个字有用得多。
+            tone === 'bad' && container.exitCode !== null && container.exitCode !== undefined && Number(container.exitCode) !== 0
+              ? h('span', { 'data-cm-exitbad': '', title: exitHint || '退出码 ' + container.exitCode },
+                'code ' + container.exitCode)
+              : null,
+            h('strong', { 'data-cm-heroname': '' }, container.name),
+            h('div', { 'data-cm-grow': '' }),
+            node ? h('span', { 'data-cm-dim': '' }, node.label) : null),
+          heroLine ? h('div', { 'data-cm-herosub': '' }, heroLine) : null)
+
+        // ── 2. CPU / 内存 / 进程 三块并排 ──
+        // 内存块是这一屏的主角：数字看不清「离爆还有多远」，水位线能。
+        // 上限为 0（不限）时不画水位线，也不编百分比 —— 那根条没有分母。
+        const memLimited = usage && Number(usage.memLimit) > 0
+        const numbers = usage
+          ? h('div', { 'data-cm-numbers': '' },
+            h('div', { 'data-cm-numblock': '' },
+              h('div', { 'data-cm-numlabel': '' }, 'CPU'),
+              h('div', { 'data-cm-numvalue': '' }, usage.cpuPercent.toFixed(1) + '%',
+                trend ? h('span', { 'data-cm-trend': '', 'data-dir': trend.dir, title: trend.title }, trend.text) : null),
+              h('div', { 'data-cm-numsub': '' }, usage.cpuTime ? '累计 ' + usage.cpuTime : '—')),
+            h('div', { 'data-cm-numblock': '' },
+              h('div', { 'data-cm-numlabel': '' }, '内存'),
+              h('div', { 'data-cm-numvalue': '' }, sizeText(usage.memUsed)),
+              h('div', { 'data-cm-numsub': '' },
+                memLimited
+                  ? '上限 ' + sizeText(usage.memLimit) + ' · ' + usage.memPercent.toFixed(1) + '%'
+                  : '未设上限'),
+              memLimited ? h(Meter, { percent: usage.memPercent, tall: true }) : null),
+            h('div', { 'data-cm-numblock': '' },
+              h('div', { 'data-cm-numlabel': '' }, '进程'),
+              h('div', { 'data-cm-numvalue': '' }, String(usage.pids || 0)),
+              h('div', { 'data-cm-numsub': '' }, usage.netIo ? 'IO ' + usage.netIo : '—')))
           : null
+
+        // ── 3. 身份：属于「要查」不是「要看」，折起来 ──
+        const nodeLabel = node ? node.label : container.nodeId
+        const identity = h('details', { 'data-cm-details': '' },
+          h('summary', null, '身份信息'),
+          kv([
+            ['节点', nodeLabel + '（' + container.runtime + '）'],
+            ['ID', container.id],
+            ['镜像', container.image],
+            ['状态', container.status],
+            ['创建', container.createdText || container.created || '—'],
+            ['PID', container.pid == null ? '—' : String(container.pid)],
+            ['启动于', container.startedAt || '—'],
+            ['退出码', container.exitCode == null ? '—' : String(container.exitCode)],
+          ]))
+
+        // ── 4. 网络 + 端口 ──
+        // 端口改成结构化胶囊：`0.0.0.0:8080->80/tcp` 这种整行字符串扫不动，
+        // 拆成「宿主端口 → 容器端口 / 协议」三段之后，一眼就知道服务从哪进来。
+        const portChips = (container.ports || []).map((port, index) => {
+          const hostIp = port.hostIp && port.hostIp !== '0.0.0.0' ? port.hostIp : ''
+          const hostText = port.hostPort == null ? '随机' : String(port.hostPort)
+          return h('div', { key: 'p' + index, 'data-cm-portrow': '' },
+            hostIp ? h('span', { 'data-cm-portpill': '', 'data-muted': '' }, hostIp) : null,
+            h('span', { 'data-cm-portpill': '' }, hostText),
+            h('span', { 'data-cm-portarrow': '' }, '→'),
+            h('span', { 'data-cm-portpill': '', 'data-muted': '' }, String(port.containerPort)),
+            h('span', { 'data-cm-portpill': '', 'data-muted': '' }, String(port.protocol || 'tcp')))
+        })
+
+        const portsTable = (container.ports || []).length === 0
+          ? null
+          : h('div', { style: { marginTop: 'var(--cm-s3)' } },
+            h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } }, '端口'),
+            h('div', { 'data-cm-ports': '' }, ...portChips))
+
+        const netCard = h('div', { 'data-cm-card': '' },
+          h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } }, '网络'),
+          container.networks && container.networks.length > 0
+            ? h('div', { 'data-cm-kv': '' }, ...container.networks.flatMap((network, index) => [
+              h('b', { key: 'n' + index }, network.name),
+              h('span', { key: 'v' + index, 'data-cm-mono': '' }, [network.ip, network.mac, network.gateway].filter(Boolean).join('  ') || '—'),
+            ]))
+            : h('div', { 'data-cm-dim': '' }, '没有网络信息。'),
+          container.nics && container.nics.length > 0
+            ? h('div', { style: { marginTop: 'var(--cm-s3)' } },
+              h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } }, 'LXC 网卡'),
+              h('div', { 'data-cm-mono': '' }, container.nics.map(nic => {
+                const parts = [
+                  nic.type + ' link=' + (nic.link || '—'),
+                  'mac=' + (nic.hwaddr || '（未固定，每次启动可能变）'),
+                  'ipv4=' + ((nic.ipv4 && nic.ipv4.address) || 'dhcp'),
+                ]
+                if (nic.ipv6 && nic.ipv6.address) parts.push('ipv6=' + nic.ipv6.address)
+                return parts.join(' ')
+              }).join('\n')))
+            : null,
+          portsTable)
+
+        // ── 5. 操作分三层 ──
+        const dailyActions = h('div', null,
+          container.state === 'running'
+            ? h('button', { 'data-cm-btn': '', disabled: busy, onClick: () => act(container, 'restart') }, '重启')
+            : null,
+          container.state === 'paused'
+            ? h('button', { 'data-cm-btn': '', disabled: busy, onClick: () => act(container, 'unpause') }, '恢复')
+            : (container.state === 'running'
+              ? h('button', { 'data-cm-btn': '', disabled: busy, onClick: () => act(container, 'pause') }, '暂停')
+              : null))
+
+        const minorActions = h('div', null,
+          h('button', { 'data-cm-btn': '', disabled: busy, onClick: () => setRenameDraft({ name: container.name, value: container.name }) }, '改名'),
+          h('button', { 'data-cm-btn': '', disabled: busy, onClick: () => setCommitDraft({ name: container.name, value: stampName(container.name) }) }, '存成镜像'))
+
+        const dangerActions = h('div', null,
+          h('button', { 'data-cm-btn': '', 'data-danger': '', disabled: busy, onClick: () => setConfirmDelete(container.name) }, '删除'))
+
+        const actionsCard = h('div', { 'data-cm-card': '' },
+          h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } }, '操作'),
+          h('div', { 'data-cm-actions': '' },
+            h('span', { 'data-cm-dim': '', style: { minWidth: '2.6em' } }, '日常'),
+            dailyActions),
+          h('div', { 'data-cm-actions': '' },
+            h('span', { 'data-cm-dim': '', style: { minWidth: '2.6em' } }, '次要'),
+            minorActions),
+          h('div', { 'data-cm-dangerzone': '' },
+            h('span', { 'data-cm-dim': '', style: { minWidth: '2.6em' } }, '危险'),
+            dangerActions,
+            h('span', { 'data-cm-dim': '' }, '删除不可撤销，数据卷不会自动清')),
+          confirmDelete === container.name
+            ? h('div', { 'data-cm-warn': '', style: { display: 'flex', gap: 'var(--cm-s2)', alignItems: 'center', flexWrap: 'wrap' } },
+              h('span', null, '删除 ' + container.name + ' 不可撤销，数据卷不会自动清。'),
+              h('button', {
+                'data-cm-btn': '',
+                'data-danger': '',
+                disabled: busy,
+                onClick: () => { setConfirmDelete(null); act(container, 'delete') },
+              }, '确认挂起删除'),
+              h('button', { 'data-cm-btn': '', disabled: busy, onClick: () => setConfirmDelete(null) }, '算了'))
+            : null,
+          renameDraft && renameDraft.name === container.name
+            ? h('div', { 'data-cm-formrow': '' },
+              h('input', {
+                'data-cm-input': '',
+                value: renameDraft.value,
+                placeholder: '新名字',
+                onChange: event => setRenameDraft({ name: container.name, value: event.target.value }),
+                onKeyDown: event => { if (event.key === 'Enter') doRename(container, renameDraft.value) },
+              }),
+              h('button', { 'data-cm-btn': '', 'data-primary': '', disabled: busy, onClick: () => doRename(container, renameDraft.value) }, '改名'),
+              h('button', { 'data-cm-btn': '', onClick: () => setRenameDraft(null) }, '算了'))
+            : null,
+          commitDraft && commitDraft.name === container.name
+            ? h('div', { 'data-cm-formrow': '' },
+              h('input', {
+                'data-cm-input': '',
+                value: commitDraft.value,
+                placeholder: '镜像名，比如 local/名字:日期',
+                onChange: event => setCommitDraft({ name: container.name, value: event.target.value }),
+                onKeyDown: event => { if (event.key === 'Enter') doCommit(container, commitDraft.value) },
+              }),
+              h('button', { 'data-cm-btn': '', 'data-primary': '', disabled: busy, onClick: () => doCommit(container, commitDraft.value) }, '提交（会先挂起）'),
+              h('button', { 'data-cm-btn': '', onClick: () => setCommitDraft(null) }, '算了'))
+            : null)
+
         return h('div', null,
-          usageCard,
-          h('div', { 'data-cm-card': '' },
-            h('div', { style: { display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px' } },
-              h(Dot, { tone: stateTone(container.state) }),
-              h('strong', { style: { fontSize: '14px' } }, container.name),
-              h('span', { 'data-cm-dim': '' }, container.state),
-              h('div', { 'data-cm-grow': '' }),
-              container.state === 'running'
-                ? h('button', { 'data-cm-btn': '', disabled: busy, onClick: () => act(container, 'restart') }, '重启')
-                : null,
-              container.state === 'paused'
-                ? h('button', { 'data-cm-btn': '', disabled: busy, onClick: () => act(container, 'unpause') }, '恢复')
-                : (container.state === 'running' ? h('button', { 'data-cm-btn': '', disabled: busy, onClick: () => act(container, 'pause') }, '暂停') : null),
-              h('button', { 'data-cm-btn': '', disabled: busy, onClick: () => startFromContainer(container) }, '以此配置新建'),
-              h('button', { 'data-cm-btn': '', disabled: busy, onClick: () => setRenameDraft({ name: container.name, value: container.name }) }, '改名'),
-              h('button', { 'data-cm-btn': '', disabled: busy, onClick: () => setCommitDraft({ name: container.name, value: stampName(container.name) }) }, '存成镜像'),
-              h('button', { 'data-cm-btn': '', 'data-danger': '', disabled: busy, onClick: () => setConfirmDelete(container.name) }, '删除'),
-            ),
-            confirmDelete === container.name
-              ? h('div', { 'data-cm-warn': '', style: { marginBottom: '8px', display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' } },
-                h('span', null, `删除 ${container.name} 不可撤销，数据卷不会自动清。确认后会先挂起，还要在下面「待确认」点一次。`),
-                h('button', {
-                  'data-cm-btn': '',
-                  'data-danger': '',
-                  disabled: busy,
-                  onClick: () => { setConfirmDelete(null); act(container, 'delete') },
-                }, '确认挂起删除'),
-                h('button', { 'data-cm-btn': '', disabled: busy, onClick: () => setConfirmDelete(null) }, '算了'))
-              : null,
-            renameDraft && renameDraft.name === container.name
-              ? h('div', { 'data-cm-formrow': '' },
-                h('input', {
-                  'data-cm-input': '',
-                  value: renameDraft.value,
-                  placeholder: '新名字',
-                  onChange: event => setRenameDraft({ name: container.name, value: event.target.value }),
-                  onKeyDown: event => { if (event.key === 'Enter') doRename(container, renameDraft.value) },
-                }),
-                h('button', { 'data-cm-btn': '', 'data-primary': '', disabled: busy, onClick: () => doRename(container, renameDraft.value) }, '改名'),
-                h('button', { 'data-cm-btn': '', onClick: () => setRenameDraft(null) }, '算了'))
-              : null,
-            commitDraft && commitDraft.name === container.name
-              ? h('div', { 'data-cm-formrow': '' },
-                h('input', {
-                  'data-cm-input': '',
-                  value: commitDraft.value,
-                  placeholder: '镜像名，比如 local/名字:日期',
-                  onChange: event => setCommitDraft({ name: container.name, value: event.target.value }),
-                  onKeyDown: event => { if (event.key === 'Enter') doCommit(container, commitDraft.value) },
-                }),
-                h('button', { 'data-cm-btn': '', 'data-primary': '', disabled: busy, onClick: () => doCommit(container, commitDraft.value) }, '提交（会先挂起）'),
-                h('button', { 'data-cm-btn': '', onClick: () => setCommitDraft(null) }, '算了'))
-              : null,
-            kv([
-              ['节点', `${node ? node.label : container.nodeId}（${container.runtime}）`],
-              ['ID', container.id],
-              ['镜像', container.image],
-              ['状态', container.status],
-              ['创建', container.createdText || container.created || '—'],
-              ['PID', container.pid == null ? '—' : String(container.pid)],
-            ]),
-          ),
-          h('div', { 'data-cm-card': '' },
-            h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } }, '网络'),
-            container.networks && container.networks.length > 0
-              ? h('div', { 'data-cm-kv': '' }, ...container.networks.flatMap((network, index) => [
-                h('b', { key: 'n' + index }, network.name),
-                h('span', { key: 'v' + index, 'data-cm-mono': '' }, [network.ip, network.mac, network.gateway].filter(Boolean).join('  ') || '—'),
-              ]))
-              : h('div', { 'data-cm-dim': '' }, '没有网络信息。'),
-            container.ports && container.ports.length > 0
-              ? h('div', { style: { marginTop: '8px' } }, h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } }, '端口'),
-                h('div', { 'data-cm-mono': '' }, container.ports.map(port => `${port.hostIp || '0.0.0.0'}:${port.hostPort ?? '—'} → ${port.containerPort}/${port.protocol}`).join('\n')))
-              : null,
-            container.nics && container.nics.length > 0
-              ? h('div', { style: { marginTop: '8px' } }, h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } }, 'LXC 网卡'),
-                h('div', { 'data-cm-mono': '' }, container.nics.map(nic =>
-                  `${nic.type} link=${nic.link ?? '—'}` +
-                  ` mac=${nic.hwaddr ?? '（未固定，每次启动可能变）'}` +
-                  ` ipv4=${nic.ipv4?.address ?? 'dhcp'}` +
-                  (nic.ipv6?.address ? ` ipv6=${nic.ipv6.address}` : '')).join('\n')))
-              : null,
-          ),
-          node && node.kind === 'podman' ? h(LimitsCard, { container, node, busy }) : null,
+          hero,
+          numbers,
+          identity,
+          netCard,
+          actionsCard,
+          isPodman ? h(LimitsCard, { container, node, busy }) : null,
           node && node.kind === 'lxc' ? h(LxcCloneCard, { container: { nodeId: node.id, name: container.name }, onToast: setToast }) : null,
           h(ContainerMore, { container, node }),
         )
       }
-
       /* ── 容器网络：Podman 页 / LXC 页各自一份，宿主那套搬到「宿主网络」页 ── */
 
       /**
@@ -1324,7 +1617,7 @@ window.__ModuleLoader__.load({
                 h('div', { 'data-cm-dim': '', 'data-cm-mono': '' },
                   [network.subnet, network.gateway ? 'gw ' + network.gateway : '', `${(network.containers ?? []).length} 个容器`].filter(Boolean).join('  ')),
                 (network.containers ?? []).length > 0
-                  ? h('div', { 'data-cm-dim': '', 'data-cm-mono': '', style: { marginTop: '2px', fontSize: '10.5px' } },
+                  ? h('div', { 'data-cm-dim': '', 'data-cm-mono': '', style: { marginTop: '2px', fontSize: 'var(--cm-f-xs)' } },
                     (network.containers ?? []).map(item => item.name + (item.ips && item.ips.length ? ' ' + item.ips[0] : '')).join(' · '))
                   : null,
               ))),
@@ -1382,7 +1675,12 @@ window.__ModuleLoader__.load({
 
       function configView() {
         if (selectedContainer) {
-          return h(ConfigPane, { container: selectedContainer, bridges: lxcBridges })
+          // Podman 和 LXC 的配置模型完全不同，各用各的页面 —— 之前两边都塞进 ConfigPane，
+          // 结果 Podman 容器看到的全是 lxc.net.* 字段，等于没有配置页。
+          if (selectedContainer.runtime === 'podman') {
+            return h(PodmanConfigPane, { container: selectedContainer })
+          }
+          return h(LxcConfigShell, { container: selectedContainer, bridges: lxcBridges, onToast: setToast })
         }
         return h('div', { 'data-cm-card': '' },
           h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } }, '容器台配置'),
@@ -1693,6 +1991,494 @@ window.__ModuleLoader__.load({
         h('div', { 'data-cm-dim': '' }, '只拉一次快照，不会跟着自动刷新；点「刷新」再看最新。'))
     }
 
+    /**
+     * 环境变量里哪些值的键名说明了「这是口令」。
+     *
+     * 只按键名判断，不看值 —— 值长什么样都可能有假阳性（哈希也是长串）。
+     * 命中就默认打码，要看得单独点开，避免一次操作把整屏密钥摊在投影上。
+     */
+    const SECRET_ENV_KEY = /(SECRET|KEY|PASS|TOKEN|PWD|AUTH|CREDENTIAL)/i
+    function isSecretKey(key) {
+      return SECRET_ENV_KEY.test(String(key || ''))
+    }
+
+    /** 重建会牵动的字段，以及它们在界面上叫什么。 */
+    const REBUILD_FIELDS = [
+      ['ports', '端口映射'],
+      ['volumes', '挂载点'],
+      ['env', '环境变量'],
+      ['restart', '重启策略'],
+      ['command', '启动命令'],
+      ['entrypoint', 'entrypoint'],
+      ['network', '网络模式'],
+      ['hostname', '主机名'],
+      ['user', '运行用户'],
+      ['workdir', '工作目录'],
+      ['privileged', '特权模式'],
+      ['autoRemove', '退出后自动删除'],
+      ['pidsLimit', 'PID 上限'],
+      ['capAdd', '新增 capabilities'],
+      ['capDrop', '丢弃 capabilities'],
+      ['securityOpt', '安全选项'],
+    ]
+
+    /** 一个字段在两版之间怎么读：数组数条目，布尔说开关，其它原样。 */
+    function draftValueText(value) {
+      if (Array.isArray(value)) return value.length + " 项"
+      if (typeof value === "boolean") return value ? "开" : "关"
+      const text = value === undefined || value === null ? "" : String(value).trim()
+      return text === '' ? '（空）' : text
+    }
+
+    /** 环境变量的差量单独算：只说「改了几项」不够，得说清增/改/删。 */
+    function envDiff(before, after) {
+      const toMap = (rows) => {
+        const map = new Map()
+        for (const row of Array.isArray(rows) ? rows : []) {
+          const key = String((row && row.key) || "").trim()
+          if (key) map.set(key, String(row.value === undefined || row.value === null ? "" : row.value))
+        }
+        return map
+      }
+      const a = toMap(before)
+      const b = toMap(after)
+      let added = 0
+      let changed = 0
+      let removed = 0
+      for (const [key, value] of b) {
+        if (!a.has(key)) added += 1
+        else if (a.get(key) !== value) changed += 1
+      }
+      for (const key of a.keys()) if (!b.has(key)) removed += 1
+      const parts = []
+      if (added) parts.push('新增 ' + added)
+      if (changed) parts.push('修改 ' + changed)
+      if (removed) parts.push('删除 ' + removed)
+      return parts.join(' · ') || '无变化'
+    }
+
+    /**
+     * 草稿与基线的差量。空数组 = 没有改动 = 重建按钮该是灰的。
+     * 不做字符级 diff：容器配置本来就是结构化键值，说清「哪几项变了」最有用。
+     */
+    function diffDraft(baseline, draft) {
+      if (!baseline || !draft) return []
+      const out = []
+      for (const [key, label] of REBUILD_FIELDS) {
+        const a = baseline[key]
+        const b = draft[key]
+        if (JSON.stringify(a === undefined ? null : a) === JSON.stringify(b === undefined ? null : b)) continue
+        out.push({
+          key,
+          label,
+          before: key === 'env' ? draftValueText(a) : draftValueText(a),
+          after: key === 'env' ? envDiff(a, b) : draftValueText(b),
+        })
+      }
+      return out
+    }
+
+    /** 复制到剪贴板：没权限就静默失败，不弹错（用户还能手动选）。 */
+    function copyText(text) {
+      try { navigator.clipboard.writeText(String(text)) } catch { /* 没权限就算了 */ }
+    }
+
+    /* ───────────────────── Podman 容器配置 ─────────────────────
+       Podman 和 LXC 的配置模型是两回事，别用同一套表单糊过去：
+
+       - 资源限制可以 podman update 热改，立刻写进 cgroup，容器不用重启；
+       - 端口 / 挂载 / 环境变量 / 重启策略 / 命令这些只在 run 那一刻定死，
+         改了只能重建容器（换新 ID，容器内没挂在卷上的数据会丢）。
+
+       所以这一页分成「立即生效」和「重建生效」两段，各自写清楚代价，
+       不把两者混在一个「保存」按钮里骗人。 */
+    function PodmanConfigPane({ container }) {
+      const base = '/containers/' + encodeURIComponent(container.nodeId) + '/' + encodeURIComponent(container.name)
+      const [detail, setDetail] = React.useState(null)
+      const [loading, setLoading] = React.useState(true)
+      const [loadError, setLoadError] = React.useState(null)
+      const [tick, setTick] = React.useState(0)
+
+      // 热改：写进 cgroup，立即生效
+      const [hot, setHot] = React.useState({
+        cpus: '', cpuShares: '', cpusetCpus: '',
+        memory: '', memoryReservation: '', memorySwap: '', blkioWeight: '',
+      })
+      const [hotBusy, setHotBusy] = React.useState(false)
+      const [hotToast, setHotToast] = React.useState(null)
+
+      // 重建：整份参数重来一遍
+      const [draft, setDraft] = React.useState(null)
+      // 基线 = 打开这一页时容器的真实配置。重建按钮拿它算差了几项。
+      const [baseline, setBaseline] = React.useState(null)
+      // 逐条显示哪些环境变量的明文（只对敏感键名生效，见 isSecretKey）。
+      const [revealedEnv, setRevealedEnv] = React.useState({})
+      const [coldBusy, setColdBusy] = React.useState(false)
+      const [coldToast, setColdToast] = React.useState(null)
+      const [error, setError] = React.useState(null)
+
+      React.useEffect(() => {
+        let alive = true
+        setLoading(true)
+        setLoadError(null)
+        jget(base).then(data => {
+          if (!alive) return
+          setDetail(data)
+          const lim = data.limits || {}
+          setHot({
+            cpus: lim.cpus !== null && lim.cpus !== undefined ? String(lim.cpus) : '',
+            cpuShares: lim.cpuShares ? String(lim.cpuShares) : '',
+            cpusetCpus: lim.cpusetCpus || '',
+            memory: lim.memory ? (formatBytesShort(lim.memory) || String(lim.memory)) : '',
+            memoryReservation: lim.memoryReservation ? (formatBytesShort(lim.memoryReservation) || String(lim.memoryReservation)) : '',
+            memorySwap: lim.memorySwap && lim.memorySwap > 0 ? (formatBytesShort(lim.memorySwap) || String(lim.memorySwap)) : '',
+            blkioWeight: lim.blkioWeight ? String(lim.blkioWeight) : '',
+          })
+          const imm = data.immutable || {}
+          const policy = (data.restartPolicy && data.restartPolicy.Name) || 'no'
+          // 同一个对象既当草稿又当基线：重建按钮要知道「到底改了几项」才会亮。
+          const initialDraft = {
+            ports: (data.ports || []).map(p => ({
+              hostIp: p.hostIp || '',
+              hostPort: p.hostPort === null || p.hostPort === undefined ? '' : String(p.hostPort),
+              containerPort: String(p.containerPort || ''),
+              protocol: p.protocol || 'tcp',
+            })),
+            volumes: (data.mounts || []).map(m => ({
+              source: m.source || '',
+              destination: m.destination || '',
+              ro: m.rw === false,
+            })),
+            env: Object.keys(data.env || {}).sort().map(key => ({ key, value: String((data.env || {})[key] ?? '') })),
+            restart: policy,
+            command: (data.command || []).join(' '),
+            entrypoint: Array.isArray(data.entrypoint) ? data.entrypoint.join(' ') : (data.entrypoint ? String(data.entrypoint) : ''),
+            network: data.networkMode || '',
+            hostname: imm.hostname || '',
+            user: imm.user || '',
+            workdir: imm.workdir || '',
+            privileged: Boolean(imm.privileged),
+            autoRemove: Boolean(imm.autoRemove),
+            pidsLimit: lim.pidsLimit ? String(lim.pidsLimit) : '',
+            capAdd: (imm.capAdd || []).join(' '),
+            capDrop: (imm.capDrop || []).join(' '),
+            securityOpt: (imm.securityOpt || []).join(' '),
+          }
+          setDraft(initialDraft)
+          setBaseline(initialDraft)
+          setLoading(false)
+        }).catch(err => {
+          if (!alive) return
+          setLoadError(err.message || String(err))
+          setLoading(false)
+        })
+        return () => { alive = false }
+      }, [base, tick])
+
+      function setHotField(name, value) {
+        setHot(prev => ({ ...prev, [name]: value }))
+      }
+
+      function setField(name, value) {
+        setDraft(prev => prev ? ({ ...prev, [name]: value }) : prev)
+      }
+
+      async function saveHot() {
+        if (!draft) return
+        setHotBusy(true)
+        setHotToast(null)
+        setError(null)
+        try {
+          const payload = {}
+          if (hot.cpus.trim() !== '') payload.cpus = Number(hot.cpus)
+          if (hot.cpuShares.trim() !== '') payload.cpuShares = Number(hot.cpuShares)
+          if (hot.cpusetCpus.trim() !== '') payload.cpusetCpus = hot.cpusetCpus.trim()
+          if (hot.memory.trim() !== '') payload.memory = hot.memory.trim()
+          if (hot.memoryReservation.trim() !== '') payload.memoryReservation = hot.memoryReservation.trim()
+          if (hot.memorySwap.trim() !== '') payload.memorySwap = hot.memorySwap.trim()
+          if (hot.blkioWeight.trim() !== '') payload.blkioWeight = Number(hot.blkioWeight)
+          if (Object.keys(payload).length === 0) throw new Error('没有填任何限制项。')
+          await jpost(base + '/limits', payload)
+          setHotToast('已写入 cgroup，立即生效，不用重启容器')
+          setTick(n => n + 1)
+        } catch (err) {
+          setError(err.message || String(err))
+        } finally {
+          setHotBusy(false)
+        }
+      }
+
+      async function saveCold() {
+        if (!draft) return
+        // 没有改动就不发请求：重建会换新容器 ID，宁可按钮是灰的也不让它误触。
+        if (diffDraft(baseline, draft).length === 0) {
+          setError('没有改任何参数，不需要重建。')
+          return
+        }
+        setColdBusy(true)
+        setColdToast(null)
+        setError(null)
+        try {
+          const env = {}
+          for (const row of draft.env) {
+            const key = String(row.key || '').trim()
+            if (!key) continue
+            env[key] = String(row.value === undefined || row.value === null ? '' : row.value)
+          }
+          const ports = []
+          for (const one of draft.ports) {
+            if (String(one.containerPort).trim() === '') continue
+            ports.push({
+              hostIp: String(one.hostIp || '').trim(),
+              hostPort: String(one.hostPort).trim() === '' ? null : Number(one.hostPort),
+              containerPort: Number(one.containerPort),
+              protocol: one.protocol === 'udp' ? 'udp' : 'tcp',
+            })
+          }
+          const volumes = []
+          for (const one of draft.volumes) {
+            if (!String(one.source).trim() || !String(one.destination).trim()) continue
+            volumes.push({ source: String(one.source).trim(), destination: String(one.destination).trim(), ro: Boolean(one.ro) })
+          }
+          const splitList = text => String(text || '').trim() === '' ? [] : String(text).trim().split(/\s+/)
+          const payload = {
+            ports,
+            volumes,
+            env,
+            restart: draft.restart || 'no',
+            command: splitList(draft.command),
+            entrypoint: splitList(draft.entrypoint),
+            network: String(draft.network || '').trim(),
+            hostname: String(draft.hostname || '').trim(),
+            user: String(draft.user || '').trim(),
+            workdir: String(draft.workdir || '').trim(),
+            privileged: Boolean(draft.privileged),
+            autoRemove: Boolean(draft.autoRemove),
+            pidsLimit: String(draft.pidsLimit || '').trim() === '' ? null : Number(draft.pidsLimit),
+            capAdd: splitList(draft.capAdd),
+            capDrop: splitList(draft.capDrop),
+            securityOpt: splitList(draft.securityOpt),
+          }
+          const result = await jpost(base + '/recreate', payload)
+          if (result && result.status === 'pending') {
+            setColdToast('已挂起 —— 去底部「待确认」点一下才会真正重建')
+          } else {
+            setColdToast('已按新参数重建，容器 ID 变了')
+          }
+          setTick(n => n + 1)
+        } catch (err) {
+          setError(err.message || String(err))
+        } finally {
+          setColdBusy(false)
+        }
+      }
+
+      if (loading) return h('div', { 'data-cm-card': '' }, h('div', { 'data-cm-dim': '' }, '读取容器配置…'))
+      if (loadError) {
+        return h('div', { 'data-cm-card': '' },
+          h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } }, '读不到配置'),
+          h('div', { 'data-cm-warn': '' }, loadError),
+          h('button', { 'data-cm-btn': '', onClick: () => setTick(n => n + 1) }, '重试'))
+      }
+      if (!draft) return null
+
+      const limitsLive = detail && detail.limits ? detail.limits : {}
+      // 改了哪几项，重建按钮与它上面的差量表都吃这一份。
+      const changes = diffDraft(baseline, draft)
+      const restartOptions = [
+        ['no', 'no —— 不自动重启'],
+        ['on-failure', 'on-failure —— 非零退出才重启'],
+        ['always', 'always —— 总是重启'],
+        ['unless-stopped', 'unless-stopped —— 除非手动停掉'],
+      ]
+
+      return h('div', null,
+        h('div', { 'data-cm-card': '' },
+          h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } },
+            '运行时限制',
+            h('span', { 'data-cm-dim': '', style: { marginLeft: '8px', fontWeight: '400' } }, 'podman update · 立即生效')),
+
+          h('div', { 'data-cm-formrow': '' },
+            field('CPU 核数', h('input', { 'data-cm-input': '', value: hot.cpus, placeholder: '例如 1.5，留空不改', onChange: event => setHotField('cpus', event.target.value) })),
+            field('CPU 权重', h('input', { 'data-cm-input': '', value: hot.cpuShares, placeholder: '10–1000', onChange: event => setHotField('cpuShares', event.target.value) })),
+            field('绑核', h('input', { 'data-cm-input': '', value: hot.cpusetCpus, placeholder: '例如 0-1 或 0,2', onChange: event => setHotField('cpusetCpus', event.target.value) }))),
+          h('div', { 'data-cm-formrow': '' },
+            field('内存上限', h('input', { 'data-cm-input': '', value: hot.memory, placeholder: '例如 512m / 1g', onChange: event => setHotField('memory', event.target.value) })),
+            field('内存软限', h('input', { 'data-cm-input': '', value: hot.memoryReservation, placeholder: '超过先回收', onChange: event => setHotField('memoryReservation', event.target.value) })),
+            field('内存 + swap', h('input', { 'data-cm-input': '', value: hot.memorySwap, placeholder: '总上限，-1 = 不限', onChange: event => setHotField('memorySwap', event.target.value) }))),
+          h('div', { 'data-cm-formrow': '' },
+            field('块设备权重', h('input', { 'data-cm-input': '', value: hot.blkioWeight, placeholder: '10–1000', onChange: event => setHotField('blkioWeight', event.target.value) })),
+            h('div', { 'data-cm-grow': '' }),
+            h('button', { 'data-cm-btn': '', 'data-primary': '', disabled: hotBusy, onClick: saveHot }, hotBusy ? '写入中…' : '应用限制')),
+          hotToast ? h('div', { 'data-cm-hintbox': '' }, hotToast) : null,
+          h('div', { 'data-cm-dim': '', style: { marginTop: 'var(--cm-s3)' } },
+            '写进去就生效，容器不用重启。注意 podman inspect 里的 HostConfig 不会跟着变，',
+            h('span', null, '那是 podman 4.3.1 的老毛病——要看真实上限得读容器内的 cgroup，别拿 inspect 当没生效的证据。')),
+
+          h('div', { 'data-cm-line': '' }),
+          h('div', { 'data-cm-kv': '' },
+            h('span', { 'data-cm-dim': '' }, '建容器时的限制'),
+            h('span', { 'data-cm-mono': '' },
+              'mem=' + (limitsLive.memory ? formatBytesShort(limitsLive.memory) : '不限') +
+              ' · pids=' + (limitsLive.pidsLimit ? limitsLive.pidsLimit : '不限')))),
+
+        h('div', { 'data-cm-card': '', style: { marginTop: 'var(--cm-s4)' } },
+          h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } },
+            '容器参数',
+            h('span', { 'data-cm-dim': '', style: { marginLeft: '8px', fontWeight: '400' } }, 'podman run · 需重建生效')),
+          h('div', { 'data-cm-warn': '', style: { marginBottom: 'var(--cm-s3)' } },
+            '这些参数在 podman run 那一刻就定死了，改只能重建容器：会换一个新的容器 ID，',
+            '容器里没挂在卷上的数据会丢。面板的做法是「先建新的、起来之后换名字、再删旧的」，',
+            '任一步失败都会把旧容器放回去，不会先删后建。'),
+
+          h('div', { 'data-cm-sec': '' }, '端口映射'),
+          ...draft.ports.map((one, index) => h('div', { key: 'port' + index, 'data-cm-formrow': '' },
+            field('宿主端口', h('input', { 'data-cm-input': '', value: one.hostPort, placeholder: '留空 = 随机', onChange: event => {
+              const next = draft.ports.slice(); next[index] = { ...next[index], hostPort: event.target.value }; setField('ports', next)
+            } })),
+            field('容器端口', h('input', { 'data-cm-input': '', value: one.containerPort, onChange: event => {
+              const next = draft.ports.slice(); next[index] = { ...next[index], containerPort: event.target.value }; setField('ports', next)
+            } })),
+            field('协议', h('select', { 'data-cm-input': '', value: one.protocol, onChange: event => {
+              const next = draft.ports.slice(); next[index] = { ...next[index], protocol: event.target.value }; setField('ports', next)
+            } }, h('option', { value: 'tcp' }, 'tcp'), h('option', { value: 'udp' }, 'udp'))),
+            h('button', { 'data-cm-btn': '', onClick: () => setField('ports', draft.ports.filter((_, i) => i !== index)) }, '删除'))),
+          h('button', { 'data-cm-btn': '', onClick: () => setField('ports', draft.ports.concat([{ hostIp: '', hostPort: '', containerPort: '', protocol: 'tcp' }])) }, '＋ 加一条端口'),
+
+          h('div', { 'data-cm-sec': '' }, '挂载'),
+          ...draft.volumes.map((one, index) => h('div', { key: 'vol' + index, 'data-cm-formrow': '' },
+            field('宿主路径', h('input', { 'data-cm-input': '', value: one.source, onChange: event => {
+              const next = draft.volumes.slice(); next[index] = { ...next[index], source: event.target.value }; setField('volumes', next)
+            } })),
+            field('容器路径', h('input', { 'data-cm-input': '', value: one.destination, onChange: event => {
+              const next = draft.volumes.slice(); next[index] = { ...next[index], destination: event.target.value }; setField('volumes', next)
+            } })),
+            h('label', { 'data-cm-check': '' },
+              h('input', { type: 'checkbox', checked: Boolean(one.ro), onChange: event => {
+                const next = draft.volumes.slice(); next[index] = { ...next[index], ro: event.target.checked }; setField('volumes', next)
+              } }),
+              '只读'),
+            h('button', { 'data-cm-btn': '', onClick: () => setField('volumes', draft.volumes.filter((_, i) => i !== index)) }, '删除'))),
+          h('button', { 'data-cm-btn': '', onClick: () => setField('volumes', draft.volumes.concat([{ source: '', destination: '', ro: false }])) }, '＋ 加一条挂载'),
+
+          h('div', { 'data-cm-sec': '' }, '环境变量'),
+          // 不做「一键全显」：一次点击把整屏密钥摊在投影上，代价太大。
+          // 只按键名判断该不该打码，要看哪条单独点开。
+          h('div', { 'data-cm-dim': '', style: { marginBottom: 'var(--cm-s2)' } },
+            '键名里带 SECRET / KEY / PASS / TOKEN / PWD / AUTH / CREDENTIAL 的默认打码，',
+            '要看单独点「显示」。'),
+          ...draft.env.map((one, index) => {
+            const secret = isSecretKey(one.key)
+            const plain = !secret || Boolean(revealedEnv[index])
+            return h('div', { key: 'env' + index, 'data-cm-formrow': '' },
+              field('键', h('input', { 'data-cm-input': '', value: one.key, onChange: event => {
+                const next = draft.env.slice(); next[index] = { ...next[index], key: event.target.value }; setField('env', next)
+              } })),
+              field('值', h('input', {
+                'data-cm-input': '',
+                type: plain ? 'text' : 'password',
+                value: one.value,
+                onChange: event => {
+                  const next = draft.env.slice(); next[index] = { ...next[index], value: event.target.value }; setField('env', next)
+                },
+              })),
+              secret
+                ? h('button', { 'data-cm-btn': '', onClick: () => setRevealedEnv(prev => ({ ...prev, [index]: !prev[index] })) },
+                  revealedEnv[index] ? '隐藏' : '显示')
+                : null,
+              h('button', { 'data-cm-btn': '', title: '复制这个值', onClick: () => copyText(one.value) }, '复制'),
+              h('button', { 'data-cm-btn': '', onClick: () => {
+                setRevealedEnv({})
+                setField('env', draft.env.filter((_, i) => i !== index))
+              } }, '删除'))
+          }),
+          h('button', { 'data-cm-btn': '', onClick: () => setField('env', draft.env.concat([{ key: '', value: '' }])) }, '＋ 加一条环境变量'),
+
+          h('div', { 'data-cm-sec': '' }, '启动与身份'),
+          h('div', { 'data-cm-formrow': '' },
+            field('重启策略', h('select', { 'data-cm-input': '', value: draft.restart, onChange: event => setField('restart', event.target.value) },
+              ...restartOptions.map(pair => h('option', { key: pair[0], value: pair[0] }, pair[1])))),
+            field('网络模式', h('input', { 'data-cm-input': '', value: draft.network, placeholder: '例如 host / bridge / 网络名', onChange: event => setField('network', event.target.value) })),
+            field('主机名', h('input', { 'data-cm-input': '', value: draft.hostname, onChange: event => setField('hostname', event.target.value) }))),
+          h('div', { 'data-cm-formrow': '' },
+            field('运行用户', h('input', { 'data-cm-input': '', value: draft.user, placeholder: '例如 1000:1000', onChange: event => setField('user', event.target.value) })),
+            field('工作目录', h('input', { 'data-cm-input': '', value: draft.workdir, placeholder: '例如 /app', onChange: event => setField('workdir', event.target.value) })),
+            field('PID 上限', h('input', { 'data-cm-input': '', value: draft.pidsLimit, placeholder: '只能建时设', onChange: event => setField('pidsLimit', event.target.value) }))),
+
+          field('启动命令（空格分隔，留空 = 用镜像的）', h('input', { 'data-cm-input': '', value: draft.command, onChange: event => setField('command', event.target.value) })),
+          field('entrypoint（空格分隔，留空 = 用镜像的）', h('input', { 'data-cm-input': '', value: draft.entrypoint, onChange: event => setField('entrypoint', event.target.value) })),
+
+          h('div', { 'data-cm-sec': '' }, '权限'),
+          h('div', { 'data-cm-formrow': '' },
+            field('新增 capabilities（空格分隔）', h('input', { 'data-cm-input': '', value: draft.capAdd, placeholder: '例如 NET_ADMIN', onChange: event => setField('capAdd', event.target.value) })),
+            field('丢弃 capabilities（空格分隔）', h('input', { 'data-cm-input': '', value: draft.capDrop, placeholder: '例如 SYS_ADMIN', onChange: event => setField('capDrop', event.target.value) }))),
+          field('安全选项（空格分隔）', h('input', { 'data-cm-input': '', value: draft.securityOpt, placeholder: '例如 no-new-privileges', onChange: event => setField('securityOpt', event.target.value) })),
+          h('label', { 'data-cm-check': '' },
+            h('input', { type: 'checkbox', checked: Boolean(draft.privileged), onChange: event => setField('privileged', event.target.checked) }),
+            '特权模式（--privileged，容器内等于宿主 root）'),
+          h('label', { 'data-cm-check': '' },
+            h('input', { type: 'checkbox', checked: Boolean(draft.autoRemove), onChange: event => setField('autoRemove', event.target.checked) }),
+            '退出后自动删除容器（--rm）'),
+
+          // 差量表：重建是不可逆的（换新 ID），点之前必须看清改了哪几项。
+          changes.length > 0
+            ? h('div', { 'data-cm-diff': '' },
+              h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } }, '即将变更 ' + changes.length + ' 项'),
+              ...changes.map(item => h('div', { key: item.key, 'data-cm-portrow': '' },
+                h('span', { 'data-cm-portpill': '', 'data-muted': '' }, item.label),
+                h('span', { 'data-cm-portarrow': '' }, '原 ' + item.before),
+                h('span', { 'data-cm-portarrow': '' }, '→'),
+                h('span', { 'data-cm-portpill': '' }, item.after))))
+            : h('div', { 'data-cm-dim': '', style: { marginTop: 'var(--cm-s3)' } },
+              '当前没有改动。动哪一项，下面的按钮才会亮。'),
+          h('div', { 'data-cm-actions': '' },
+            h('button', {
+              'data-cm-btn': '',
+              'data-primary': '',
+              disabled: coldBusy || changes.length === 0,
+              onClick: saveCold,
+            }, coldBusy ? '提交中…' : (changes.length === 0 ? '无参数变更' : '审查变更并重建（' + changes.length + ' 项）'))),
+          coldToast ? h('div', { 'data-cm-hintbox': '' }, coldToast) : null,
+          error ? h('div', { 'data-cm-warn': '' }, error) : null),
+
+        h('div', { 'data-cm-card': '', style: { marginTop: 'var(--cm-s4)' } },
+          h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } }, '只读信息'),
+          h('div', { 'data-cm-kv': '' },
+            h('span', { 'data-cm-dim': '' }, '镜像'), h('span', { 'data-cm-mono': '' }, detail && detail.image ? detail.image : '—'),
+            h('span', { 'data-cm-dim': '' }, '容器 ID'), h('span', { 'data-cm-mono': '' }, detail && detail.shortId ? detail.shortId : '—'),
+            h('span', { 'data-cm-dim': '' }, '状态'), h('span', { 'data-cm-mono': '' }, detail && detail.state ? detail.state : '—'),
+            h('span', { 'data-cm-dim': '' }, 'PID'), h('span', { 'data-cm-mono': '' }, detail && detail.pid ? String(detail.pid) : '—'))))
+    }
+
+      /**
+       * LXC 容器配置页的外壳。
+       *
+       * 网卡、挂载、快照都是「这个容器的配置」，只是量级差很多（网卡天天改、快照一年两次）。
+       * 所以它们收进同一页的分段控件里，不再各占一个一级 tab —— 低频操作不该待在最显眼的一行。
+       * 这里只是外壳，里面三个面板原样复用，内部逻辑一行没动。
+       */
+      function LxcConfigShell({ container, bridges, onToast }) {
+        const [seg, setSeg] = React.useState('nic')
+        const ref = { nodeId: container.nodeId, name: container.name }
+        const segs = [
+          ['nic', '网卡与资源'],
+          ['mount', '挂载点'],
+          ['snap', '快照'],
+        ]
+        return h('div', null,
+          h('div', { 'data-cm-seg': '' },
+            ...segs.map(([id, label]) => h('button', {
+              key: id,
+              'data-cm-segitem': '',
+              'data-active': seg === id ? '' : undefined,
+              onClick: () => setSeg(id),
+            }, label))),
+          seg === 'nic'
+            ? h(ConfigPane, { container, bridges })
+            : seg === 'mount'
+              ? h(MountsPane, { container: ref, onToast })
+              : h(SnapshotsPane, { container: ref, onToast }))
+      }
     function ConfigPane({ container, bridges }) {
       const [nicText, setNicText] = React.useState('')
       // 网卡表单（对 nics[0] 建模）。多于一块、或字段认不出的，自动走「原始 JSON」。
@@ -2028,7 +2814,7 @@ window.__ModuleLoader__.load({
             onClick: () => { setNicMac(randomMac()); setNicMacAuto(true) },
           }, '随机'))),
         !nicHadMac && !nicMac.trim()
-          ? fieldWide('', h('div', { 'data-cm-dim': '', style: { fontSize: '11px' } },
+          ? fieldWide('', h('div', { 'data-cm-dim': '', style: { fontSize: 'var(--cm-f-xs)' } },
             '这台建的时候没写 hwaddr，MAC 由内核随机生成 —— 容器每重启一次就可能变。填上并保存就固定了。'))
           : null,
         field('IPv4', h('select', { 'data-cm-select': '', value: nicIpMode, onChange: e => setNicIpMode(e.target.value) },
@@ -2045,7 +2831,7 @@ window.__ModuleLoader__.load({
           h('option', { value: 'dhcp' }, 'DHCPv6'),
           h('option', { value: 'static' }, '静态'))),
         nic6Mode === 'dhcp'
-          ? fieldWide('', h('div', { 'data-cm-dim': '', style: { fontSize: '11px' } },
+          ? fieldWide('', h('div', { 'data-cm-dim': '', style: { fontSize: 'var(--cm-f-xs)' } },
             'DHCPv6 靠容器里的客户端与宿主的 RA / DHCPv6 服务拿地址，插件不写死配置。'))
           : null,
         nic6Mode === 'static'
@@ -2058,14 +2844,14 @@ window.__ModuleLoader__.load({
         fieldWide('', h('div', { style: { display: 'flex', gap: '8px', alignItems: 'center' } },
           h('button', { 'data-cm-btn': '', type: 'button', onClick: toggleRawMode },
             nicRawMode ? '收起原始 JSON' : '直接编辑原始 JSON'),
-          h('span', { 'data-cm-dim': '', style: { fontSize: '11px' } },
+          h('span', { 'data-cm-dim': '', style: { fontSize: 'var(--cm-f-xs)' } },
             nicRawMode
               ? '当前以原始 JSON 为准，上面的字段不参与保存。'
               : '多网卡、macvlan、mtu 这些只能在这里改；切换时会把表单里的值带过去。'))),
         nicRawMode
           ? fieldWide('网卡数组（JSON）', h('textarea', {
             'data-cm-input': '',
-            style: { width: '100%', minHeight: '180px', fontFamily: 'ui-monospace, Menlo, Consolas, monospace', fontSize: '12px', whiteSpace: 'pre' },
+            style: { width: '100%', minHeight: '180px', fontFamily: 'ui-monospace, Menlo, Consolas, monospace', fontSize: 'var(--cm-f-sm)', whiteSpace: 'pre' },
             value: nicText,
             onChange: event => setNicText(event.target.value),
           }))
@@ -2184,7 +2970,7 @@ window.__ModuleLoader__.load({
             h('div', { 'data-cm-grow': '' }),
             h('button', { 'data-cm-btn': '', 'data-primary': '', disabled: resourceBusy, onClick: saveResources }, resourceBusy ? '应用中…' : '立即生效')),
           liveInfo
-            ? h('div', { 'data-cm-dim': '', 'data-cm-mono': '', style: { marginTop: '6px', fontSize: '11px', lineHeight: '1.7' } },
+            ? h('div', { 'data-cm-dim': '', 'data-cm-mono': '', style: { marginTop: '6px', fontSize: 'var(--cm-f-xs)', lineHeight: '1.7' } },
               'cgroup 实时值：cpuset=' + (liveInfo.cpuset || '不限')
               + '，cpu.max=' + (cpuQuotaFromMax(liveInfo.cpuMax) ? cpuQuotaFromMax(liveInfo.cpuMax) + ' 核' : '不限')
               + '，cpu.weight=' + (liveInfo.cpuWeight || '—')
@@ -2296,7 +3082,7 @@ function macSwapText(swaps) {
         value,
         placeholder,
         spellCheck: false,
-        style: { minHeight: '62px', resize: 'vertical', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: '11.5px', lineHeight: '1.55' },
+        style: { minHeight: '62px', resize: 'vertical', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: 'var(--cm-f-sm)', lineHeight: '1.55' },
         onChange: event => onChange(event.target.value),
       })
     }
@@ -2537,7 +3323,7 @@ function macSwapText(swaps) {
             item.name + (item.address ? '（' + item.address + '）' : ''))),
           h('option', { key: 'none', value: 'none' }, '不接网络'))),
         bridgeList.length > 0 && lxcNet !== 'lxcbr0' && lxcNet !== 'none'
-          ? fieldWide('', h('div', { 'data-cm-dim': '', style: { fontSize: '11px' } },
+          ? fieldWide('', h('div', { 'data-cm-dim': '', style: { fontSize: 'var(--cm-f-xs)' } },
             '挂 ' + lxcNet + ' 意味着容器直接进这个网段，和宿主同级；要 DHCP 才拿得到地址。'))
           : null,
         lxcNet === 'none'
@@ -2555,7 +3341,7 @@ function macSwapText(swaps) {
               type: 'button',
               onClick: () => { setLxcMac(randomMac()); setLxcMacAuto(true) },
             }, '随机换一个'),
-            h('span', { 'data-cm-dim': '', style: { fontSize: '11px' } },
+            h('span', { 'data-cm-dim': '', style: { fontSize: 'var(--cm-f-xs)' } },
               MAC_RE.test(lxcMac.trim())
                 ? (lxcMacAuto
                   ? '写死进 lxc.net.0.hwaddr —— 容器里 ip link 看到的永远是这一个。撞了会自动换一个。'
@@ -2580,7 +3366,7 @@ function macSwapText(swaps) {
             h('option', { value: 'dhcp' }, 'DHCPv6'),
             h('option', { value: 'static' }, '静态'))),
         lxcNet !== 'none' && ip6Mode === 'dhcp'
-          ? fieldWide('', h('div', { 'data-cm-dim': '', style: { fontSize: '11px' } },
+          ? fieldWide('', h('div', { 'data-cm-dim': '', style: { fontSize: 'var(--cm-f-xs)' } },
             'DHCPv6 不在 LXC 配置里写死地址，靠容器内的客户端去拿 —— 宿主那边得有 RA 或 DHCPv6 服务，否则拿不到。'))
           : null,
         lxcNet !== 'none' && ip6Mode === 'static'
@@ -2601,7 +3387,7 @@ function macSwapText(swaps) {
             h('input', { 'data-cm-input': '', value: disk.mount || '', placeholder: '容器内挂载点，例如 data', style: { flex: '1' }, onChange: e => patchDisk(index, { mount: e.target.value }) }),
             h('button', { 'data-cm-btn': '', type: 'button', disabled: busy, onClick: () => setDataDisks(list => list.filter((_, at) => at !== index)) }, '×'))),
           h('button', { 'data-cm-btn': '', type: 'button', disabled: busy, onClick: () => setDataDisks(list => [...list, { size: '20G', mount: 'data' + (list.length || '') }]) }, '＋ 加一块数据盘'),
-          h('div', { 'data-cm-dim': '', style: { fontSize: '11px', marginTop: '4px' } },
+          h('div', { 'data-cm-dim': '', style: { fontSize: 'var(--cm-f-xs)', marginTop: '4px' } },
             'rootfs 是 ' + (name.trim() || '<名字>') + '-0.img，数据盘按 -1、-2 往下排；都落在 /opt/dsh-container/lxc/' + (name.trim() || '<名字>') + '/。'))),
         )
 
@@ -2611,9 +3397,9 @@ function macSwapText(swaps) {
           nodeSelect,
           isLxc ? lxcFields : podmanFields,
           isLxc ? h('div', { 'data-cm-actions': '' },
-            h('label', { style: { display: 'flex', gap: '6px', alignItems: 'center', fontSize: '12px' } },
+            h('label', { style: { display: 'flex', gap: '6px', alignItems: 'center', fontSize: 'var(--cm-f-sm)' } },
               h('input', { type: 'checkbox', checked: start, onChange: e => setStart(e.target.checked) }), '创建后启动'),
-            h('label', { style: { display: 'flex', gap: '6px', alignItems: 'center', fontSize: '12px' } },
+            h('label', { style: { display: 'flex', gap: '6px', alignItems: 'center', fontSize: 'var(--cm-f-sm)' } },
               h('input', { type: 'checkbox', checked: autostart, onChange: e => setAutostart(e.target.checked) }), '开机自启'),
             h('div', { 'data-cm-grow': '' }),
             h('button', { 'data-cm-btn': '', 'data-primary': '', disabled: working || busy, onClick: submit }, working ? (stage || '创建中…') : '创建'))
@@ -2667,7 +3453,7 @@ function macSwapText(swaps) {
           field('网关（可选）', h('input', { 'data-cm-input': '', value: gateway, onChange: e => setGateway(e.target.value) })),
         ),
         h('div', { 'data-cm-actions': '' },
-          h('label', { style: { display: 'flex', gap: '6px', alignItems: 'center', fontSize: '12px' } },
+          h('label', { style: { display: 'flex', gap: '6px', alignItems: 'center', fontSize: 'var(--cm-f-sm)' } },
             h('input', { type: 'checkbox', checked: internal, onChange: e => setInternal(e.target.checked) }),
             'internal（无出站）'),
           h('div', { 'data-cm-grow': '' }),
@@ -2762,7 +3548,7 @@ function macSwapText(swaps) {
               onClick: () => setFilter(entry[0]),
             }, entry[1])),
             h('button', { 'data-cm-btn': '', disabled: loading, onClick: () => { setLoading(true); load() } }, '刷新')),
-          h('div', { 'data-cm-dim': '', style: { margin: '6px 0 10px', fontSize: '11px' } },
+          h('div', { 'data-cm-dim': '', style: { margin: '6px 0 10px', fontSize: 'var(--cm-f-xs)' } },
             '最近 ' + shown.length + ' 条 · 谁点过危险操作、AI 发起过什么，都记在 audit.jsonl 里')),
         h('div', { 'data-cm-card': '' },
           error
@@ -3010,12 +3796,12 @@ function macSwapText(swaps) {
               'data-cm-tag': '',
               ...(project.broken ? { 'data-bad': '' } : running > 0 ? { 'data-ok': '' } : {}),
             }, project.broken ? '读不了' : (running + '/' + total))),
-          h('div', { key: 'meta', 'data-cm-dim': '', style: { marginTop: '4px', fontSize: '11px' } },
+          h('div', { key: 'meta', 'data-cm-dim': '', style: { marginTop: '4px', fontSize: 'var(--cm-f-xs)' } },
             project.broken
               ? (project.problem || 'compose 文件有问题')
               : [project.fileName, project.stale ? '文件比容器新' : null].filter(Boolean).join(' · ')),
           ports.length > 0
-            ? h('div', { key: 'ports', 'data-cm-dim': '', style: { marginTop: '2px', fontSize: '11px', wordBreak: 'break-all' } },
+            ? h('div', { key: 'ports', 'data-cm-dim': '', style: { marginTop: '2px', fontSize: 'var(--cm-f-xs)', wordBreak: 'break-all' } },
               ports.slice(0, 5).join('  ') + (ports.length > 5 ? '  …' : ''))
             : null))
       }
@@ -3028,7 +3814,7 @@ function macSwapText(swaps) {
       if (orphans.length > 0) {
         leftChildren.push(h('div', { key: 'orphans', 'data-cm-group': '', style: { borderTop: '1px solid var(--cm-line)' } },
           h('div', { 'data-cm-ghead': '' }, '未分组容器'),
-          h('div', { 'data-cm-dim': '', style: { padding: '0 6px 6px', fontSize: '11px' } },
+          h('div', { 'data-cm-dim': '', style: { padding: '0 6px 6px', fontSize: 'var(--cm-f-xs)' } },
             orphans.length + ' 个容器不属于任何项目（手工 podman run 的）。'),
           ...orphans.slice(0, 8).map(item => h('div', {
             key: 'o-' + item.name,
@@ -3068,7 +3854,7 @@ function macSwapText(swaps) {
               disabled: busy,
               onClick: () => act(jpost('/compose/runtime/install'), '装好了'),
             }, '一键安装'),
-            h('span', { 'data-cm-dim': '', style: { fontSize: '11px' } },
+            h('span', { 'data-cm-dim': '', style: { fontSize: 'var(--cm-f-xs)' } },
               '会建 ' + (runtime.venv || 'venv') + ' 并装 podman-compose ' + (runtime.expected || '') + '，要联网，可能几分钟。')))
       }
 
@@ -3081,7 +3867,7 @@ function macSwapText(swaps) {
           h('div', { 'data-cm-card': '' },
             h('div', { 'data-cm-line': '' },
               h(Dot, { tone: counts.running > 0 ? 'on' : 'off' }),
-              h('strong', { style: { fontSize: '14px' } }, name),
+              h('strong', { style: { fontSize: 'var(--cm-f-lg)' } }, name),
               h('span', { 'data-cm-dim': '' }, counts.running + '/' + counts.total + ' 个服务在跑'),
               h('div', { 'data-cm-grow': '' }),
               h('button', { 'data-cm-btn': '', 'data-primary': '', disabled: busy, onClick: () => act(jpost('/compose/projects/' + encodeURIComponent(name) + '/up'), '已启动') }, '启动'),
@@ -3193,7 +3979,7 @@ function macSwapText(swaps) {
         h('div', { 'data-cm-line': '', style: { marginTop: '8px' } },
           h('button', { 'data-cm-btn': '', 'data-primary': '', disabled: busy, onClick: save }, busy ? '保存中…' : '写回 compose 文件'),
           h('button', { 'data-cm-btn': '', disabled: busy, onClick: () => onDone && onDone(null) }, '取消'),
-          h('span', { 'data-cm-dim': '', style: { fontSize: '11px' } }, '写之前会备份，写之后要「重启」才生效。')))
+          h('span', { 'data-cm-dim': '', style: { fontSize: 'var(--cm-f-xs)' } }, '写之前会备份，写之后要「重启」才生效。')))
     }
 
     /* YAML 编辑器：先读原文，保存时后端会先校验再落盘。 */
@@ -3240,9 +4026,9 @@ function macSwapText(swaps) {
         h('div', { 'data-cm-line': '' },
           h('button', { 'data-cm-btn': '', 'data-primary': '', disabled: busy || !dirty, onClick: save }, busy ? '保存中…' : '保存'),
           h('button', { 'data-cm-btn': '', disabled: busy || !dirty, onClick: () => setText(original) }, '还原'),
-          h('span', { 'data-cm-dim': '', style: { fontSize: '11px' } }, dirty ? '有未保存的改动' : '没有改动'),
+          h('span', { 'data-cm-dim': '', style: { fontSize: 'var(--cm-f-xs)' } }, dirty ? '有未保存的改动' : '没有改动'),
           h('div', { 'data-cm-grow': '' }),
-          h('span', { 'data-cm-dim': '', style: { fontSize: '11px' } }, note || '')),
+          h('span', { 'data-cm-dim': '', style: { fontSize: 'var(--cm-f-xs)' } }, note || '')),
         error ? h('div', { 'data-cm-warn': '', style: { marginTop: '8px' } }, error) : null,
         h('textarea', {
           'data-cm-editor': '',
@@ -3288,7 +4074,7 @@ function macSwapText(swaps) {
             h('option', { value: '' }, '全部服务'),
             ...(services || []).map(name => h('option', { key: name, value: name }, name))),
           h('button', { 'data-cm-btn': '', disabled: busy, onClick: () => load(service) }, busy ? '读取中…' : '刷新'),
-          h('span', { 'data-cm-dim': '', style: { fontSize: '11px' } }, '最近 300 行。')),
+          h('span', { 'data-cm-dim': '', style: { fontSize: 'var(--cm-f-xs)' } }, '最近 300 行。')),
         error ? h('div', { 'data-cm-warn': '' }, error) : null,
         h('pre', { 'data-cm-logbox': '' }, text))
     }
@@ -3487,7 +4273,7 @@ function macSwapText(swaps) {
         h('div', { 'data-cm-line': '', style: { marginBottom: '8px' } },
           h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } }, '挂载点'),
           h('div', { 'data-cm-grow': '' }),
-          h('span', { 'data-cm-dim': '', style: { fontSize: '11px' } }, dirty ? '有未保存的改动' : '没有改动')),
+          h('span', { 'data-cm-dim': '', style: { fontSize: 'var(--cm-f-xs)' } }, dirty ? '有未保存的改动' : '没有改动')),
         h('div', { 'data-cm-hintbox': '', style: { marginBottom: '8px' } },
           '一行一个：宿主路径 容器路径。写进 lxc.mount.entry，容器下次启动时生效。'),
         error ? h('div', { 'data-cm-warn': '', style: { marginBottom: '8px' } }, error) : null,
@@ -3805,7 +4591,7 @@ function macSwapText(swaps) {
       return h('div', { 'data-cm-term-wrap': '', ...(full ? { 'data-cm-full': '' } : {}) },
         h('div', { 'data-cm-term-bar': '' },
           h('span', { 'data-cm-tag': '', ...statusTag }, statusLabel),
-          h('span', { 'data-cm-dim': '', style: { fontSize: '11px' } }, name + ' · 容器内 shell'),
+          h('span', { 'data-cm-dim': '', style: { fontSize: 'var(--cm-f-xs)' } }, name + ' · 容器内 shell'),
           h('div', { 'data-cm-grow': '' }),
           h('div', { 'data-cm-term-bar-group': '' },
             h('button', { type: 'button', title: '缩小字号', disabled: !canNarrow, onClick: () => setFontSize(value => Math.max(TERM_MIN_SIZE, value - 1)) }, 'A−'),
@@ -4026,7 +4812,7 @@ function macSwapText(swaps) {
         data.type === 'vlan'
           ? h('div', null,
             h('div', { 'data-cm-sec': '' }, 'VLAN'),
-            h('div', { 'data-cm-dim': '', style: { fontSize: '11px' } },
+            h('div', { 'data-cm-dim': '', style: { fontSize: 'var(--cm-f-xs)' } },
               'VLAN id ' + (data.vlan.id || '—') + '，挂载在 ' + (data.vlan.parent || '—') + ' 上。改这两项要删了重建。'))
           : null,
 
@@ -4036,13 +4822,13 @@ function macSwapText(swaps) {
             h('div', { 'data-cm-formrow': '' },
               field('监听端口', h('input', { 'data-cm-input': '', type: 'number', value: draft.wgPort, onChange: set('wgPort') })),
               field('私钥', h('input', { 'data-cm-input': '', value: data.wireguard.privateKey || '', disabled: true }))),
-            h('div', { 'data-cm-dim': '', style: { fontSize: '11px', marginBottom: '6px' } },
+            h('div', { 'data-cm-dim': '', style: { fontSize: 'var(--cm-f-xs)', marginBottom: '6px' } },
               data.wireguard.peerError
                 ? '对端读不到：' + data.wireguard.peerError
                 : '对端 ' + (data.wireguard.peers || []).length + ' 个'),
             ...(data.wireguard.peers || []).map(peer => h('div', { key: peer.publicKey, 'data-cm-netrow': '' },
-              h('div', { 'data-cm-mono': '', style: { fontSize: '11px' } }, peer.publicKey.slice(0, 20) + '…'),
-              h('div', { 'data-cm-dim': '', 'data-cm-mono': '', style: { fontSize: '10.5px' } },
+              h('div', { 'data-cm-mono': '', style: { fontSize: 'var(--cm-f-xs)' } }, peer.publicKey.slice(0, 20) + '…'),
+              h('div', { 'data-cm-dim': '', 'data-cm-mono': '', style: { fontSize: 'var(--cm-f-xs)' } },
                 (peer.endpoint || '无 endpoint') + ' · 允许 ' + (peer.allowedIps || []).join(', ') +
                 ' · 收 ' + sizeText(peer.rxBytes) + ' 发 ' + sizeText(peer.txBytes) +
                 (peer.latestHandshake ? ' · ' + new Date(peer.latestHandshake * 1000).toLocaleString() : ' · 还没握过手')))))
@@ -4111,7 +4897,7 @@ function macSwapText(swaps) {
         netCreating ? h(ConnectionCreateForm, { busy, run, onClose: () => setNetCreating(false) }) : null,
         h('div', { 'data-cm-card': '' },
           h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } }, '宿主网卡（' + data.interfaces.length + '）'),
-          h('div', { 'data-cm-dim': '', style: { marginBottom: '4px', fontSize: '11px' } },
+          h('div', { 'data-cm-dim': '', style: { marginBottom: '4px', fontSize: 'var(--cm-f-xs)' } },
             '点一行展开邻居表。速率与驱动来自 /sys。'),
           ...data.interfaces.map(item => {
             const open = openIf === item.name
@@ -4127,31 +4913,31 @@ function macSwapText(swaps) {
                 h('div', { 'data-cm-grow': '' }),
                 item.speed ? h('span', { 'data-cm-dim': '', 'data-cm-mono': '' }, item.speed + ' Mb/s') : null,
                 rates[item.name]
-                  ? h('span', { 'data-cm-mono': '', style: { fontSize: '10.5px', color: 'var(--cm-accent)' } },
+                  ? h('span', { 'data-cm-mono': '', style: { fontSize: 'var(--cm-f-xs)', color: 'var(--cm-accent)' } },
                     sizeText(rates[item.name].rx) + '/s ↓ ' + sizeText(rates[item.name].tx) + '/s ↑')
                   : null,
                 h('span', { 'data-cm-dim': '', 'data-cm-mono': '' },
                   sizeText(item.stats.rxBytes) + ' ↓ / ' + sizeText(item.stats.txBytes) + ' ↑'),
                 h('span', { 'data-cm-dim': '' }, open ? '−' : '+')),
-              h('div', { 'data-cm-mono': '', style: { fontSize: '11.5px', marginTop: '2px' } },
+              h('div', { 'data-cm-mono': '', style: { fontSize: 'var(--cm-f-sm)', marginTop: '2px' } },
                 (item.addresses || []).filter(entry => entry.family === 'inet').map(entry => entry.address + '/' + entry.prefix).join('  ') || '没有 IPv4'),
-              h('div', { 'data-cm-dim': '', 'data-cm-mono': '', style: { fontSize: '10.5px', marginTop: '1px' } },
+              h('div', { 'data-cm-dim': '', 'data-cm-mono': '', style: { fontSize: 'var(--cm-f-xs)', marginTop: '1px' } },
                 'MTU ' + item.mtu + ' · MAC ' + item.mac),
               open
                 ? h('div', { style: { marginTop: '6px' } },
-                  h('div', { 'data-cm-dim': '', style: { fontSize: '11px', marginBottom: '2px' } },
+                  h('div', { 'data-cm-dim': '', style: { fontSize: 'var(--cm-f-xs)', marginBottom: '2px' } },
                     mine.length ? '邻居 ' + mine.length + ' 条' : '还没有邻居记录'),
                   ...mine.slice(0, 15).map(entry => h('div', {
                     key: entry.address,
                     'data-cm-mono': '',
-                    style: { fontSize: '10.5px', color: 'var(--cm-text-dim)' },
+                    style: { fontSize: 'var(--cm-f-xs)', color: 'var(--cm-text-dim)' },
                   }, entry.address + '  ' + (entry.mac || '—') + '  ' + entry.state)))
                 : null)
           })),
 
         h('div', { 'data-cm-card': '' },
           h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } }, 'NetworkManager 连接'),
-          h('div', { 'data-cm-dim': '', style: { marginBottom: '6px', fontSize: '11px' } },
+          h('div', { 'data-cm-dim': '', style: { marginBottom: '6px', fontSize: 'var(--cm-f-xs)' } },
             '点「编辑」改配置。启停、删除、新建都会先挂起，等你在待确认里点。'),
           ...(data.connections || []).map(conn => h('div', { key: conn.name, 'data-cm-netrow': '' },
             h('div', { style: { display: 'flex', gap: '8px', alignItems: 'center' } },
@@ -4217,7 +5003,7 @@ function macSwapText(swaps) {
 
       return h('div', { 'data-cm-card': '' },
         h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } }, '新建连接'),
-        h('div', { 'data-cm-dim': '', style: { marginBottom: '8px', fontSize: '11px' } },
+        h('div', { 'data-cm-dim': '', style: { marginBottom: '8px', fontSize: 'var(--cm-f-xs)' } },
           '建完会立刻激活。team 需要 teamd，这台机没有，所以不在列表里。'),
         h('div', { 'data-cm-formrow': '' },
           field('类型', h('select', { 'data-cm-input': '', value: type, onChange: e => setType(e.target.value) },
@@ -4278,7 +5064,7 @@ function macSwapText(swaps) {
       const value = picked || (usable[0] ? usable[0].name : '')
       return h('div', { 'data-cm-card': '' },
         h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } }, '改某条连接的 DNS'),
-        h('div', { 'data-cm-dim': '', style: { marginBottom: '8px', fontSize: '11px' } },
+        h('div', { 'data-cm-dim': '', style: { marginBottom: '8px', fontSize: 'var(--cm-f-xs)' } },
           '只动 NetworkManager 连接里的 ipv4.dns。改完那条连接要重启一次才生效，所以走待确认，主网卡会断一下。'),
         h('div', { 'data-cm-formrow': '' },
           h('select', {
@@ -4323,12 +5109,12 @@ function macSwapText(swaps) {
       if (!data || !data.ok) {
         return h('div', { 'data-cm-card': '' },
           h('div', { 'data-cm-warn': '' }, (data && data.reason) || '读不到防火墙。'),
-          h('div', { 'data-cm-dim': '', style: { marginTop: '8px', fontSize: '11px' } },
+          h('div', { 'data-cm-dim': '', style: { marginTop: '8px', fontSize: 'var(--cm-f-xs)' } },
             'nft 需要 root。本机 sudo -n 可用时才能读；读不到不代表没有规则。'))
       }
       return h('div', { 'data-cm-card': '' },
         h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } }, 'nftables（' + data.tables.length + ' 张表）'),
-        h('div', { 'data-cm-dim': '', style: { marginBottom: '8px', fontSize: '11px' } },
+        h('div', { 'data-cm-dim': '', style: { marginBottom: '8px', fontSize: 'var(--cm-f-xs)' } },
           '这里只读骨架。改防火墙能一下把自己关在外面，所以本面板不做写；要看全文用下面的「复制规则」。'),
         ...data.tables.map(table => h('div', { key: table.family + table.name, 'data-cm-netrow': '' },
           h('div', { style: { display: 'flex', gap: '8px', alignItems: 'center' } },
@@ -4337,7 +5123,7 @@ function macSwapText(swaps) {
             h('div', { 'data-cm-grow': '' }),
             h('span', { 'data-cm-dim': '' }, table.chains + ' 条链')),
           table.managedBy
-            ? h('div', { 'data-cm-dim': '', style: { fontSize: '10.5px' } }, '由 ' + table.managedBy + ' 管，别手改')
+            ? h('div', { 'data-cm-dim': '', style: { fontSize: 'var(--cm-f-xs)' } }, '由 ' + table.managedBy + ' 管，别手改')
             : null)),
         data.raw
           ? h('button', {
@@ -4369,7 +5155,7 @@ function macSwapText(swaps) {
       }
       return h('div', { 'data-cm-card': '' },
         h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } }, '连通性诊断'),
-        h('div', { 'data-cm-dim': '', style: { marginBottom: '8px', fontSize: '11px' } },
+        h('div', { 'data-cm-dim': '', style: { marginBottom: '8px', fontSize: 'var(--cm-f-xs)' } },
           '从这台机往外 ping。填 IP 或域名，不带参数。'),
         h('div', { 'data-cm-formrow': '' },
           h('input', {
@@ -4395,11 +5181,11 @@ function macSwapText(swaps) {
               h('strong', null, result.target),
               h('span', { 'data-cm-dim': '' }, result.ok ? '通' : '不通')),
             result.rtt
-              ? h('div', { 'data-cm-mono': '', style: { fontSize: '11.5px', marginTop: '4px' } },
+              ? h('div', { 'data-cm-mono': '', style: { fontSize: 'var(--cm-f-sm)', marginTop: '4px' } },
                 'rtt min/avg/max = ' + result.rtt.min + ' / ' + result.rtt.avg + ' / ' + result.rtt.max + ' ms',
                 result.lossPercent ? ' · 丢包 ' + result.lossPercent + '%' : '')
-              : h('div', { 'data-cm-dim': '', style: { marginTop: '4px', fontSize: '11.5px' } }, result.reason || ''),
-            h('pre', { 'data-cm-mono': '', style: { margin: '6px 0 0', fontSize: '10.5px', whiteSpace: 'pre-wrap' } },
+              : h('div', { 'data-cm-dim': '', style: { marginTop: '4px', fontSize: 'var(--cm-f-sm)' } }, result.reason || ''),
+            h('pre', { 'data-cm-mono': '', style: { margin: '6px 0 0', fontSize: 'var(--cm-f-xs)', whiteSpace: 'pre-wrap' } },
               result.output || ''))
           : null)
     }
@@ -4412,7 +5198,7 @@ function macSwapText(swaps) {
           h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } }, '系统 DNS（/etc/resolv.conf）'),
           dns.length === 0
             ? h('div', { 'data-cm-dim': '' }, '没有配置 nameserver。')
-            : h('div', { 'data-cm-mono': '', style: { fontSize: '12px' } }, dns.join('\n'))),
+            : h('div', { 'data-cm-mono': '', style: { fontSize: 'var(--cm-f-sm)' } }, dns.join('\n'))),
         h(ConnectionDnsForm, { connections: data && data.connections ? data.connections : [], busy, run }))
     }
 
@@ -4498,7 +5284,7 @@ function macSwapText(swaps) {
         ? found.results.map(row => h('button', {
           key: row.name,
           'data-cm-btn': '',
-          style: { justifyContent: 'flex-start', textAlign: 'left', fontFamily: 'ui-monospace,Menlo,Consolas,monospace', fontSize: '11px' },
+          style: { justifyContent: 'flex-start', textAlign: 'left', fontFamily: 'ui-monospace,Menlo,Consolas,monospace', fontSize: 'var(--cm-f-xs)' },
           onClick: () => { setReference(row.name); setFound(null) },
         }, row.name + (row.official ? '  ★官方' : '') + (row.pulls ? '  ' + row.pulls + ' pulls' : '') +
           (row.description ? '  — ' + row.description.slice(0, 40) : '')))
@@ -4509,7 +5295,7 @@ function macSwapText(swaps) {
           ? h('div', { 'data-cm-warn': '' }, '搜不了：' + (found.reason || '未知原因'))
           : searchItems.length === 0
             ? h('div', { 'data-cm-dim': '' }, 'Docker Hub 上没搜到「' + reference.trim() + '」。')
-            : h('div', { 'data-cm-dim': '', style: { fontSize: '11px' } },
+            : h('div', { 'data-cm-dim': '', style: { fontSize: 'var(--cm-f-xs)' } },
               '点一个填进上面的框：',
               h('div', { style: { marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '2px' } }, ...searchItems))
 
@@ -4621,7 +5407,7 @@ function macSwapText(swaps) {
           h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } }, '系统镜像缓存'),
           h('div', { 'data-cm-dim': '', style: { marginBottom: '8px' } },
             'dsh 建的 LXC 容器都从这里取系统镜像。第一次建某个发行版会下载一份存下来，之后就是秒级。'),
-          h('div', { 'data-cm-dim': '', 'data-cm-mono': '', style: { fontSize: '11px', marginBottom: '10px', wordBreak: 'break-all' } },
+          h('div', { 'data-cm-dim': '', 'data-cm-mono': '', style: { fontSize: 'var(--cm-f-xs)', marginBottom: '10px', wordBreak: 'break-all' } },
             root + '　共 ' + (data && data.count ? data.count : 0) + ' 份 / ' + totalText),
           images.length === 0
             ? h('div', { 'data-cm-dim': '' }, '还没有缓存。建一个 LXC 容器就会在这里落一份。')
@@ -4638,7 +5424,7 @@ function macSwapText(swaps) {
                   ? h('button', { 'data-cm-btn': '', 'data-danger': '', disabled: busy, onClick: () => remove(item.name) },
                     busy ? '删除中…' : '确认删')
                   : h('button', { 'data-cm-btn': '', 'data-danger': '', disabled: busy, onClick: () => setConfirmTarget(item.name) }, '删除')),
-              h('div', { 'data-cm-dim': '', 'data-cm-mono': '', style: { fontSize: '10.5px', marginTop: '2px' } },
+              h('div', { 'data-cm-dim': '', 'data-cm-mono': '', style: { fontSize: 'var(--cm-f-xs)', marginTop: '2px' } },
                 [item.distro + ' ' + item.release + ' · ' + item.arch,
                   item.expiry ? (item.expired ? '缓存已过期，下次建会重新下载' : '有效到 ' + new Date(item.expiry * 1000).toLocaleDateString()) : '',
                   item.mtime ? '下载于 ' + new Date(item.mtime).toLocaleString() : ''].filter(Boolean).join('　')))))),
@@ -4709,7 +5495,7 @@ function macSwapText(swaps) {
                 h('strong', null, item.name),
                 h('div', { 'data-cm-grow': '' }),
                 h('span', { 'data-cm-mono': '', 'data-cm-dim': '' }, item.size || humanBytes(item.bytes))),
-              h('div', { 'data-cm-dim': '', 'data-cm-mono': '', style: { fontSize: '10.5px', marginTop: '2px' } },
+              h('div', { 'data-cm-dim': '', 'data-cm-mono': '', style: { fontSize: 'var(--cm-f-xs)', marginTop: '2px' } },
                 (item.disks || []).map(entry => entry.file + ' ' + entry.size).join('　')))))))
     }
 

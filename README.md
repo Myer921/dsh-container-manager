@@ -381,13 +381,18 @@ LXC 的系统镜像缓存在别处，跟数据目录分开（2026-11-21 迁到�
   重试一次通常就好。下过一次之后就只解包本地缓存，不再联网。
 - **LXC 网络**：创建时只认 `lxcbr0`（`/etc/default/lxc-net` 的默认 NAT 网桥），自定义网桥要建好容器后改。
 - **不加物理网卡到网桥**：那会把你自己的 SSH 断掉。macvlan 是唯一「不打断宿主」的接法，也只按需启用。
-- **rootless 的假成功：内存 / CPU 上限不写进 cgroup**。这台机是 cgroup v2 + rootless podman 4.3.1，
-  `podman update --memory 256m` **返回 0 但什么都没改** —— 实测容器的 `memory.max` 仍是 `max`，
-  连 `HostConfig.Memory` 都不变。所以插件在 `update` 之后会读回来核对，
-  不一致就直接报错（而不是假装成功）；创建时带 `--memory` 也一样只落进配置、不进 cgroup，会在 `warnings` 里写明。
-  要真正限制资源：用 rootful podman，或升级到 podman 4.4+（rootless cgroup v2 才完整）。
-- **podman update 不支持 `--restart`**：4.3.1 实测报 `unknown flag`。重启策略、端口、挂载都只能重建容器 ——
-  面板给的是「以此配置新建」，不做同名原地替换（那会连带删数据卷）。
+- **`podman inspect` 会骗人，cgroup 不会**。这台机是 cgroup v2 + rootless podman 4.3.1，
+  `podman update --memory 512m` 之后 `podman inspect` 里的 `HostConfig.Memory` **仍然是 0**，
+  但容器内 `/sys/fs/cgroup/memory.max` 已经真的变成 `536870912`；`--cpus 0.5` 对应 `cpu.max = 50000 100000`。
+  所以插件判断「有没有生效」读的是 cgroup，不是 inspect —— 拿 inspect 当证据会得出「假成功」的错误结论。
+  创建时带 `--memory` 的限制同理：它真的进 cgroup，只是 inspect 那一栏不更新。
+- **`podman update` 4.3.1 的能力边界**：支持 `--memory / --memory-reservation / --memory-swap /
+  --cpus / --cpu-shares / --cpuset-cpus / --blkio-weight / --cpu-period / --cpu-quota`；
+  **不支持 `--pids-limit`（报 `unknown flag`），也不支持 `--restart`**。
+  所以 PID 上限只能在建容器时设，重启策略 / 端口 / 挂载 / 环境变量 / 命令改了必须重建容器。
+- **重建走「先建新的、换名、再删旧的」**：`POST /containers/:node/:ref/recreate` 会起一个临时名字的新容器，
+  起来之后把旧容器 `rename` 让位、新容器改回原名、最后删掉旧容器；任一步失败都会把名字回滚，
+  不会出现「先删后建」把容器弄没的情况。它仍然是危险操作 —— 走待确认，确认按钮只在人手里。
 - **podman-compose 1.6.0 的 healthcheck 会写坏**：它生成的 `--health-cmd` 是 `["wget", ...]`（JSON 数组当**一个**参数），
   容器里跑起来必然 unhealthy。面板把这条偏差显示出来，但不去 fork 上游。要健康检查就手写 `test: ["CMD", ...]` 之外的写法，
   或者等上游修。
@@ -418,6 +423,10 @@ DSH_HOME=/tmp/cm-smoke node scripts/smoke-compose.mjs    # compose 全链路：�
 DSH_HOME=/tmp/cm-smoke node scripts/smoke-terminal.mjs   # 静态资源 + WS 终端：建容器 → 连上 → 里面 echo → 删掉
 node scripts/smoke-lxc-extras.mjs                        # LXC 快照 / 克隆 / 挂载点，直接打 helper socket，需要 root
 ```
+
+单元测试在本地 `test/` 下：`npm test`（= `node --test test/*.test.mjs`，380 条）。
+这个目录**不在公开仓库里**（`.git/info/exclude` 排掉了）—— 它带着本机路径和真实容器名，
+所以 `npm test` 只在开发机上跑得通，克隆下来是没有的。
 
 `livecheck` / `writetest` / `lxc-smoke` 都用临时数据目录，不碰 `~/.dsh-next/container-manager/`。
 `lxc-smoke` 需要先手工建一个测试容器：
