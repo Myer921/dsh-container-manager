@@ -196,18 +196,15 @@ window.__ModuleLoader__.load({
 [data-cm-statelabel][data-tone="off"]{color:var(--cm-text-dim);}
 [data-cm-statelabel][data-tone="bad"]{color:var(--cm-danger);}
 
-/* CPU / 内存 / 进程 三块并排：这是首屏最该被看见的数字。 */
-[data-cm-numbers]{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
-  gap:var(--cm-s4);margin:var(--cm-s4) 0;}
-[data-cm-numblock]{border:1px solid var(--cm-line-soft);border-radius:var(--cm-r-md);
-  padding:var(--cm-s4);display:flex;flex-direction:column;gap:4px;min-width:0;}
-[data-cm-numlabel]{font-size:var(--cm-f-xs);color:var(--cm-text-dim);letter-spacing:.04em;}
-[data-cm-numvalue]{font-size:var(--cm-f-xl);font-weight:600;color:var(--cm-text);
-  line-height:1.15;font-variant-numeric:tabular-nums;letter-spacing:-.02em;}
-[data-cm-numsub]{font-size:var(--cm-f-xs);color:var(--cm-text-2);font-variant-numeric:tabular-nums;}
+/* CPU / 内存 / 进程 三块并排：这是首屏最该被看见的数字。
+   2026-11-23 起它们不再自带一套样式，直接复用 Bento 的 [data-cm-tile]，
+   免得同一屏上出现两种材质、两种字号。 */
+[data-cm-numbers]{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+  gap:var(--cm-s3);margin:var(--cm-s3) 0;}
 /* 趋势符号：三次轮询的走向。代替 sparkline —— 4 秒采一个点画折线，
    线条的抖动来自轮询间隔而不是负载，那是撒谎。 */
-[data-cm-trend]{font-size:var(--cm-f-xs);font-weight:600;margin-left:var(--cm-s1);}
+[data-cm-trend]{font-size:var(--cm-f-md);font-weight:600;margin-left:var(--cm-s1);
+  vertical-align:2px;}
 [data-cm-trend][data-dir="up"]{color:var(--cm-warn-text);}
 [data-cm-trend][data-dir="down"]{color:var(--cm-ok);}
 [data-cm-trend][data-dir="flat"]{color:var(--cm-text-dim);}
@@ -272,9 +269,12 @@ window.__ModuleLoader__.load({
   border-radius:0 2px 2px 0;background:var(--cm-accent);box-shadow:var(--cm-glow-accent);}
 /* 双色微进度：CPU 青、内存绿；内存那条只在有上限时才渲染 */
 [data-cm-bars]{display:flex;gap:4px;margin-top:6px;height:2px;}
+/* 轨道用 line-strong：空轨也要能看出「这是一根条」，而不是一道卡片分隔线 */
 [data-cm-bars]>i{display:block;flex:1;height:2px;border-radius:2px;
-  background:var(--cm-line);overflow:hidden;}
-[data-cm-bars]>i>b{display:block;height:100%;border-radius:2px;}
+  background:var(--cm-line-strong);overflow:hidden;}
+/* min-width 是关键：CPU 0.77% 在 98px 轨道上只有 0.75px，纯按比例画等于没有。
+   给一个 3px 下限，「有一点负载」和「真的 0」才能靠眼睛分开，比例仍由 width 决定。 */
+[data-cm-bars]>i>b{display:block;height:100%;border-radius:2px;min-width:3px;}
 [data-cm-bars]>i[data-kind='cpu']>b{background:var(--cm-accent);}
 [data-cm-bars]>i[data-kind='mem']>b{background:var(--cm-ok);}
 [data-cm-rmain]{flex:1;min-width:0;}
@@ -684,6 +684,10 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
       cpu: [['rect', { x: 4, y: 4, width: 16, height: 16, rx: 2 }],
         ['rect', { x: 9, y: 9, width: 6, height: 6 }],
         ['path', { d: 'M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2' }]],
+      boxes: [['rect', { x: 3, y: 3, width: 7, height: 7, rx: 1 }],
+        ['rect', { x: 14, y: 3, width: 7, height: 7, rx: 1 }],
+        ['rect', { x: 3, y: 14, width: 7, height: 7, rx: 1 }],
+        ['rect', { x: 14, y: 14, width: 7, height: 7, rx: 1 }]],
       disk: [['path', { d: 'M22 12H2' }],
         ['path', { d: 'M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z' }],
         ['path', { d: 'M6 16h.01M10 16h.01' }]],
@@ -697,6 +701,23 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
         stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round',
         'aria-hidden': 'true', focusable: 'false',
       }, ...parts.map((part, index) => h(part[0], { key: index, ...part[1] })))
+    }
+
+    /**
+     * 数据格：整个面板里「一个数字」只走这一种排版。
+     * 材质借 [data-cm-tile]（hairline + 凹槽底 + 圆角 10），数字统一 28px 等宽，
+     * 这样详情页的三块和首页的宿主三格看起来是同一个东西，而不是两套。
+     */
+    function DataTile({ icon, label, value, unit, sub, trail, extra }) {
+      return h('div', { 'data-cm-tile': '' },
+        h('div', { 'data-cm-tilehead': '' },
+          icon ? h('span', { 'data-cm-tileicon': '' }, h(Glyph, { name: icon, size: 13 })) : null,
+          label),
+        h('div', { 'data-cm-big': '' }, value,
+          unit ? h('span', { 'data-cm-bigunit': '' }, unit) : null,
+          trail || null),
+        sub ? h('div', { 'data-cm-tilesub': '' }, sub) : null,
+        extra || null)
     }
 
     /** 三格信息位：一个图标、一句标题、一段说明。比 96px 宽的 kv 表更好扫。 */
@@ -1770,23 +1791,31 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
         const memLimited = usage && Number(usage.memLimit) > 0
         const numbers = usage
           ? h('div', { 'data-cm-numbers': '' },
-            h('div', { 'data-cm-numblock': '' },
-              h('div', { 'data-cm-numlabel': '' }, 'CPU'),
-              h('div', { 'data-cm-numvalue': '' }, usage.cpuPercent.toFixed(1) + '%',
-                trend ? h('span', { 'data-cm-trend': '', 'data-dir': trend.dir, title: trend.title }, trend.text) : null),
-              h('div', { 'data-cm-numsub': '' }, usage.cpuTime ? '累计 ' + usage.cpuTime : '—')),
-            h('div', { 'data-cm-numblock': '' },
-              h('div', { 'data-cm-numlabel': '' }, '内存'),
-              h('div', { 'data-cm-numvalue': '' }, sizeText(usage.memUsed)),
-              h('div', { 'data-cm-numsub': '' },
-                memLimited
-                  ? '上限 ' + sizeText(usage.memLimit) + ' · ' + usage.memPercent.toFixed(1) + '%'
-                  : '未设上限'),
-              memLimited ? h(Meter, { percent: usage.memPercent, tall: true }) : null),
-            h('div', { 'data-cm-numblock': '' },
-              h('div', { 'data-cm-numlabel': '' }, '进程'),
-              h('div', { 'data-cm-numvalue': '' }, String(usage.pids || 0)),
-              h('div', { 'data-cm-numsub': '' }, usage.netIo ? 'IO ' + usage.netIo : '—')))
+            h(DataTile, {
+              icon: 'activity',
+              label: 'CPU',
+              value: usage.cpuPercent.toFixed(1),
+              unit: '%',
+              trail: trend
+                ? h('span', { 'data-cm-trend': '', 'data-dir': trend.dir, title: trend.title }, trend.text)
+                : null,
+              sub: usage.cpuTime ? '累计 ' + usage.cpuTime : '—',
+            }),
+            h(DataTile, {
+              icon: 'cpu',
+              label: '内存',
+              value: sizeText(usage.memUsed),
+              sub: memLimited
+                ? '上限 ' + sizeText(usage.memLimit) + ' · ' + usage.memPercent.toFixed(1) + '%'
+                : '未设上限',
+              extra: memLimited ? h(Meter, { percent: usage.memPercent, tall: true }) : null,
+            }),
+            h(DataTile, {
+              icon: 'boxes',
+              label: '进程',
+              value: String(usage.pids || 0),
+              sub: usage.netIo ? 'IO ' + usage.netIo : '—',
+            }))
           : null
 
         // ── 3. 身份：属于「要查」不是「要看」，折起来 ──

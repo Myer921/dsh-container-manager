@@ -1,6 +1,6 @@
 {
   "name": "dsh-container-manager",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "description": "DSH 容器台：Cockpit 风格面板 + AI 工具，用 podman-compose 分组管理 Podman、直管 LXC，能改端口、开终端、改网络",
   "type": "module",
   "main": "lib/index.js",
