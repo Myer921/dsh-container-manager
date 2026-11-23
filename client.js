@@ -680,7 +680,7 @@ body[data-ds-dark-theme] [data-cm-page]{
 
 /* ── 活动日志 ── */
 [data-cm-audit]{display:flex;flex-direction:column;gap:1px;}
-[data-cm-audit-row]{display:grid;grid-template-columns:88px 54px minmax(90px,1fr) minmax(90px,1.2fr) 70px;
+[data-cm-audit-row]{display:grid;grid-template-columns:88px 54px minmax(80px,0.9fr) minmax(90px,1fr) minmax(140px,1.6fr) 70px;
   gap:var(--cm-s3);padding:6px var(--cm-s3);border-radius:var(--cm-r-sm);font-size:var(--cm-f-sm);
   align-items:center;min-width:0;transition:background-color var(--cm-fast) var(--cm-ease);}
 [data-cm-audit-row]>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -5341,7 +5341,7 @@ function macSwapText(swaps) {
                 : h('div', { 'data-cm-audit': '' },
                   h('div', { 'data-cm-audit-row': '', 'data-head': '' },
                     h('span', null, '时间'), h('span', null, '谁'), h('span', null, '动作'),
-                    h('span', null, '目标'), h('span', null, '结果')),
+                    h('span', null, '目标'), h('span', null, '说明'), h('span', null, '结果')),
                   ...shown.map((row, index) => {
                     const ok = auditOk(row)
                     const target = [row.node, row.target].filter(Boolean).join(' / ')
@@ -5354,6 +5354,13 @@ function macSwapText(swaps) {
                       h('span', null, h('span', { 'data-cm-audit-tag': '', ...(row.principal === 'panel' ? { 'data-panel': '' } : {}) }, row.principal || '?')),
                       h('span', { 'data-cm-mono': '', title: String(row.action || '') }, String(row.action || '—')),
                       h('span', { title: target }, target || '—'),
+                      h('span', {
+                        title: row.detail && row.detail.args ? String(row.detail.args) : '',
+                        'data-cm-dim': '',
+                      },
+                        (row.detail && row.detail.intent)
+                          ? String(row.detail.intent) + (row.detail.reversibleText ? ' · ' + row.detail.reversibleText : '')
+                          : '—'),
                       h('span', null, ok ? 'ok' : String(row.error || row.result || 'fail')))
                   })))
       )

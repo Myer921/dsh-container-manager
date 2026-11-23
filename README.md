@@ -18,7 +18,7 @@
 | 半边 | 位置 | 干什么 |
 | --- | --- | --- |
 | 浏览器 | `client.js` | 左侧主面板「容器」：项目 / 容器 / 镜像 / 卷 / 网络五段 + 内嵌终端 + 待确认抽屉 |
-| 主机 | `lib/` | 33 个 AI 工具 + 一段系统提示词 + `/api/container-manager` REST + WebSocket 终端 |
+| 主机 | `lib/` | 35 个 AI 工具 + 一段系统提示词 + `/api/container-manager` REST + WebSocket 终端 |
 | compose | `lib/compose/` | 发现项目、解析 YAML、算状态、改端口、调 podman-compose |
 | 提权小助手 | `helper/` | `dsh-lxcd` root 服务，LXC 的全部真实操作由它执行 |
 | 前端依赖 | `vendor/` | xterm.js 5.5.0 / addon-fit 0.10.0 / yaml 2.9.1，全部 vendored，不联网 |
@@ -106,13 +106,17 @@ podman-compose 不用你自己装：第一次 `up` 时插件检查运行时，�
 
 ## 面板能干什么
 
-顶部四段导航：**Podman** / **LXC** / **宿主网络** / **活动**。两套运行时各占一页，互不混排 ——
+顶部五段导航：**Podman** / **LXC** / **宿主网络** / **体检** / **活动**。两套运行时各占一页，互不混排 ——
 在 Podman 页只看得见 Podman 的节点和容器，LXC 页同理，两页的「镜像」也是各自的东西。
 每页有自己的子 tab，切页回来位置还在。默认落在 Podman 页的「容器」。
 
+「体检」是独立一页：它探的是**这台机能不能做某件事**（subuid / uidmap / 存储驱动 / cgroup /
+linger / pasta / skopeo / LXC 后端），跟哪个运行时归属无关，挂在某一页底下会让人以为只管那一边。
+每条检查都给原因和一条可复制的修复命令；探不出来就写 `unknown`，不猜。
+
 ### Podman 页
 
-子 tab：项目 / 容器 / 镜像 / 卷 / 网络。
+子 tab：项目 / 容器 / 镜像 / 卷 / 网络 / 密钥 / Quadlet。
 
 #### 项目（compose）
 
@@ -120,6 +124,8 @@ podman-compose 不用你自己装：第一次 `up` 时插件检查运行时，�
   插件自己在下面建 `podman/` 与 `lxc/`；建不了会直接给 `mkdir -p` + `chown` 那条命令，不静默失败
 - **项目卡片**：每个一级子目录一个项目，显示服务数 / 运行数 / 端口；坏掉的 compose 文件标红并给出行列号
 - **服务表**：服务名、镜像、容器、状态、publish 端口。只重建改过的服务，不是整项目重建
+- **单服务拉新重建**：服务行上的「拉新重建」= 先 pull 这个服务的镜像，再 `up -d --force-recreate --no-deps <服务>`，
+  别的服务连 recreate 都不进 —— 滚动更新只动一格，出问题也只影响那一格
 - **改端口**：图形化编辑 `宿主:容器[/udp]`，写回 YAML 时**保留注释**、自动留 `.bak` 备份，改完点「应用」才 `up`
 - **YAML 原文**：直接编辑整份 compose 文件，写前校验（解析不过就 400，不落盘）
 - **日志**：直连容器读，不绕 `podman-compose logs`（1.6.0 不带服务名时什么都不输出）
@@ -162,21 +168,41 @@ smokeping 这份 compose 有两个容易踩的点，都验证过了：
 - **快照 / 挂载 / 克隆**（LXC，只在 LXC 容器上出现）：建快照、回滚、删；`lxc.mount.entry` 一行一条编辑；整份克隆
 - **终端**（Podman 与 LXC 都有）：WebSocket 接进来，Podman 走 `podman exec -it`，LXC 走 `lxc-attach`
 - **镜像**：列表、拉取、删除（删除挂起）
+- **查更新**：比本地镜像的 digest 和仓库里 tag 现在指向的 digest，三态 ——
+  「当前」/「有新版」/「比不了」。**「比不了」不等于「已是最新」**：自建镜像本来没有 digest，
+  没装 skopeo 时 podman 4.3 也给不出可比的远端摘要（`podman manifest inspect` 给的是各平台条目，
+  拿它比会把所有镜像误判成有新版 —— 这个坑是真踩过的）。没装会直说，并给 `apt install skopeo` 那条命令
+- **密钥**（Podman secret）：只列名字 / 驱动 / 时间，**值永远读不回来**（podman 本身不给回读）。
+  新建只从面板走：AI 侧 `container_secret` 新建一律被拒，密钥不该经过模型
+- **Quadlet**：列 systemd 目录里的 unit，看展开后的 `podman run` 参数、启停单元。
+  4.3.1 没有 Quadlet 生成器时会如实报不支持并给出版本，不假装能用
 - **卷**：列表、删除（删除挂起，会先看有没有容器在用）
 - **网络**：列出网络与成员；建 bridge 网络；把容器接入/移出
 - **删除**：先点一次内联确认条，再挂进待确认 —— 两次都是人手，AI 碰不到
 - **待确认抽屉**：AI 发起的危险操作挂在这里，点「确认」才真的执行，点「取消」就丢掉
+- **影响预览**：危险操作挂起之前先算一遍「会动到谁」—— 被依赖的容器、被占的端口、要删的归档。
+  拿不准的写「没能确认」，不编
+- **健康**：有 healthcheck 的容器显示状态与连续失败次数（没有就是 `null`，不假装健康）
+- **任务抽屉**：克隆 / 快照 / 导出 / 导入 / 提交这些长任务在页面底部排队，能看到运行到哪一步、可以取消
+- **宿主历史**：宿主负载与内存的历史曲线（1h / 6h / 24h），数据是 30 秒一个点、留 3 天的 NDJSON；
+  面板自己那 20 个点的环只有 3 分钟，那是心跳不是历史
 
 ### LXC 页
 
-子 tab：容器 / 镜像 / 网络 / 存储。LXC 没有 compose 那一套，也没有卷和 OCI 镜像的概念，
-所以这一页比 Podman 页少一格、多一格「存储」。
+子 tab：容器 / 镜像 / 网络 / 存储 / 备份。LXC 没有 compose 那一套，也没有卷和 OCI 镜像的概念，
+所以这一页比 Podman 页少几格、多「存储」和「备份」。
 
 #### 容器
 
 容器列表与详情跟 Podman 页同构，但详情里的东西是 LXC 的：
 
-- **概览 / 日志 / 配置 / 快照 / 挂载 / 终端**
+- **概览 / 日志 / 文件 / 诊断 / 配置 / 终端**，快照与挂载在配置页里
+- **文件**：列目录、读（文本直接显示，二进制给大小）、写（≤8MB）、建目录、删。
+  loop 后端的容器走 `lxc-attach`，dir 后端直接读宿主上的 rootfs —— 两条路都在 helper 里做了真实路径校验，
+  不许穿出容器根。AI 侧的写 / 删一律挂起（单次 ≤256KB），面板自己点就行
+- **诊断**：容器里跑 7 步网络排查（网卡 / 路由 / resolv.conf / hosts / 解析 / ping / TCP 连端口）。
+  结果按「正常 / 有问题 / 没探出来」分档，每档都说依据；BusyBox 的 `ip` 没有 `-brief`，所以用 `ip addr` 解析 `<FLAGS>`，
+  连 `nc` 也不支持 `-z`（这套判断是被真机打过脸的）
 - **配置**：15 个字段全在面板上 —— 主机名、开机自启、启动顺序与延迟、init 命令、capabilities 丢弃、
   绑核、CPU 配额、CPU 权重、内存上限、内存软限、swap、OOM 分组、PID 上限、IO 权重。
   资源类的立刻生效（同时写 config 与 cgroup），`capDrop` / `initCmd` / `startOrder` / `startDelay`
@@ -214,6 +240,17 @@ smokeping 这份 compose 有两个容易踩的点，都验证过了：
 
 LXC 用 `-B loop` 后备存储，每个容器一个稀疏 `.img` 文件，面板按实际占用的块算大小，不是按「申请了多少」。
 
+#### 备份
+
+- **导出 / 导入**：`lxc export` 整份打包（默认只导实例、不带快照），导入后容器是停止状态。
+  两者都进任务队列，不在 HTTP 请求里干等
+- **自动备份**：开关 + 勾选要备的容器 + 每几小时一次 + 留几份 / 留几天。
+  到点自动导出，然后按保留策略删旧归档（导出走任务队列，一次只跑一个，不并发拷 rootfs）
+- **只做 LXC**：Podman 那边备份的正解是 compose 文件 + 具名卷 + 镜像 digest，
+  把 rootfs 打包下来既重又难恢复 —— 不假装能做，面板上也直说
+- **状态如实**：目标里混进非 LXC 容器会点名跳过；导出失败会记事件继续走，不整轮崩掉；
+  还没配出口时提示「告警只会留在面板里」
+
 ### 宿主网络
 
 子 tab：网卡 / 路由 / DNS / 防火墙 / 诊断。全是宿主自己的网络配置，
@@ -230,6 +267,22 @@ LXC 用 `-B loop` 后备存储，每个容器一个稀疏 `.img` 文件，面板
 ### 活动
 
 审计流：谁在什么时候对哪个节点做了什么，成功的写结果，失败的写错误。
+
+「说明」那一列是**可解释执行**：AI 每次工具调用都留一句人话 + 撤回性 ——
+「重启 demo · 可撤回」、「删镜像 foo:1 · 不可撤回」、「改宿主网络 dns eth0 · 要你在面板确认」。
+同一个工具换个动作，撤回性跟着变（`container_action restart` 可撤回，`delete` 不可撤回）。
+说明只写参数里能确定的东西：没给名字就写「未指定」，不替模型补意图。
+
+### 体检
+
+独立一页，两块：
+
+- **能力**：10 条检查（podman 版本 / subuid / uidmap / 存储驱动 / netns / cgroup / linger / pasta / skopeo / LXC 后端），
+  每条给「可用 / 受限 / 缺失 / 没探出来」+ 原因 + 可复制的修复命令。**探不出来就写 unknown**，不猜
+- **AI 权限**：三档角色（readonly / operator / admin）与 deny 黑名单，改了立刻生效。
+  只有面板能改 —— AI 不能给自己提权
+- **告警**：规则开关（不健康 / 反复重启 / 盘占用 / 危险操作等人确认太久）、出口（json / ntfy / bark）、
+  「发一条测试」。同一件事在去重窗口内只发一次；出口 URL 只显示掩码，token 不打到面板上
 
 ## 新建容器的字段
 
@@ -276,7 +329,7 @@ DHCP 保留地址、按 MAC 写的防火墙规则、以及需要识别同一块�
 
 ---
 
-## 33 个 AI 工具
+## 35 个 AI 工具
 
 | 工具 | 性质 | 说明 |
 | --- | --- | --- |
@@ -312,10 +365,29 @@ DHCP 保留地址、按 MAC 写的防火墙规则、以及需要识别同一块�
 | `container_diagnose` | 只读 | 容器里跑 7 步网络诊断（网卡 / 路由 / DNS / 解析 / ping / TCP） |
 | `container_quadlet` | 混合 | Quadlet 单元：list / show 直读，reload / start / stop 直行；4.3.1 会如实报不支持 |
 | `container_capabilities` | 只读 | rootless 体检：subuid / uidmap / 存储驱动 / cgroup / linger / pasta / skopeo / LXC 后端，每条带原因与修复命令 |
-| `lxc_backup` | 混合 | list 直读；export / import 返回 jobId；delete 挂起 |
+| `lxc_backup` | 混合 | list / policy 直读；export / import / run 返回 jobId；delete 挂起 |
+| `container_alert` | 混合 | 告警看与试：list 直读，test 直接发 |
+| `container_audit` | 只读 | 活动 / 审计记录，AI 每次调用的「人话说明」也在里面 |
 
 容器启动/停止/重启不挂起——它们可逆、且是日常操作。创建也不挂起（不删数据、参数可见）。
 删除、网络拓扑改动、LXC 网卡与启动项改动会挂起。
+
+### AI 能发起什么：三道闸
+
+1. **角色**（配置 `authz.aiRole`，面板「体检 → AI 权限」可改）：`readonly` 只读 /
+   `operator` 读写但发起不了危险操作（默认）/ `admin` 全放开。
+2. **黑名单**（`authz.deny`）：单独点掉几个工具，admin 也挡。
+3. **人确认**：角色只决定 AI 能不能**发起**，危险操作永远要你在待确认里点一下。
+
+被挡下的调用返回 `FORBIDDEN` 规范值（带「改哪个配置」的提示），不抛异常、不静默降级。
+性质没登记的工具一律按 `danger` 算 —— 漏登记只会更严，不会更松。
+
+### 可解释执行
+
+AI 每调一次工具，审计里就多一条人话：「重启 demo · 可撤回」、
+「删镜像 foo:1 · 不可撤回」、「改宿主网络 dns eth0 · 要你在面板确认」。
+面板「活动」页多一列说明，模型自己也能用 `container_audit` 回看。
+说明只写参数里能确定的东西 —— 没给名字就写「未指定」，不替模型补意图。
 
 ### 危险操作的真实流程
 
@@ -365,6 +437,21 @@ LXC 的系统镜像缓存在别处，跟数据目录分开（2026-11-21 迁到�
 | `compose.binary` | `''` | podman-compose 路径，留空 = 用数据目录下 venv 的默认路径 |
 | `compose.version` | `1.6.0` | pin 的 podman-compose 版本 |
 | `compose.installedAt` | `''` | 上次装运行时的时间 |
+| `jobsMaxRunning` | `2` | 长任务并发上限，1–4；再多会把 podman / lxc 自己拖慢 |
+| `metrics.enabled` | `true` | 关掉就不采宿主历史 |
+| `metrics.intervalSeconds` | `30` | 采样间隔，钳在 10–600 |
+| `metrics.keepDays` | `3` | 历史保留天数 |
+| `metrics.maxBytes` | `8388608` | 单个 NDJSON 上限，超了只留后一半 |
+| `authz.aiRole` | `'operator'` | AI 角色：`readonly` / `operator` / `admin` |
+| `authz.deny` | `[]` | 工具名黑名单，admin 也挡 |
+| `backupPolicy.enabled` | `false` | 自动备份开关（只做 LXC） |
+| `backupPolicy.targets` | `[]` | 要备份的 LXC 容器名 |
+| `backupPolicy.everyHours` | `24` | 多久导一次，1–720 |
+| `backupPolicy.keepCount` | `5` | 每个容器留几份 |
+| `backupPolicy.keepDays` | `14` | 超过几天的一律删 |
+| `alerts.webhooks` | `[]` | 出口：`{id, name, url, kind: json/ntfy/bark, enabled}` |
+| `alerts.rules` | `[]` | 规则：`{id, kind: unhealthy/restarts/disk/pending, threshold, enabled}` |
+| `alerts.dedupeMinutes` | `30` | 同一件事多久内只发一次 |
 
 节点可以加远程 Podman（`transport: "ssh"`，需要免密 + `podman` 在远端 PATH 里）。
 面板里没有「加节点」界面，直接改 `config.json` 或 `POST /nodes`。
@@ -478,7 +565,7 @@ lib/
   nodes.js       节点注册表，把多节点结果摊平
   config.js      配置读写（原子写、0600）
   audit.js       审计 JSONL
-  tools.js       17 个 AI 工具
+  tools.js       35 个 AI 工具
   static.js      /static/* 只服务 vendor/ 下的白名单
   ws.js          手搓的 RFC 6455 服务端（不引 ws 依赖）
   terminal.js    容器终端：升级 → pty → 双向管道
