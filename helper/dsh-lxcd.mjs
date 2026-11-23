@@ -58,6 +58,8 @@ import {
   writeLxcSettings,
 } from './net-config.mjs'
 import { basename, dirname, join } from 'node:path'
+
+import { buildDiagnoseScript, parseDiagnoseOutput, readDiagnose } from './diagnose.mjs'
 import { promisify } from 'node:util'
 
 const execFileAsync = promisify(execFile)
@@ -1094,6 +1096,12 @@ async function createContainer(spec) {
   const distro = String(spec?.distro ?? 'debian')
   const release = String(spec?.release ?? 'bookworm')
   const arch = String(spec?.arch ?? 'arm64')
+  // rootfs 后端：loop（一块 img，默认）或 dir（宿主上的一个目录）。
+  // 其它后端没实现就明确拒绝 —— 悄悄换成 loop 会让人以为用的是 btrfs 快照。
+  const backend = String(spec?.backend ?? 'loop') || 'loop'
+  if (!['loop', 'dir'].includes(backend)) {
+    throw new HelperError('BAD_ARGS', `rootfs 后端只支持 loop 或 dir，收到 ${backend}（btrfs / zfs / lvm 还没实现）。`)
+  }
   const diskSize = assertDiskSize(spec?.diskSize, '磁盘大小')
   const dataDisks = Array.isArray(spec?.dataDisks) ? spec.dataDisks : []
   if (!DISTROS.test(distro)) throw new HelperError('BAD_ARGS', `发行版不合法：${distro}`)
@@ -1111,12 +1119,17 @@ async function createContainer(spec) {
   // 模板会自己拼 /download/<distro>/<release>/<arch>/<variant>，所以这里只给基路径。
   mkdirSync(IMAGE_ROOT, { recursive: true, mode: 0o755 })
 
-  // loop 后端：lxc-create 先把镜像建在 /var/lib/lxc/<名字>/rootdev，再解包进去。
-  const runCreate = () => run('lxc-create', [
-    '-n', container, '-t', 'download',
-    '-B', 'loop', '--fssize', diskSize,
-    '--', '--dist', distro, '--release', release, '--arch', arch,
-  ], { timeoutMs: 600_000, env: { LXC_CACHE_PATH: IMAGE_ROOT } })
+  // loop：lxc-create 先把镜像建在 /var/lib/lxc/<名字>/rootdev，再解包进去（下面会搬走）。
+  // dir ：rootfs 直接解包成 /var/lib/lxc/<名字>/rootfs，没有镜像要搬。
+  const createArgs = backend === 'loop'
+    ? ['-n', container, '-t', 'download', '-B', 'loop', '--fssize', diskSize,
+      '--', '--dist', distro, '--release', release, '--arch', arch]
+    : ['-n', container, '-t', 'download', '-B', 'dir',
+      '--', '--dist', distro, '--release', release, '--arch', arch]
+  const runCreate = () => run('lxc-create', createArgs, {
+    timeoutMs: 600_000,
+    env: { LXC_CACHE_PATH: IMAGE_ROOT },
+  })
 
   // download 模板拉 rootfs 时自己会重试 3 次，但网络瞬断能让 3 次全挂。
   // 这种多半是偶发，重来一次通常就过了（第二次还会命中已下好的缓存），所以自动重试一轮。
@@ -1141,13 +1154,20 @@ async function createContainer(spec) {
     )
   }
 
-  // 把镜像搬进工作目录，config 指过去。搬不动就整个撤掉，不留半成品。
-  const rootImage = join(diskDir, `${container}-0.img`)
+  // loop：把镜像搬进工作目录，config 指过去。dir：什么都不用搬，rootfs 已经就位。
   try {
-    const created = join(LXC_ROOT, container, 'rootdev')
-    if (!existsSync(created)) throw new Error('lxc-create 没有留下 rootdev（没走 loop 后端？）')
-    renameSync(created, rootImage)
-    writeFileSync(containerConfigPath(container), setRootfsPath(readConfig(container), `loop:${rootImage}`))
+    if (backend === 'loop') {
+      const rootImage = join(diskDir, `${container}-0.img`)
+      const created = join(LXC_ROOT, container, 'rootdev')
+      if (!existsSync(created)) throw new Error('lxc-create 没有留下 rootdev（没走 loop 后端？）')
+      renameSync(created, rootImage)
+      writeFileSync(containerConfigPath(container), setRootfsPath(readConfig(container), `loop:${rootImage}`))
+    } else {
+      const rootfsDir = join(LXC_ROOT, container, 'rootfs')
+      if (!existsSync(rootfsDir)) throw new Error('lxc-create -B dir 没有留下 rootfs 目录。')
+      // 显式写成 dir: 形式：以后有人读 config 也一眼知道 rootfs 在哪
+      writeFileSync(containerConfigPath(container), setRootfsPath(readConfig(container), `dir:${rootfsDir}`))
+    }
   } catch (error) {
     await run('lxc-destroy', ['-n', container, '-f'], { timeoutMs: 120_000 })
     rmSync(diskDir, { recursive: true, force: true })
@@ -1883,6 +1903,31 @@ function sortEntries(entries) {
   return entries
 }
 
+/** 网络排障：要跑命令，所以两种 rootfs 都走 attach；容器没在运行就明说。 */
+async function diagnoseContainer(spec) {
+  const backend = await backendOf(spec?.name)
+  if (backend.mode === 'direct' && !(await isRunning(backend.container))) {
+    throw new HelperError('BAD_ARGS',
+      `${backend.container} 没在运行。诊断要在容器里跑命令，起它一下再来。`)
+  }
+  const script = buildDiagnoseScript({ host: spec?.host, port: spec?.port })
+  const result = await attachBuffer(backend.container, ['sh', '-c', script], {
+    timeoutMs: 60_000,
+    maxBytes: 4 * 1024 * 1024,
+  })
+  const sections = parseDiagnoseOutput(result.stdout.toString('utf8'))
+  if (sections.length === 0) {
+    throw new HelperError('LXC_ERROR',
+      result.stderr.trim() || '诊断命令没跑起来。',
+      '容器得在运行中，并且里面有 /bin/sh。')
+  }
+  return {
+    ...readDiagnose(sections, { host: spec?.host, port: spec?.port }),
+    sections,
+    mode: backend.mode,
+  }
+}
+
 async function filesList(spec) {
   const backend = await backendOf(spec?.name)
   const { rel } = normalizeRel(spec?.path)
@@ -2132,6 +2177,8 @@ async function route(req, res) {
       return send(res, 200, ok(await snapshotOp(assertName(body?.name), String(body?.op ?? ''), body ?? {})))
     case '/lxc/clone':
       return send(res, 200, ok(await cloneContainer(body ?? {})))
+    case '/lxc/diagnose':
+      return send(res, 200, ok(await diagnoseContainer(body ?? {})))
     case '/lxc/files/list':
       return send(res, 200, ok(await filesList(body ?? {})))
     case '/lxc/files/read':

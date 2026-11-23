@@ -136,6 +136,8 @@ if [[ -d /var/cache/lxc/download ]]; then
 fi
 
 run install -m 0644 "$HERE/net-config.mjs" "$INSTALL_ROOT/net-config.mjs"
+# 诊断步骤表与插件侧共用同一份（lib 直接 import 这个文件），别让两边跑偏
+run install -m 0644 "$HERE/diagnose.mjs" "$INSTALL_ROOT/diagnose.mjs"
 run install -d -m 0700 "$LOG_DIR"
 
 echo "安装 systemd 服务 ..."

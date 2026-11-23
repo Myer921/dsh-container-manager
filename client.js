@@ -534,6 +534,51 @@ body[data-ds-dark-theme] [data-cm-page]{
 [data-cm-tag][data-bad]{border-color:var(--cm-danger-line);color:var(--cm-danger);background:var(--cm-danger-soft);}
 [data-cm-tag][data-warn]{border-color:var(--cm-warn-line);color:var(--cm-warn-text);background:var(--cm-warn-soft);}
 [data-cm-hintbox]{font-size:var(--cm-f-sm);color:var(--cm-text-dim);margin-top:var(--cm-s2);line-height:1.6;}
+/* ── Quadlet：一行一个 unit，状态点 + 文件 + 镜像 ── */
+[data-cm-quadlet]{display:flex;flex-direction:column;gap:var(--cm-s3);min-height:0;flex:1;}
+[data-cm-qrow]{display:flex;align-items:flex-start;gap:var(--cm-s2);padding:6px 0;
+  border-top:1px solid var(--cm-line-soft);}
+[data-cm-qrow]:first-child{border-top:0;}
+[data-cm-qname]{font-size:var(--cm-f-sm);line-height:1.45;
+  font-family:ui-monospace,Menlo,Consolas,monospace;word-break:break-all;}
+[data-cm-qmeta]{font-size:var(--cm-f-xs);line-height:1.5;margin-top:1px;word-break:break-word;}
+
+/* ── 能力体检：一条一条列，状态点用 Dot，修复命令可复制 ── */
+[data-cm-cap]{display:flex;flex-direction:column;gap:var(--cm-s3);min-height:0;flex:1;}
+[data-cm-chipwrap]{display:flex;align-items:center;gap:var(--cm-s2);flex-wrap:wrap;}
+[data-cm-capsum]{margin-bottom:var(--cm-s2);}
+[data-cm-caplist]{display:flex;flex-direction:column;min-height:0;}
+[data-cm-caprow]{display:flex;align-items:flex-start;gap:var(--cm-s2);
+  padding:6px 0;border-top:1px solid var(--cm-line-soft);}
+[data-cm-caprow]:first-child{border-top:0;}
+[data-cm-capname]{font-size:var(--cm-f-sm);line-height:1.45;color:var(--cm-text);}
+[data-cm-capdetail]{font-size:var(--cm-f-xs);line-height:1.5;margin-top:1px;word-break:break-word;}
+[data-cm-caprow] [data-cm-btn]{flex:none;}
+
+/* ── 容器内网络排障：判读在上，原始输出折在下面 ── */
+[data-cm-diag]{display:flex;flex-direction:column;gap:var(--cm-s3);min-height:0;flex:1;}
+[data-cm-diaghost]{width:150px;flex:none;padding:4px 8px;font-size:var(--cm-f-sm);box-sizing:border-box;}
+[data-cm-diagport]{width:72px;flex:none;padding:4px 8px;font-size:var(--cm-f-sm);box-sizing:border-box;}
+[data-cm-dnotes]{display:flex;flex-direction:column;gap:var(--cm-s1);}
+[data-cm-dnote]{font-size:var(--cm-f-sm);line-height:1.5;padding:5px var(--cm-s2);
+  border-left:2px solid var(--cm-line-strong);color:var(--cm-text);}
+[data-cm-dnote][data-level='warn']{border-left-color:var(--cm-danger);color:var(--cm-danger);}
+[data-cm-dnote][data-level='ok']{border-left-color:var(--cm-accent);}
+[data-cm-dnote][data-level='unknown']{border-left-color:var(--cm-line-strong);color:var(--cm-text-dim);}
+[data-cm-dsecs]{display:flex;flex-direction:column;gap:var(--cm-s1);min-height:0;}
+[data-cm-dsec]{border:1px solid var(--cm-line-soft);border-radius:var(--cm-r-sm);
+  background:var(--cm-layer-2);overflow:hidden;}
+[data-cm-dsec] summary{cursor:pointer;padding:5px var(--cm-s2);font-size:var(--cm-f-sm);
+  color:var(--cm-text);list-style:none;}
+[data-cm-dsec] summary::-webkit-details-marker{display:none;}
+[data-cm-dsec] summary::before{content:'▸';display:inline-block;width:12px;
+  color:var(--cm-text-dim);transition:transform var(--cm-fast) var(--cm-ease);}
+[data-cm-dsec][open] summary::before{transform:rotate(90deg);}
+[data-cm-dout]{margin:0;padding:var(--cm-s2);border-top:1px solid var(--cm-line-soft);
+  font-family:ui-monospace,Menlo,Consolas,monospace;font-size:var(--cm-f-xs);
+  line-height:1.55;white-space:pre-wrap;word-break:break-word;color:var(--cm-text);
+  max-height:280px;overflow:auto;}
+
 /* ── 容器内文件：左边目录树，右边编辑器（窄屏上下堆） ── */
 [data-cm-files]{display:flex;flex-direction:column;gap:var(--cm-s3);min-height:0;flex:1;}
 [data-cm-fhead]{display:flex;align-items:center;gap:var(--cm-s2);flex-wrap:wrap;}
@@ -1765,14 +1810,14 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
       // 快照与挂载点是 LXC 独有的，Podman 那边靠 compose 文件与卷。
       // 快照与挂载不再是独立 tab：它们跟网卡一样都是「这个容器的配置」，
       // 只是低频得多，收进配置页的分段控件里。容器级只剩四页。
-      const containerTabs = ['overview', 'logs', 'files', 'config', 'terminal']
+      const containerTabs = ['overview', 'logs', 'files', 'diagnose', 'config', 'terminal']
       const nodeTabs = ['overview', 'create']
       const tabs = selectedContainer ? containerTabs : nodeTabs
       // tab 是跨层级共用的状态，切换选中对象后旧值可能已经不在这一层里了。
       const activeTab = tabs.includes(tab) ? tab : tabs[0]
       const tabLabels = {
         overview: '概览', create: '新建', networks: '网络', logs: '日志',
-        config: '配置', snapshots: '快照', mounts: '挂载', terminal: '终端', files: '文件',
+        config: '配置', snapshots: '快照', mounts: '挂载', terminal: '终端', files: '文件', diagnose: '诊断',
       }
       const detail = h('div', { key: 'detail', 'data-cm-detail': '' },
         h('div', { 'data-cm-tabs': '' },
@@ -1865,6 +1910,15 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
             nodeKind: selectedNode ? selectedNode.kind : 'podman',
             running: selectedContainer.state === 'running',
             onToast: setToast,
+          })
+        }
+        if (activeTab === 'diagnose') {
+          if (!selectedContainer) return null
+          return h(ContainerDiagnosePane, {
+            key: selected.node + ':' + selectedContainer.name,
+            nodeId: selected.node,
+            name: selectedContainer.name,
+            running: selectedContainer.state === 'running',
           })
         }
         if (activeTab === 'config') return configView()
@@ -2478,12 +2532,12 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
 
 
       // 每页自己的一排子 tab：Podman 五格、LXC 四格、宿主网络五格、活动没有。
-      const pageTabs = view === 'lxc' ? LXC_TABS : view === 'host' ? HOST_TABS : PODMAN_TABS
-      const pageTab = view === 'lxc' ? lxcTab : view === 'host' ? hostTab : podmanTab
+      const pageTabs = view === 'capability' ? [] : view === 'lxc' ? LXC_TABS : view === 'host' ? HOST_TABS : PODMAN_TABS
+      const pageTab = view === 'capability' ? 'report' : view === 'lxc' ? lxcTab : view === 'host' ? hostTab : podmanTab
       const setPageTab = view === 'lxc' ? setLxcTab : view === 'host' ? setHostTab : setPodmanTab
 
       function subTabBar() {
-        if (view === 'activity') return null
+        if (view === 'activity' || view === 'capability') return null
         return h('div', { 'data-cm-tabs': '', 'data-cm-subtabs': '' },
           ...pageTabs.map(entry => h('button', {
             key: entry[0],
@@ -2502,6 +2556,7 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
         else if (pageTab === 'images') bodyPane = h(ImagesPane, { nodeId: podmanNodeId, onToast: setToast, onPending: () => { load(false) } })
         else if (pageTab === 'volumes') bodyPane = h(VolumesPane, { nodeId: podmanNodeId, onToast: setToast, onPending: () => { load(false) } })
         else if (pageTab === 'networks') bodyPane = containerNetworksView('podman')
+        else if (pageTab === 'quadlet') bodyPane = h(QuadletPane, { nodeId: podmanNodeId, onToast: setToast })
       } else if (view === 'lxc') {
         if (pageTab === 'images') bodyPane = h(LxcImagesPane, { nodeId: lxcNodeId, onToast: setToast, onPending: () => { load(false) } })
         else if (pageTab === 'networks') bodyPane = containerNetworksView('lxc')
@@ -2514,6 +2569,8 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
             onPending: () => { load(false) },
           })
         }
+      } else if (view === 'capability') {
+        bodyPane = h(CapabilityPane, { nodes, onToast: setToast })
       } else if (view === 'host') {
         bodyPane = pageTab === 'interfaces' ? h(HostInterfacesView, { hostNet, busy, run, editing: netEditing, onEdit: setNetEditing })
           : pageTab === 'routes' ? h(HostRoutesView, { hostNet })
@@ -3926,6 +3983,8 @@ function macSwapText(swaps) {
       const [lxcNet, setLxcNet] = React.useState(d.lxcNet || defaultBridge)
       const [ipMode, setIpMode] = React.useState(d.ipMode || 'dhcp')
       const [diskSize, setDiskSize] = React.useState(d.diskSize || '8G')
+      // rootfs 后端：loop 是默认（一块 img，能限大小），dir 是宿主目录（文件面板直接能读、不占 loop 设备）
+      const [backend, setBackend] = React.useState(d.backend || 'loop')
       const [dataDisks, setDataDisks] = React.useState(Array.isArray(d.dataDisks) ? d.dataDisks : [])
       const [ipAddress, setIpAddress] = React.useState(d.ipAddress || '')
       const [ipGateway, setIpGateway] = React.useState(d.ipGateway || '')
@@ -3997,7 +4056,8 @@ function macSwapText(swaps) {
               arch,
               start,
               autostart,
-              diskSize: diskSize.trim() || '8G',
+              backend,
+              ...(backend === 'loop' ? { diskSize: diskSize.trim() || '8G' } : {}),
               ...(dataDisks.filter(item => String(item.mount || '').trim()).length > 0
                 ? {
                   dataDisks: dataDisks
@@ -4184,7 +4244,16 @@ function macSwapText(swaps) {
         field('内存上限', h('input', { 'data-cm-input': '', value: memory, placeholder: '256m，留空不限', onChange: e => setMemory(e.target.value) })),
         field('swap 上限', h('input', { 'data-cm-input': '', value: lxcSwap, placeholder: '512m，留空不限', onChange: e => setLxcSwap(e.target.value) })),
         field('CPU 核心数', h('input', { 'data-cm-input': '', type: 'number', min: '1', value: lxcCores, placeholder: '例如 4，留空不绑核', onChange: e => setLxcCores(e.target.value) })),
-        field('磁盘大小', h('input', { 'data-cm-input': '', value: diskSize, placeholder: '8G', onChange: e => setDiskSize(e.target.value) })),
+        field('rootfs 后端', h('select', {
+          'data-cm-select': '',
+          value: backend,
+          onChange: e => setBackend(e.target.value),
+        },
+        h('option', { value: 'loop' }, 'loop（一块虚拟磁盘，可限大小）'),
+        h('option', { value: 'dir' }, 'dir（宿主上的目录，不占 loop 设备）'))),
+        backend === 'loop'
+          ? field('磁盘大小', h('input', { 'data-cm-input': '', value: diskSize, placeholder: '8G', onChange: e => setDiskSize(e.target.value) }))
+          : field('磁盘大小', h('span', { 'data-cm-dim': '' }, 'dir 后端没有磁盘大小，rootfs 直接长在宿主文件系统上')),
         sec('磁盘'),
         fieldWide('额外数据盘', h('div', null,
           ...dataDisks.map((disk, index) => h('div', { key: 'cm-disk-' + index, style: { display: 'flex', gap: '6px', marginBottom: '4px' } },
@@ -4193,7 +4262,9 @@ function macSwapText(swaps) {
             h('button', { 'data-cm-btn': '', type: 'button', disabled: busy, onClick: () => setDataDisks(list => list.filter((_, at) => at !== index)) }, '×'))),
           h('button', { 'data-cm-btn': '', type: 'button', disabled: busy, onClick: () => setDataDisks(list => [...list, { size: '20G', mount: 'data' + (list.length || '') }]) }, '＋ 加一块数据盘'),
           h('div', { 'data-cm-dim': '', style: { fontSize: 'var(--cm-f-xs)', marginTop: '4px' } },
-            'rootfs 是 ' + (name.trim() || '<名字>') + '-0.img，数据盘按 -1、-2 往下排；都落在 /opt/dsh-container/lxc/' + (name.trim() || '<名字>') + '/。'))),
+            backend === 'loop'
+              ? 'rootfs 是 ' + (name.trim() || '<名字>') + '-0.img，数据盘按 -1、-2 往下排；都落在 /opt/dsh-container/lxc/' + (name.trim() || '<名字>') + '/。'
+              : 'rootfs 是宿主上的目录 /var/lib/lxc/' + (name.trim() || '<名字>') + '/rootfs；数据盘仍然是 loop 镜像，落在 /opt/dsh-container/lxc/' + (name.trim() || '<名字>') + '/。'))),
         )
 
       return h('div', null,
@@ -4279,6 +4350,294 @@ function macSwapText(swaps) {
 
     const COMPOSE_REFRESH_MS = 12000
     // 顶层导航（对齐 cockpit-podman 的五段）：项目是落地页。
+    /* ───────────────── Quadlet（systemd 管的容器定义） ───────────────── */
+
+    const QUADLET_SAMPLE = [
+      '[Unit]',
+      'Description=demo container',
+      '',
+      '[Container]',
+      'Image=docker.io/library/alpine:3.22',
+      'PublishPort=8080:80',
+      'Volume=demo-data.volume:/data',
+      '',
+      '[Install]',
+      'WantedBy=default.target',
+    ].join('\n')
+
+    function QuadletPane({ nodeId, onToast }) {
+      const [data, setData] = React.useState(null)
+      const [error, setError] = React.useState('')
+      const [busy, setBusy] = React.useState(false)
+
+      const load = React.useCallback(async () => {
+        setBusy(true)
+        setError('')
+        try {
+          setData(await jget('/quadlets?node=' + encodeURIComponent(nodeId)))
+        } catch (err) {
+          setData(null)
+          setError(err && err.message ? err.message : String(err))
+        } finally {
+          setBusy(false)
+        }
+      }, [nodeId])
+
+      React.useEffect(() => { load() }, [load])
+
+      async function act(op, unit) {
+        setError('')
+        try {
+          const result = await jpost('/quadlets/' + op, { node: nodeId, unit })
+          if (onToast) onToast(result && result.unit ? ('已 ' + op + ' ' + result.unit) : 'unit 已重新生成')
+          load()
+        } catch (err) {
+          setError((err && err.message ? err.message : String(err)))
+        }
+      }
+
+      if (error && !data) {
+        return h('div', { 'data-cm-card': '' }, h('div', { 'data-cm-warn': '' }, error))
+      }
+      if (!data) return h('div', { 'data-cm-dim': '' }, busy ? '读 quadlet 目录…' : '还没有数据。')
+
+      const supported = data.supported === true
+      const items = Array.isArray(data.items) ? data.items : []
+      const dirs = Array.isArray(data.dirs) ? data.dirs : []
+
+      const head = h('div', { 'data-cm-card': '' },
+        h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0, margin: 0 } }, 'Quadlet'),
+        h('div', { 'data-cm-dim': '' },
+          supported
+            ? 'systemd 管的容器定义。改完文件要「重新生成」才生效。'
+            : '这台机还用不了 Quadlet。'),
+        supported
+          ? h('div', { 'data-cm-facts': '', style: { marginTop: '8px', justifyContent: 'flex-start' } },
+            h('button', { 'data-cm-btn': '', disabled: busy, onClick: () => act('reload') }, '重新生成 unit'),
+            h('button', { 'data-cm-btn': '', disabled: busy, onClick: load }, busy ? '读…' : '刷新'))
+          : h('div', { 'data-cm-hintbox': '', style: { marginTop: '8px' } }, data.reason || ''),
+        h('div', { 'data-cm-dim': '', style: { marginTop: '6px' } }, '目录：' + dirs.join('  /  ')),
+        supported
+          ? null
+          : h('details', { 'data-cm-dsec': '', style: { marginTop: '10px' } },
+            h('summary', {}, 'Quadlet 文件长这样（Podman 4.4+ 才有生成器）'),
+            h('pre', { 'data-cm-dout': '' }, QUADLET_SAMPLE)))
+
+      if (!supported || items.length === 0) {
+        return h('div', { 'data-cm-quadlet': '' },
+          head,
+          supported
+            ? h('div', { 'data-cm-card': '' },
+              h('div', { 'data-cm-dim': '' }, '这些目录里还没有 quadlet 文件。'))
+            : null,
+          error ? h('div', { 'data-cm-warn': '' }, error) : null)
+      }
+
+      return h('div', { 'data-cm-quadlet': '' },
+        head,
+        error ? h('div', { 'data-cm-warn': '' }, error) : null,
+        h('div', { 'data-cm-card': '' },
+          items.map(item => h('div', { key: item.path, 'data-cm-qrow': '' },
+            h('span', { 'data-cm-dot': '', ...(item.state && item.state.activeState === 'active'
+              ? { 'data-on': '' }
+              : item.state && item.state.loadState === 'not-found' ? { 'data-bad': '' } : { 'data-off': '' }) }),
+            h('div', { 'data-cm-grow': '' },
+              h('div', { 'data-cm-qname': '' }, item.unit,
+                h('span', { 'data-cm-dim': '', style: { marginLeft: '8px' } },
+                  item.state
+                    ? item.state.activeState + ' / ' + item.state.loadState
+                    : '状态问不到')),
+              h('div', { 'data-cm-dim': '', 'data-cm-qmeta': '' },
+                [item.file, item.image || '', item.pod ? 'pod ' + item.pod : '',
+                  item.publish && item.publish.length ? item.publish.join(' ') : '']
+                  .filter(Boolean).join(' · '))),
+            supported
+              ? h('span', { 'data-cm-facts': '' },
+                h('button', { 'data-cm-btn': '', 'data-cm-compact': '', disabled: busy, onClick: () => act('start', item.unit) }, '启动'),
+                h('button', { 'data-cm-btn': '', 'data-cm-compact': '', disabled: busy, onClick: () => act('stop', item.unit) }, '停止'))
+              : null))))
+    }
+
+    /* ───────────────── 能力体检（rootless 到底能做什么） ───────────────── */
+
+    // Dot 只认 on / off / warn / bad 四种色（跟容器状态同一套语义）
+    const CHECK_TONE = { ok: 'on', degraded: 'warn', missing: 'bad', unknown: 'off' }
+
+    function CapabilityPane({ nodes, onToast }) {
+      const usable = nodes.filter(node => node.available)
+      const [nodeId, setNodeId] = React.useState(usable[0] ? usable[0].id : null)
+      const [data, setData] = React.useState(null)
+      const [error, setError] = React.useState('')
+      const [busy, setBusy] = React.useState(false)
+
+      const load = React.useCallback(async (refresh) => {
+        if (!nodeId) return
+        setBusy(true)
+        setError('')
+        try {
+          setData(await jget('/capabilities?node=' + encodeURIComponent(nodeId) + (refresh ? '&refresh=1' : '')))
+        } catch (err) {
+          setData(null)
+          setError(err && err.message ? err.message : String(err))
+        } finally {
+          setBusy(false)
+        }
+      }, [nodeId])
+
+      React.useEffect(() => { load(false) }, [load])
+
+      if (usable.length === 0) {
+        return h('div', { 'data-cm-card': '' }, h('div', { 'data-cm-warn': '' }, '没有可用的节点。'))
+      }
+
+      const checks = data && Array.isArray(data.checks) ? data.checks : []
+      const counts = {}
+      for (const check of checks) counts[check.state] = (counts[check.state] || 0) + 1
+
+      function copyFix(text) {
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text)
+            if (onToast) onToast('命令已复制')
+          } else if (onToast) {
+            onToast('浏览器不给剪贴板权限，手动选一下')
+          }
+        } catch {
+          if (onToast) onToast('复制失败，手动选一下')
+        }
+      }
+
+      return h('div', { 'data-cm-cap': '' },
+        h('div', { 'data-cm-chipwrap': '' },
+          h('div', { 'data-cm-chips': '' },
+            nodes.map(node => h('button', {
+              key: node.id,
+              'data-cm-chip': '',
+              ...(node.id === nodeId ? { 'data-on': '' } : {}),
+              disabled: !node.available,
+              title: node.available ? node.label : (node.reason || '这个节点不可用'),
+              onClick: () => { if (node.available) setNodeId(node.id) },
+            }, node.label))),
+          h('button', {
+            'data-cm-btn': '',
+            disabled: busy || !nodeId,
+            onClick: () => load(true),
+          }, busy ? '探…' : '重新探测')),
+        error ? h('div', { 'data-cm-warn': '' }, error) : null,
+        !error && !data ? h('div', { 'data-cm-dim': '' }, '探测中…') : null,
+        data
+          ? h('div', null,
+            h('div', {
+              'data-cm-card': '',
+              'data-cm-capsum': '',
+            },
+            h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0, margin: 0 } }, data.node + ' 的能力'),
+            h('div', { 'data-cm-dim': '' },
+              [counts.ok ? counts.ok + ' 项可用' : '', counts.degraded ? counts.degraded + ' 项受限' : '',
+                counts.missing ? counts.missing + ' 项缺失' : '', counts.unknown ? counts.unknown + ' 项没探出来' : '']
+                .filter(Boolean).join(' · ') || '没有可判定的项'),
+            data.lxcBackends && data.lxcBackends.length
+              ? h('div', { 'data-cm-dim': '' }, 'LXC 能用的存储后端：' + data.lxcBackends.join(' / '))
+              : null),
+            h('div', { 'data-cm-caplist': '' },
+              checks.map(check => h('div', { key: check.id, 'data-cm-caprow': '' },
+                h(Dot, { tone: CHECK_TONE[check.state] || 'off' }),
+                h('div', { 'data-cm-grow': '' },
+                  h('div', { 'data-cm-capname': '' }, check.label,
+                    h('span', { 'data-cm-dim': '', style: { marginLeft: '8px' } }, check.id)),
+                  h('div', { 'data-cm-dim': '', 'data-cm-capdetail': '' }, check.detail)),
+                check.fix
+                  ? h('button', {
+                    'data-cm-btn': '',
+                    'data-cm-compact': '',
+                    title: check.fix,
+                    onClick: () => copyFix(check.fix),
+                  }, '复制修复命令')
+                  : null))))
+          : null)
+    }
+
+    /* ───────────────── 容器内网络排障 ───────────────── */
+
+    function ContainerDiagnosePane({ nodeId, name, running }) {
+      const [state, setState] = React.useState(null)
+      const [error, setError] = React.useState('')
+      const [busy, setBusy] = React.useState(false)
+      const [host, setHost] = React.useState('1.1.1.1')
+      const [port, setPort] = React.useState('443')
+
+      const run = React.useCallback(async () => {
+        setBusy(true)
+        setError('')
+        try {
+          const query = '/diagnose?node=' + encodeURIComponent(nodeId) +
+            '&ref=' + encodeURIComponent(name) +
+            '&host=' + encodeURIComponent(host) +
+            '&port=' + encodeURIComponent(port)
+          setState(await jget(query))
+        } catch (err) {
+          setState(null)
+          setError(err && err.message ? err.message : String(err))
+        } finally {
+          setBusy(false)
+        }
+      }, [nodeId, name, host, port])
+
+      React.useEffect(() => {
+        if (running) run()
+        // 只在挂上 / 容器名变化时自动跑一次；host / port 改了要点按钮，别每敲一个字就进容器。
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, [running, nodeId, name])
+
+      if (!running) {
+        return h('div', { 'data-cm-card': '' },
+          h('div', { 'data-cm-hintbox': '' },
+            '容器没在运行。诊断要进容器里跑 ip / getent / nc，起它一下再来。'))
+      }
+
+      const notes = state && Array.isArray(state.notes) ? state.notes : []
+      const sections = state && Array.isArray(state.sections) ? state.sections : []
+
+      return h('div', { 'data-cm-diag': '' },
+        h('div', { 'data-cm-fhead': '' },
+          h('span', { 'data-cm-dim': '' }, '目标'),
+          h('input', {
+            'data-cm-input': '',
+            'data-cm-diaghost': '',
+            value: host,
+            onChange: event => setHost(event.target.value),
+            placeholder: '1.1.1.1',
+          }),
+          h('input', {
+            'data-cm-input': '',
+            'data-cm-diagport': '',
+            value: port,
+            onChange: event => setPort(event.target.value),
+            placeholder: '443',
+          }),
+          h('button', { 'data-cm-btn': '', 'data-primary': '', disabled: busy, onClick: run }, busy ? '跑…' : '跑一遍')),
+        error ? h('div', { 'data-cm-warn': '' }, error) : null,
+        notes.length
+          ? h('div', { 'data-cm-dnotes': '' },
+            notes.map((note, index) => h('div', {
+              key: 'note-' + index,
+              'data-cm-dnote': '',
+              'data-level': note.level,
+            }, note.text)))
+          : null,
+        sections.length
+          ? h('div', { 'data-cm-dsecs': '' },
+            sections.map(section => h('details', {
+              key: section.id,
+              'data-cm-dsec': '',
+              open: section.id === 'routes' || undefined,
+            },
+            h('summary', {}, section.label),
+            h('pre', { 'data-cm-dout': '' }, section.text || '（没有输出）'))))
+          : (busy ? h('div', { 'data-cm-dim': '' }, '进容器跑诊断…') : h('div', { 'data-cm-dim': '' }, '还没有结果。')),
+      )
+    }
+
     /* ───────────────── 容器内文件（浏览 / 编辑 / 上传下载） ───────────────── */
 
     const FILE_VIEW_LIMIT = 8 * 1024 * 1024
@@ -4676,11 +5035,14 @@ function macSwapText(swaps) {
       )
     }
 
-    // 顶部只留四段：两套运行时各占一页，宿主网络与审计独立。
+    // 顶部五段：两套运行时各占一页，宿主网络、能力体检、审计各自独立。
+    // 体检单独一页而不是塞进 Podman：它探的是「这台机能不能做某件事」（subuid / uidmap / 驱动 /
+    // cgroup / linger），跟哪个运行时归属无关，挂在某一页底下会让人以为只管那一边。
     const VIEWS = [
       ['podman', 'Podman'],
       ['lxc', 'LXC'],
       ['host', '宿主网络'],
+      ['capability', '体检'],
       ['activity', '活动'],
     ]
 
@@ -4691,6 +5053,7 @@ function macSwapText(swaps) {
       ['images', '镜像'],
       ['volumes', '卷'],
       ['networks', '网络'],
+      ['quadlet', 'Quadlet'],
     ]
     const LXC_TABS = [
       ['containers', '容器'],
