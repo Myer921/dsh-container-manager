@@ -7211,6 +7211,61 @@ function macSwapText(swaps) {
       const [instanceOnly, setInstanceOnly] = React.useState(true)
       const [importFile, setImportFile] = React.useState('')
       const [importName, setImportName] = React.useState('')
+      const [policy, setPolicy] = React.useState(null)
+      const [policyError, setPolicyError] = React.useState('')
+      const [due, setDue] = React.useState([])
+      const [events, setEvents] = React.useState([])
+
+      const loadPolicy = React.useCallback(async () => {
+        try {
+          const value = await jget('/backup')
+          setPolicy(value.policy)
+          setDue(Array.isArray(value.due) ? value.due : [])
+          setEvents(Array.isArray(value.events) ? value.events : [])
+          setPolicyError(value.warn || '')
+        } catch (err) {
+          setPolicyError(err && err.message ? err.message : String(err))
+        }
+      }, [])
+
+      React.useEffect(() => { loadPolicy() }, [loadPolicy])
+
+      async function savePolicy(patch) {
+        try {
+          const saved = await jpost('/backup/policy', patch)
+          setPolicy(saved)
+          setPolicyError('')
+          await loadPolicy()
+          onToast && onToast('备份策略已保存')
+        } catch (err) {
+          setPolicyError('存不了：' + (err && err.message ? err.message : String(err)))
+        }
+      }
+
+      async function runBackupNow() {
+        setBusy(true)
+        try {
+          const result = await jpost('/backup/run', {})
+          const bits = []
+          if (result.skipped) bits.push('跳过了：' + result.skipped)
+          if (Array.isArray(result.started) && result.started.length) bits.push('导出了 ' + result.started.join('、'))
+          if (Array.isArray(result.removed) && result.removed.length) bits.push('删了 ' + result.removed.length + ' 份旧归档')
+          onToast && onToast(bits.join('；') || '这轮没有到期的东西')
+          await loadPolicy()
+          await load()
+        } catch (err) {
+          onToast && onToast({ bad: true, text: '跑不了：' + (err && err.message ? err.message : String(err)) })
+        } finally {
+          setBusy(false)
+        }
+      }
+
+      function toggleTarget(name) {
+        if (!policy) return
+        const current = Array.isArray(policy.targets) ? policy.targets : []
+        const next = current.includes(name) ? current.filter(item => item !== name) : [...current, name]
+        savePolicy({ targets: next })
+      }
 
       const load = React.useCallback(async () => {
         if (!nodeId) {
@@ -7319,7 +7374,80 @@ function macSwapText(swaps) {
           h('tbody', null, ...rows))
       }
 
+      const backupCard = !policy
+        ? null
+        : h('div', { 'data-cm-card': '' },
+          h('div', { 'data-cm-line': '' },
+            h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0, margin: 0 } }, '自动备份'),
+            h('div', { 'data-cm-grow': '' }),
+            h('button', {
+              'data-cm-btn': '',
+              disabled: busy,
+              ...(policy.enabled ? { 'data-primary': '' } : {}),
+              onClick: () => savePolicy({ enabled: !policy.enabled }),
+            }, policy.enabled ? '已开启，点一下关掉' : '关着的，点一下开启')),
+          h('div', { 'data-cm-dim': '', style: { marginTop: '4px' } },
+            '到点自动导出选中的容器，并按「留几份 / 留几天」删旧归档。只做 LXC —— Podman 的备份正解是 compose 文件加卷，不假装打包 rootfs。'),
+          h('div', { 'data-cm-facts': '', style: { marginTop: '8px', flexWrap: 'wrap' } },
+            h('span', { 'data-cm-dim': '' }, '要备份的容器：'),
+            containers.length === 0
+              ? h('span', { 'data-cm-dim': '' }, '（没有 LXC 容器）')
+              : containers.map(container => h('button', {
+                key: container.name,
+                'data-cm-chip': '',
+                ...((policy.targets || []).includes(container.name) ? { 'data-on': '' } : {}),
+                onClick: () => toggleTarget(container.name),
+              }, container.name))),
+          h('div', { 'data-cm-formrow': '', style: { marginTop: '8px' } },
+            h('label', { 'data-cm-dim': '' }, '每 ',
+              h('input', {
+                'data-cm-input': '',
+                style: { width: '70px' },
+                type: 'number',
+                min: 1,
+                max: 720,
+                value: policy.everyHours,
+                onChange: event => setPolicy({ ...policy, everyHours: Number(event.target.value) || 1 }),
+                onBlur: () => savePolicy({ everyHours: policy.everyHours }),
+              }), ' 小时一次'),
+            h('label', { 'data-cm-dim': '' }, '留 ',
+              h('input', {
+                'data-cm-input': '',
+                style: { width: '70px' },
+                type: 'number',
+                min: 1,
+                max: 64,
+                value: policy.keepCount,
+                onChange: event => setPolicy({ ...policy, keepCount: Number(event.target.value) || 1 }),
+                onBlur: () => savePolicy({ keepCount: policy.keepCount }),
+              }), ' 份'),
+            h('label', { 'data-cm-dim': '' }, '且不超过 ',
+              h('input', {
+                'data-cm-input': '',
+                style: { width: '70px' },
+                type: 'number',
+                min: 1,
+                max: 3650,
+                value: policy.keepDays,
+                onChange: event => setPolicy({ ...policy, keepDays: Number(event.target.value) || 1 }),
+                onBlur: () => savePolicy({ keepDays: policy.keepDays }),
+              }), ' 天'),
+            h('button', { 'data-cm-btn': '', disabled: busy, onClick: runBackupNow }, busy ? '跑…' : '现在跑一轮')),
+          policy.enabled && (policy.targets || []).length === 0
+            ? h('div', { 'data-cm-warn': '', style: { marginTop: '6px' } }, '开着但一个容器都没选，等于没开。上面点容器名加进来。')
+            : null,
+          due.length > 0
+            ? h('div', { 'data-cm-dim': '', style: { fontSize: 'var(--cm-f-xs)', marginTop: '6px' } },
+              '现在到期的：' + due.map(item => item.name + (item.lastAt ? '（上次 ' + clockText(item.lastAt) + '）' : '（还没导过）')).join('、'))
+            : h('div', { 'data-cm-dim': '', style: { fontSize: 'var(--cm-f-xs)', marginTop: '6px' } }, '现在没有到期的。'),
+          policyError ? h('div', { 'data-cm-warn': '', style: { marginTop: '6px' } }, policyError) : null,
+          events.length > 0
+            ? h('div', { 'data-cm-dim': '', style: { fontSize: 'var(--cm-f-xs)', marginTop: '6px' } },
+              '最近：' + events.slice(-3).map(event => event.text).join(' / '))
+            : null)
+
       return h('div', null,
+        backupCard,
         h('div', { 'data-cm-card': '' },
           h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } }, '导出容器'),
           h('div', { 'data-cm-hintbox': '', style: { marginBottom: '8px' } },
