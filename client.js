@@ -384,6 +384,8 @@ body[data-ds-dark-theme] [data-cm-page]{
   color:var(--cm-text-dim);letter-spacing:.04em;text-transform:uppercase;}
 [data-cm-field]{display:flex;flex-direction:column;gap:var(--cm-s1);min-width:0;}
 [data-cm-field] label{font-size:var(--cm-f-xs);color:var(--cm-text-dim);}
+[data-cm-checkline]{display:inline-flex;align-items:center;gap:var(--cm-s2);
+  font-size:var(--cm-f-xs);color:var(--cm-text-2);cursor:pointer;margin-top:var(--cm-s2);}
 
 /* ── 待确认区 ── */
 [data-cm-pending]{flex:none;border-top:1px solid var(--cm-line);background:var(--cm-layer-2);
@@ -396,6 +398,59 @@ body[data-ds-dark-theme] [data-cm-page]{
 [data-cm-prow]:hover{background:var(--cm-hover);}
 [data-cm-psummary]{flex:1;min-width:0;font-size:var(--cm-f-sm);}
 [data-cm-pexpiry]{font-size:var(--cm-f-xs);color:var(--cm-text-dim);font-variant-numeric:tabular-nums;}
+
+/* 预演清单：确认之前把「会发生什么」摊开，危险项与保险项用不同色调区分 */
+[data-cm-plan]{margin-top:var(--cm-s2);display:flex;flex-direction:column;gap:2px;
+  font-size:var(--cm-f-xs);line-height:1.6;}
+[data-cm-planitem]{color:var(--cm-text-2);}
+[data-cm-planitem][data-tone='danger']{color:var(--cm-danger);}
+[data-cm-planitem][data-tone='warn']{color:var(--cm-warn-text);}
+[data-cm-planitem][data-tone='ok']{color:var(--cm-ok);}
+[data-cm-planblock]{margin-top:var(--cm-s1);padding:2px 8px;border-radius:var(--cm-r-xs);
+  color:var(--cm-warn-text);background:var(--cm-warn-soft);
+  box-shadow:inset 0 0 0 1px var(--cm-warn-line);}
+
+/* ── 任务抽屉：长操作在地板上排队，进度与尾部输出都在这里 ── */
+[data-cm-jobs]{flex:none;border-top:1px solid var(--cm-line);background:var(--cm-layer-2);
+  max-height:32vh;overflow:auto;}
+[data-cm-jhead]{display:flex;align-items:center;gap:var(--cm-s3);padding:var(--cm-s3) var(--cm-s6);
+  font-size:var(--cm-f-sm);font-weight:650;}
+[data-cm-jrow]{display:flex;align-items:center;gap:var(--cm-s3);padding:var(--cm-s2) var(--cm-s6);
+  border-top:1px solid var(--cm-line-soft);}
+[data-cm-jmain]{flex:1;min-width:0;font-size:var(--cm-f-sm);}
+[data-cm-jlabel]{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+[data-cm-jmeta]{font-size:var(--cm-f-xs);color:var(--cm-text-dim);font-variant-numeric:tabular-nums;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+[data-cm-jstate]{flex:none;font-size:var(--cm-f-xs);padding:1px 7px;border-radius:var(--cm-r-xs);
+  color:var(--cm-text-2);background:var(--cm-surface);box-shadow:inset 0 0 0 1px var(--cm-line);}
+[data-cm-jstate][data-tone='running']{color:var(--cm-accent);box-shadow:inset 0 0 0 1px var(--cm-accent-line);}
+[data-cm-jstate][data-tone='failed']{color:var(--cm-danger);box-shadow:inset 0 0 0 1px var(--cm-danger-line);}
+[data-cm-jstate][data-tone='done']{color:var(--cm-ok);box-shadow:inset 0 0 0 1px var(--cm-ok-line);}
+[data-cm-jtail]{margin:0 var(--cm-s6) var(--cm-s3);max-height:22vh;}
+
+/* ── 时间窗切换（1h / 6h / 24h）：只在负载卡上用 ── */
+[data-cm-range]{display:inline-flex;gap:2px;flex:none;}
+[data-cm-rangeitem]{border:0;background:none;padding:0 4px;font:inherit;font-size:var(--cm-f-xs);
+  color:var(--cm-text-dim);cursor:pointer;border-radius:var(--cm-r-xs);}
+[data-cm-rangeitem][data-on]{color:var(--cm-accent);background:var(--cm-accent-soft);
+  box-shadow:inset 0 0 0 1px var(--cm-accent-line);}
+
+/* ── 健康检查：状态徽章 + 最近几次输出 ── */
+[data-cm-health]{margin-left:var(--cm-s2);padding:1px 7px;border-radius:var(--cm-r-xs);
+  font-size:var(--cm-f-xs);font-weight:600;color:var(--cm-text-2);
+  background:var(--cm-surface);box-shadow:inset 0 0 0 1px var(--cm-line);}
+[data-cm-health][data-tone='healthy']{color:var(--cm-ok);background:var(--cm-ok-soft);
+  box-shadow:inset 0 0 0 1px var(--cm-ok-line);}
+[data-cm-health][data-tone='unhealthy']{color:var(--cm-danger);background:var(--cm-danger-soft);
+  box-shadow:inset 0 0 0 1px var(--cm-danger-line);}
+[data-cm-health][data-tone='starting']{color:var(--cm-warn-text);background:var(--cm-warn-soft);
+  box-shadow:inset 0 0 0 1px var(--cm-warn-line);}
+[data-cm-healthlog]{display:flex;flex-direction:column;gap:3px;font-size:var(--cm-f-xs);}
+[data-cm-healthrow]{display:flex;gap:var(--cm-s2);align-items:baseline;min-width:0;
+  color:var(--cm-text-2);}
+[data-cm-healthrow][data-tone='bad']{color:var(--cm-danger);}
+[data-cm-healthout]{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-family:ui-monospace,Menlo,Consolas,monospace;}
 
 /* ── 空态 / 提示条 ── */
 [data-cm-empty]{padding:var(--cm-s7) var(--cm-s5);text-align:center;color:var(--cm-text-dim);
@@ -479,6 +534,56 @@ body[data-ds-dark-theme] [data-cm-page]{
 [data-cm-tag][data-bad]{border-color:var(--cm-danger-line);color:var(--cm-danger);background:var(--cm-danger-soft);}
 [data-cm-tag][data-warn]{border-color:var(--cm-warn-line);color:var(--cm-warn-text);background:var(--cm-warn-soft);}
 [data-cm-hintbox]{font-size:var(--cm-f-sm);color:var(--cm-text-dim);margin-top:var(--cm-s2);line-height:1.6;}
+/* ── 容器内文件：左边目录树，右边编辑器（窄屏上下堆） ── */
+[data-cm-files]{display:flex;flex-direction:column;gap:var(--cm-s3);min-height:0;flex:1;}
+[data-cm-fhead]{display:flex;align-items:center;gap:var(--cm-s2);flex-wrap:wrap;}
+[data-cm-crumbs]{display:flex;align-items:center;gap:2px;flex:1;min-width:0;flex-wrap:wrap;
+  font-family:ui-monospace,Menlo,Consolas,monospace;font-size:var(--cm-f-sm);}
+[data-cm-crumb]{border:0;background:none;color:var(--cm-text-dim);cursor:pointer;
+  padding:2px 5px;border-radius:var(--cm-r-xs);font:inherit;
+  transition:background-color var(--cm-fast) var(--cm-ease),color var(--cm-fast) var(--cm-ease);}
+[data-cm-crumb]:hover{background:var(--cm-hover);color:var(--cm-text);}
+[data-cm-crumb]:focus-visible{outline:none;box-shadow:var(--cm-ring);}
+[data-cm-crumbsep]{color:var(--cm-text-dim);opacity:.6;}
+[data-cm-facts]{display:flex;align-items:center;gap:var(--cm-s2);flex-wrap:wrap;justify-content:flex-end;}
+[data-cm-btn][data-cm-compact]{padding:3px 8px;font-size:var(--cm-f-xs);}
+[data-cm-input][data-cm-fnew]{width:132px;flex:none;padding:4px 8px;font-size:var(--cm-f-sm);box-sizing:border-box;}
+[data-cm-fgrid]{display:flex;gap:var(--cm-s4);min-height:0;flex:1;align-items:flex-start;}
+[data-cm-fcol]{flex:0 0 300px;min-width:0;display:flex;flex-direction:column;
+  border:1px solid var(--cm-line-soft);border-radius:var(--cm-r-md);background:var(--cm-layer-2);
+  overflow:hidden;max-height:520px;}
+[data-cm-flist]{overflow:auto;min-height:0;}
+[data-cm-frow]{display:flex;align-items:center;gap:var(--cm-s2);padding:4px var(--cm-s2);
+  border-bottom:1px solid var(--cm-line-soft);
+  transition:background-color var(--cm-fast) var(--cm-ease);}
+[data-cm-frow]:last-child{border-bottom:0;}
+[data-cm-frow]:hover{background:var(--cm-surface-hover);}
+[data-cm-frow][data-on]{background:var(--cm-accent-soft);}
+[data-cm-fopen]{display:flex;align-items:center;gap:var(--cm-s2);border:0;background:none;
+  color:inherit;font:inherit;cursor:pointer;flex:1;min-width:0;text-align:left;padding:0;}
+[data-cm-fopen]:focus-visible{outline:none;box-shadow:var(--cm-ring);border-radius:var(--cm-r-xs);}
+[data-cm-ficon]{flex:none;width:12px;color:var(--cm-text-dim);font-size:var(--cm-f-xs);}
+[data-cm-ficon][data-kind='dir']{color:var(--cm-accent);}
+[data-cm-fname]{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--cm-f-sm);}
+[data-cm-fsize]{flex:none;color:var(--cm-text-dim);font-size:var(--cm-f-xs);
+  font-variant-numeric:tabular-nums;}
+[data-cm-feditor]{flex:1;min-width:0;display:flex;flex-direction:column;gap:var(--cm-s2);
+  border:1px solid var(--cm-line-soft);border-radius:var(--cm-r-md);background:var(--cm-layer-2);
+  padding:var(--cm-s3);min-height:0;}
+[data-cm-feh]{display:flex;align-items:center;gap:var(--cm-s2);flex-wrap:wrap;}
+[data-cm-fename]{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-family:ui-monospace,Menlo,Consolas,monospace;font-size:var(--cm-f-sm);}
+[data-cm-ftext]{flex:1;min-height:240px;resize:vertical;width:100%;box-sizing:border-box;
+  background:var(--cm-base);border:1px solid var(--cm-line-strong);border-radius:var(--cm-r-sm);
+  color:inherit;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:var(--cm-f-sm);
+  line-height:1.55;padding:var(--cm-s2);outline:none;
+  transition:border-color var(--cm-fast) var(--cm-ease),box-shadow var(--cm-fast) var(--cm-ease);}
+[data-cm-ftext]:focus{border-color:var(--cm-accent);box-shadow:var(--cm-ring);}
+@media (max-width:900px){
+  [data-cm-fgrid]{flex-direction:column;}
+  [data-cm-fcol]{flex:none;width:100%;max-height:340px;}
+}
+
 /* ── 终端 ── */
 [data-cm-term-wrap]{display:flex;flex-direction:column;min-height:0;gap:var(--cm-s2);}
 [data-cm-term-bar]{display:flex;align-items:center;gap:var(--cm-s2);flex-wrap:wrap;}
@@ -586,6 +691,13 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
   color:var(--cm-warn);font-weight:600;background:var(--cm-warn-soft);
   box-shadow:inset 0 0 0 1px var(--cm-warn-line);}
 
+/* 任务计数：跟待确认同一个规矩 —— 没活儿的时候是一句话，有活儿才点亮 */
+[data-cm-jobbadge]{color:var(--cm-text-dim);border:0;background:none;font:inherit;
+  padding:0;cursor:pointer;}
+[data-cm-jobbadge][data-on]{margin-left:6px;padding:0 7px;border-radius:var(--cm-r-xs);
+  color:var(--cm-accent);font-weight:600;background:var(--cm-accent-soft);
+  box-shadow:inset 0 0 0 1px var(--cm-accent-line);}
+
 /* ── Bento：宿主三格遥测（负载 / 内存 / 主盘） ── */
 [data-cm-bento]{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--cm-s3);
   margin-top:var(--cm-s1);}
@@ -666,6 +778,19 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
         throw new Error(error.message || ('HTTP ' + res.status))
       }
       return body.data
+    }
+
+    /**
+     * 容器台里子组件拿不到主组件的 setState，但「有任务入队了」这件事
+     * 得让地板上的任务抽屉自动弹出来。用一个小小的模块级钩子，主组件挂载时把它换成真的。
+     */
+    const JOB_SINK = { open: () => {} }
+
+    /** 长操作后端会返回 status=job；这里统一把「已入队」变成一句人话并弹出抽屉。 */
+    function noteJobResult(result) {
+      if (!result || result.status !== 'job' || !result.job) return null
+      try { JOB_SINK.open() } catch { /* 抽屉没挂上也不影响主流程 */ }
+      return result.message || ('已入队：' + (result.job.label || result.job.id))
     }
 
     async function jpost(path, payload) {
@@ -1076,6 +1201,43 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
      * 宿主负载折线：只连真实采样点，不插值、不平滑、不做面积阴影以外的装饰。
      * 点少于 2 个直接不渲染 —— 一个点画成折线是在骗人。
      */
+    /**
+     * 宿主负载历史：来自服务端采样器落的 NDJSON，不是内存环。
+     * 一分钟取一次就够 —— 新点最快也要 30 秒才产生一个。
+     */
+    function useHostHistory(nodeId, minutes) {
+      const [state, setState] = React.useState({ series: [], info: null, problem: null })
+      React.useEffect(() => {
+        if (!nodeId) return undefined
+        let cancelled = false
+        let timer = null
+        const tick = async () => {
+          try {
+            const data = await jget('/metrics?node=' + encodeURIComponent(nodeId)
+              + '&minutes=' + encodeURIComponent(minutes) + '&points=120')
+            if (!cancelled) {
+              setState({
+                series: Array.isArray(data.series) ? data.series : [],
+                info: data.info || null,
+                problem: null,
+              })
+            }
+          } catch (e) {
+            if (!cancelled) {
+              setState(prev => ({ ...prev, problem: e && e.message ? e.message : String(e) }))
+            }
+          }
+          if (!cancelled) timer = window.setTimeout(tick, 60000)
+        }
+        tick()
+        return () => {
+          cancelled = true
+          if (timer) window.clearTimeout(timer)
+        }
+      }, [nodeId, minutes])
+      return state
+    }
+
     function HostSpark({ series }) {
       const list = (Array.isArray(series) ? series : []).map(Number).filter(Number.isFinite)
       if (list.length < 2) return null
@@ -1198,6 +1360,11 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
       const [commitDraft, setCommitDraft] = React.useState(null)
       const alive = React.useRef(true)
 
+      // 任务抽屉：长操作（克隆/快照/导出/提交）不在请求里干等，进度落在这里。
+      const [jobsOpen, setJobsOpen] = React.useState(false)
+      const [jobState, setJobState] = React.useState({ jobs: [], summary: null })
+      const [jobTailId, setJobTailId] = React.useState('')
+
       // 实时占用：提前算好，容器行和概览卡都用同一份。
       const liveNode = snap && Array.isArray(snap.nodes) ? (snap.nodes.find(item => item.kind === 'podman') || null) : null
       const liveNodeId = liveNode ? liveNode.id : ''
@@ -1207,6 +1374,9 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
         return snap.nodes.filter(item => item.available).map(item => item.id)
       }, [snap])
       const liveByNode = useStats(liveNodeIds)
+      // 宿主负载的历史窗口：服务端 30 秒一个点，这里只挑要看的跨度。
+      const [hostMinutes, setHostMinutes] = React.useState(60)
+      const hostHistory = useHostHistory(liveNodeId, hostMinutes)
       const [netEditing, setNetEditing] = React.useState('')
       const hostNet = useHostNet()
 
@@ -1272,10 +1442,59 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
         return () => clearTimeout(timer)
       }, [toast])
 
+      // 子组件把「有任务了」推给抽屉：挂载时接上，卸载时摘掉。
+      React.useEffect(() => {
+        JOB_SINK.open = () => setJobsOpen(true)
+        return () => { JOB_SINK.open = () => {} }
+      }, [])
+
+      /**
+       * 任务轮询：抽屉关着又没活儿的时候 8 秒看一眼（只是读一个 json，不打 podman）；
+       * 有活儿或者抽屉开着就 1.5 秒一跳。别让它跟主循环一样永远 4 秒刷。
+       */
+      React.useEffect(() => {
+        let stopped = false
+        let timer = null
+        let hasWork = false
+        const tick = async () => {
+          if (!stopped && !document.hidden) {
+            try {
+              const data = await jget('/jobs')
+              if (!stopped && data) {
+                const summary = data.summary || null
+                hasWork = Boolean(summary && summary.running + summary.queued > 0)
+                setJobState({ jobs: Array.isArray(data.jobs) ? data.jobs : [], summary })
+              }
+            } catch {
+              // 队列读不到只是少一块信息，不能把主界面打成错误态
+            }
+          }
+          if (stopped) return
+          timer = setTimeout(tick, hasWork || jobsOpen ? 1500 : 8000)
+        }
+        tick()
+        return () => {
+          stopped = true
+          if (timer) clearTimeout(timer)
+        }
+      }, [jobsOpen])
+
+      async function cancelJob(id) {
+        try {
+          await jpost('/jobs/' + encodeURIComponent(id) + '/cancel', {})
+          setToast('已请求取消，正在收尾')
+        } catch (e) {
+          setToast({ bad: true, text: e && e.message ? e.message : String(e) })
+        }
+      }
+
       const nodes = snap ? snap.nodes : []
       const containers = snap ? snap.containers : []
       const networks = snap ? snap.networks : []
       const pending = (snap && snap.pending) ? snap.pending : []
+      const jobSummary = jobState.summary || (snap && snap.jobs) || null
+      const jobsList = jobState.jobs
+      const activeJobCount = jobSummary ? jobSummary.running + jobSummary.queued : 0
 
       const shown = containers.filter(container => {
         if (nodeFilter && container.nodeId !== nodeFilter) return false
@@ -1350,7 +1569,10 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
         try {
           const result = await jpost('/containers/' + encodeURIComponent(container.nodeId) + '/' + encodeURIComponent(container.name) + '/commit', { image })
           setCommitDraft(null)
-          if (result && result.status === 'pending') {
+          const queued = noteJobResult(result)
+          if (queued) {
+            setToast({ text: queued })
+          } else if (result && result.status === 'pending') {
             setToast('提交已在「待确认」里挂起 —— 去页面底部点一下才真的做。')
           } else {
             setToast({ text: '已提交成镜像 ' + image })
@@ -1374,7 +1596,7 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
           const node = key.slice(0, slash)
           const ref = key.slice(slash + 1)
           try {
-            await jpost('/actions', { node, ref, action })
+            await jpost('/actions', { node, ref: name, action })
             done += 1
           } catch (e) {
             failed.push(ref + '：' + (e && e.message ? e.message : String(e)))
@@ -1441,6 +1663,17 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
                   'data-cm-pendingbadge': '',
                   ...(pending.length > 0 ? { 'data-on': '' } : {}),
                 }, pending.length > 0 ? pending.length + ' 条待确认' : ' · ' + pending.length + ' 条待确认'),
+                h('button', {
+                  key: 'jobs',
+                  'data-cm-jobbadge': '',
+                  ...(activeJobCount > 0 || jobsOpen ? { 'data-on': '' } : {}),
+                  title: '长操作（克隆 / 快照 / 导出 / 提交）在队列里跑，关掉页面也继续',
+                  onClick: () => setJobsOpen(open => !open),
+                }, activeJobCount > 0
+                  ? ' · ' + (jobSummary.running > 0
+                    ? jobSummary.running + ' 个任务在跑'
+                    : jobSummary.queued + ' 个任务排队')
+                  : ' · 任务'),
               ])),
         h('div', { key: 'nav', 'data-cm-nav': '' },
           ...VIEWS.map(entry => h('button', {
@@ -1532,14 +1765,14 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
       // 快照与挂载点是 LXC 独有的，Podman 那边靠 compose 文件与卷。
       // 快照与挂载不再是独立 tab：它们跟网卡一样都是「这个容器的配置」，
       // 只是低频得多，收进配置页的分段控件里。容器级只剩四页。
-      const containerTabs = ['overview', 'logs', 'config', 'terminal']
+      const containerTabs = ['overview', 'logs', 'files', 'config', 'terminal']
       const nodeTabs = ['overview', 'create']
       const tabs = selectedContainer ? containerTabs : nodeTabs
       // tab 是跨层级共用的状态，切换选中对象后旧值可能已经不在这一层里了。
       const activeTab = tabs.includes(tab) ? tab : tabs[0]
       const tabLabels = {
         overview: '概览', create: '新建', networks: '网络', logs: '日志',
-        config: '配置', snapshots: '快照', mounts: '挂载', terminal: '终端',
+        config: '配置', snapshots: '快照', mounts: '挂载', terminal: '终端', files: '文件',
       }
       const detail = h('div', { key: 'detail', 'data-cm-detail': '' },
         h('div', { 'data-cm-tabs': '' },
@@ -1585,7 +1818,14 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
           h('div', { 'data-cm-rmain': '' },
             h('div', { 'data-cm-rname': '' }, container.name),
             h('div', { 'data-cm-rmeta': '' },
-              [container.state, container.image, ips.join(', ')].filter(Boolean).join(' · ')),
+              [container.state, container.image, ips.join(', ')].filter(Boolean).join(' · '),
+              // 有健康检查的容器：健康时不打扰，只在「失败 / 检查中」挂一个字。
+              container.health && container.health !== 'healthy'
+                ? h('span', {
+                  'data-cm-health': '',
+                  'data-tone': container.health,
+                }, container.health === 'unhealthy' ? ' 健康检查失败' : ' 健康检查中')
+                : null),
             usage
               ? h('div', { 'data-cm-rmeta': '', 'data-cm-live': '' },
                 'CPU ' + usage.cpuPercent.toFixed(2) + '% · 内存 ' + sizeText(usage.memUsed))
@@ -1616,6 +1856,17 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
         }
         if (activeTab === 'create') return createView()
         if (activeTab === 'logs') return logsView()
+        if (activeTab === 'files') {
+          if (!selectedContainer) return null
+          return h(ContainerFilesPane, {
+            key: selected.node + ':' + selectedContainer.name,
+            nodeId: selected.node,
+            name: selectedContainer.name,
+            nodeKind: selectedNode ? selectedNode.kind : 'podman',
+            running: selectedContainer.state === 'running',
+            onToast: setToast,
+          })
+        }
         if (activeTab === 'config') return configView()
 
         if (activeTab === 'terminal') return terminalView()
@@ -1673,20 +1924,36 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
         const load = host.load || {}
         const tower = disks[0] || null
         const two = value => Number(value || 0).toFixed(2)
+        // 有历史就用历史（真曲线），没有就退回内存环（刚开面板时的这十几分钟）。
+        const historyPoints = (hostHistory && Array.isArray(hostHistory.series) ? hostHistory.series : [])
+          .map(point => Number(point.load))
+          .filter(value => Number.isFinite(value))
+        const sparkSeries = historyPoints.length >= 2 ? historyPoints : LOAD_HISTORY.slice()
+        const sparkLabel = historyPoints.length >= 2
+          ? (hostMinutes >= 1440 ? '24 小时' : hostMinutes >= 360 ? '6 小时' : '1 小时') + '内 ' + historyPoints.length + ' 点'
+          : '这里还没攒够历史'
         /* 三格 Bento：负载（带折线）/ 内存 / 主盘。数字用同一档大号等宽字，扫一眼就能对齐比较。 */
         return h('div', { 'data-cm-card': '' },
           h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } },
             '这台机',
             h('div', { 'data-cm-grow': '' }),
-            h('span', { 'data-cm-hint': '' }, '每 10 秒采样')),
+            h('span', { 'data-cm-hint': '' }, sparkLabel)),
           h('div', { 'data-cm-bento': '' },
             h('div', { key: 'load', 'data-cm-tile': '' },
               h('div', { 'data-cm-tilehead': '' },
                 h('span', { 'data-cm-tileicon': '' }, h(Glyph, { name: 'activity', size: 13 })),
-                '负载'),
+                '负载',
+                h('div', { 'data-cm-grow': '' }),
+                h('div', { 'data-cm-range': '' },
+                  ...[['60', '1h'], ['360', '6h'], ['1440', '24h']].map(entry => h('button', {
+                    key: entry[0],
+                    'data-cm-rangeitem': '',
+                    ...(String(hostMinutes) === entry[0] ? { 'data-on': '' } : {}),
+                    onClick: () => setHostMinutes(Number(entry[0])),
+                  }, entry[1])))),
               h('div', { 'data-cm-big': '' }, two(load.one)),
               h('div', { 'data-cm-tilesub': '' }, '5 分 ' + two(load.five) + ' · 15 分 ' + two(load.fifteen)),
-              h(HostSpark, { series: LOAD_HISTORY.slice() })),
+              h(HostSpark, { series: sparkSeries })),
             h('div', { key: 'mem', 'data-cm-tile': '' },
               h('div', { 'data-cm-tilehead': '' },
                 h('span', { 'data-cm-tileicon': '' }, h(Glyph, { name: 'cpu', size: 13 })),
@@ -1841,6 +2108,38 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
             }))
           : null
 
+        // ── 2.5 健康检查：有健康检查才画这张卡 ──
+        // 连续失败次数比一个红色徽章有用：3 次失败和 300 次失败不是一个事故。
+        const health = container.health || null
+        const healthCard = !health
+          ? null
+          : h('div', { 'data-cm-card': '' },
+            h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } },
+              '健康检查',
+              h('span', { 'data-cm-health': '', 'data-tone': health.status || 'unknown' },
+                health.status === 'healthy' ? '正常'
+                  : health.status === 'unhealthy' ? '失败'
+                    : health.status === 'starting' ? '检查中' : '未知'),
+              health.failingStreak > 0
+                ? h('span', {
+                  'data-cm-dim': '',
+                  style: { marginLeft: 'var(--cm-s2)', fontWeight: '400' },
+                }, '连续失败 ' + health.failingStreak + ' 次')
+                : null),
+            (health.log || []).length === 0
+              ? h('div', { 'data-cm-dim': '' }, '还没有检查记录（容器刚起来时正常）。')
+              : h('div', { 'data-cm-healthlog': '' },
+                ...(health.log || []).slice(-6).reverse().map((entry, index) => h('div', {
+                  key: index,
+                  'data-cm-healthrow': '',
+                  'data-tone': Number(entry.exitCode) === 0 ? 'ok' : 'bad',
+                },
+                h('span', { 'data-cm-mono': '' }, entry.exitCode == null ? '—' : 'exit ' + entry.exitCode),
+                h('span', {
+                  'data-cm-healthout': '',
+                  title: entry.output || '',
+                }, entry.output || '（没有输出）')))))
+
         // ── 3. 身份：属于「要查」不是「要看」，折起来 ──
         const nodeLabel = node ? node.label : container.nodeId
         const identity = h('details', { 'data-cm-details': '' },
@@ -1987,6 +2286,7 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
         return h('div', null,
           hero,
           numbers,
+          healthCard,
           identity,
           netCard,
           actionsCard,
@@ -2110,9 +2410,50 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
         ...pending.map(item => h('div', { key: item.token, 'data-cm-prow': '' },
           h('div', { 'data-cm-psummary': '' },
             h('div', null, item.summary),
-            h('div', { 'data-cm-pexpiry': '' }, `${item.kind} · ${item.node}${item.target ? ' · ' + item.target : ''} · ${expiryText(item.expiresAt)}`)),
+            h('div', { 'data-cm-pexpiry': '' }, `${item.kind} · ${item.node}${item.target ? ' · ' + item.target : ''} · ${expiryText(item.expiresAt)}`),
+            planBlock(item.plan)),
           h('button', { 'data-cm-btn': '', 'data-primary': '', disabled: busy, onClick: () => confirmPending(item.token) }, '确认'),
           h('button', { 'data-cm-btn': '', disabled: busy, onClick: () => cancelPending(item.token) }, '取消'))))
+
+      /* ── 任务抽屉 ── */
+      const jobRow = job => h('div', { key: job.id, 'data-cm-jrow': '' },
+        h('div', { 'data-cm-jmain': '' },
+          h('div', { 'data-cm-jlabel': '', title: job.label }, job.label),
+          h('div', { 'data-cm-jmeta': '' }, [
+            job.kind,
+            job.node,
+            job.startedAt ? '开始 ' + jobClock(job.startedAt) : '排队中',
+            job.status === 'failed' && job.error ? job.error : '',
+            job.status === 'running' && job.progress && job.progress.note ? job.progress.note : '',
+            job.status !== 'failed' && job.tail && job.tail.length > 0 && job.status !== 'running'
+              ? job.tail[job.tail.length - 1] : '',
+          ].filter(Boolean).join(' · '))),
+        h('span', { 'data-cm-jstate': '', 'data-tone': job.status }, JOB_STATE_TEXT[job.status] || job.status),
+        job.status === 'running' || job.status === 'queued'
+          ? h('button', { 'data-cm-btn': '', disabled: busy, onClick: () => cancelJob(job.id) }, '取消')
+          : null,
+        h('button', {
+          'data-cm-btn': '',
+          onClick: () => setJobTailId(jobTailId === job.id ? '' : job.id),
+        }, jobTailId === job.id ? '收起输出' : '输出'))
+
+      const jobDrawer = !jobsOpen ? null : h('div', { 'data-cm-jobs': '' },
+        h('div', { 'data-cm-jhead': '' },
+          '任务（' + jobsList.length + '）',
+          h('span', { 'data-cm-dim': '', style: { fontWeight: '400' } },
+            activeJobCount > 0
+              ? '长操作在地板上排队，刷新页面不会打断它'
+              : '现在没有在跑的任务'),
+          h('div', { 'data-cm-grow': '' }),
+          h('button', { 'data-cm-btn': '', onClick: () => setJobsOpen(false) }, '收起')),
+        jobsList.length === 0
+          ? h('div', { 'data-cm-empty': '' }, '还没有任务。克隆、快照、导出、提交镜像这类会跑几分钟的操作都会落到这里。')
+          : null,
+        ...jobsList.slice(0, 12).map(jobRow),
+        jobTailId && jobsList.some(job => job.id === jobTailId)
+          ? h('pre', { key: 'tail', 'data-cm-pre': '', 'data-cm-jtail': '' },
+            (jobsList.find(job => job.id === jobTailId).tail || []).join('\n') || '（还没有输出）')
+          : null)
 
       const toastView = toast
         ? h('div', { 'data-cm-toast': '', ...(toast && toast.bad ? { 'data-bad': '' } : {}) }, toast && toast.text ? toast.text : String(toast))
@@ -2165,6 +2506,14 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
         if (pageTab === 'images') bodyPane = h(LxcImagesPane, { nodeId: lxcNodeId, onToast: setToast, onPending: () => { load(false) } })
         else if (pageTab === 'networks') bodyPane = containerNetworksView('lxc')
         else if (pageTab === 'storage') bodyPane = h(LxcStoragePane, { nodeId: lxcNodeId })
+        else if (pageTab === 'backup') {
+          bodyPane = h(LxcBackupPane, {
+            nodeId: lxcNodeId,
+            containers: containers.filter(container => container.nodeId === lxcNodeId),
+            onToast: setToast,
+            onPending: () => { load(false) },
+          })
+        }
       } else if (view === 'host') {
         bodyPane = pageTab === 'interfaces' ? h(HostInterfacesView, { hostNet, busy, run, editing: netEditing, onEdit: setNetEditing })
           : pageTab === 'routes' ? h(HostRoutesView, { hostNet })
@@ -2194,8 +2543,40 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
           top,
           content,
           toastView,
+          jobDrawer,
           pendingDrawer,
         ))
+    }
+
+    /** 待确认的预演清单：读不到就是一条 warn，绝不假装「一切正常」。 */
+    function planBlock(plan) {
+      if (!plan || !Array.isArray(plan.items) || plan.items.length === 0) return null
+      return h('div', { 'data-cm-plan': '' },
+        ...plan.items.map((entry, index) => h('div', {
+          key: index,
+          'data-cm-planitem': '',
+          'data-tone': entry.tone || 'info',
+        }, entry.text)),
+        Array.isArray(plan.blockers) && plan.blockers.length > 0
+          ? h('div', { 'data-cm-planblock': '' }, '会挡住：' + plan.blockers.join('；'))
+          : null)
+    }
+
+    const JOB_STATE_TEXT = {
+      queued: '排队',
+      running: '跑着',
+      done: '完成',
+      failed: '失败',
+      cancelled: '已取消',
+      interrupted: '被中断',
+    }
+
+    /** 任务行上的时间：只到秒，别跟审计那套「月-日 时:分:秒」混用。 */
+    function jobClock(iso) {
+      const at = Date.parse(iso)
+      if (!Number.isFinite(at)) return String(iso ?? '')
+      const date = new Date(at)
+      return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}:${String(date.getSeconds()).padStart(2, '0')}`
     }
 
     function expiryText(iso) {
@@ -3898,6 +4279,299 @@ function macSwapText(swaps) {
 
     const COMPOSE_REFRESH_MS = 12000
     // 顶层导航（对齐 cockpit-podman 的五段）：项目是落地页。
+    /* ───────────────── 容器内文件（浏览 / 编辑 / 上传下载） ───────────────── */
+
+    const FILE_VIEW_LIMIT = 8 * 1024 * 1024
+
+    function fileParentOf(path) {
+      if (!path || path === '/') return '/'
+      const cut = String(path).lastIndexOf('/')
+      return cut <= 0 ? '/' : String(path).slice(0, cut)
+    }
+
+    /** 二进制文件下载：base64 → Blob，走 a[download]。 */
+    function downloadBytes(name, base64) {
+      try {
+        const binary = atob(String(base64 ?? ''))
+        const bytes = new Uint8Array(binary.length)
+        for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index)
+        const url = URL.createObjectURL(new Blob([bytes], { type: 'application/octet-stream' }))
+        const link = document.createElement('a')
+        link.href = url
+        link.download = name || 'download.bin'
+        document.body.appendChild(link)
+        link.click()
+        link.remove()
+        window.setTimeout(() => URL.revokeObjectURL(url), 4000)
+      } catch { /* 浏览器不让下载就算了，文件还在容器里 */ }
+    }
+
+    function ContainerFilesPane({ nodeId, name, nodeKind, running, onToast }) {
+      const lxc = nodeKind === 'lxc'
+      const [path, setPath] = React.useState('/')
+      const [dir, setDir] = React.useState(null)
+      const [error, setError] = React.useState('')
+      const [busy, setBusy] = React.useState(false)
+      const [open, setOpen] = React.useState(null)
+      const [draft, setDraft] = React.useState('')
+      const [saving, setSaving] = React.useState(false)
+      const [newDir, setNewDir] = React.useState('')
+      const [removing, setRemoving] = React.useState('')
+      const [uploading, setUploading] = React.useState(false)
+      const query = '?node=' + encodeURIComponent(nodeId) + '&ref=' + encodeURIComponent(name)
+
+      const load = React.useCallback(async target => {
+        setBusy(true)
+        setError('')
+        try {
+          setDir(await jget('/files' + query + '&path=' + encodeURIComponent(target)))
+        } catch (err) {
+          setDir(null)
+          setError(err && err.message ? err.message : String(err))
+        } finally {
+          setBusy(false)
+        }
+      }, [query])
+
+      React.useEffect(() => { load('/') }, [load])
+
+      function goTo(target) {
+        setOpen(null)
+        setDraft('')
+        setPath(target)
+        load(target)
+      }
+
+      function join(dirPath, name) {
+        return (dirPath === '/' ? '' : dirPath) + '/' + name
+      }
+
+      async function openEntry(entry) {
+        const target = join(path, entry.name)
+        if (entry.type === 'dir') {
+          goTo(target)
+          return
+        }
+        if (entry.size > FILE_VIEW_LIMIT) {
+          setError('这个文件 ' + sizeText(entry.size) + '，超过 8MB，不在面板里打开。用「终端」看它。')
+          return
+        }
+        setBusy(true)
+        setError('')
+        try {
+          const read = await jget('/files/read' + query + '&path=' + encodeURIComponent(target))
+          setOpen({ ...read, original: read.text == null ? '' : read.text })
+          setDraft(read.text == null ? '' : read.text)
+        } catch (err) {
+          setError(err && err.message ? err.message : String(err))
+        } finally {
+          setBusy(false)
+        }
+      }
+
+      async function save() {
+        if (!open || open.binary) return
+        setSaving(true)
+        setError('')
+        try {
+          await jpost('/files/write', { node: nodeId, ref: name, path: open.path, text: draft })
+          setOpen({ ...open, original: draft, size: draft.length })
+          if (onToast) onToast('已写入 ' + open.path)
+          load(path)
+        } catch (err) {
+          setError('写不进去：' + (err && err.message ? err.message : String(err)))
+        } finally {
+          setSaving(false)
+        }
+      }
+
+      async function makeDir() {
+        const dirName = newDir.trim()
+        if (!dirName) return
+        setError('')
+        try {
+          await jpost('/files/mkdir', { node: nodeId, ref: name, path: join(path, dirName) })
+          setNewDir('')
+          if (onToast) onToast('建好了 ' + join(path, dirName))
+          load(path)
+        } catch (err) {
+          setError('建不了：' + (err && err.message ? err.message : String(err)))
+        }
+      }
+
+      async function removeEntry(entryName) {
+        setError('')
+        try {
+          await jpost('/files/remove', { node: nodeId, ref: name, path: join(path, entryName) })
+          setRemoving('')
+          if (onToast) onToast('删掉了 ' + join(path, entryName))
+          load(path)
+        } catch (err) {
+          setError('删不掉：' + (err && err.message ? err.message : String(err)))
+        }
+      }
+
+      function onUpload(event) {
+        const file = event.target.files && event.target.files[0]
+        event.target.value = ''
+        if (!file) return
+        if (file.size > FILE_VIEW_LIMIT) {
+          setError('这个文件 ' + sizeText(file.size) + '，超过 8MB，传不上去。用「终端」里的工具传大文件。')
+          return
+        }
+        setUploading(true)
+        setError('')
+        const reader = new FileReader()
+        reader.onerror = () => { setUploading(false); setError('读本地文件失败。') }
+        reader.onload = async () => {
+          try {
+            const text = String(reader.result || '')
+            const base64 = text.slice(text.indexOf(',') + 1)
+            await jpost('/files/write', { node: nodeId, ref: name, path: join(path, file.name), base64 })
+            if (onToast) onToast('传上去了 ' + file.name)
+            load(path)
+          } catch (err) {
+            setError('传不上去：' + (err && err.message ? err.message : String(err)))
+          } finally {
+            setUploading(false)
+          }
+        }
+        reader.readAsDataURL(file)
+      }
+
+      function crumbs() {
+        const parts = String(path).split('/').filter(Boolean)
+        const nodes = [h('button', {
+          key: 'root',
+          'data-cm-crumb': '',
+          onClick: () => goTo('/'),
+        }, '/')]
+        let built = ''
+        for (const part of parts) {
+          built += '/' + part
+          nodes.push(h('span', { key: 'sep-' + built, 'data-cm-crumbsep': '' }, '›'))
+          nodes.push(h('button', {
+            key: built,
+            'data-cm-crumb': '',
+            onClick: () => goTo(built),
+          }, part))
+        }
+        return nodes
+      }
+
+      const dirty = Boolean(open) && !open.binary && draft !== open.original
+      const entries = dir && Array.isArray(dir.entries) ? dir.entries : []
+
+      const head = h('div', { 'data-cm-fhead': '' },
+        h('div', { 'data-cm-crumbs': '' }, crumbs()),
+        h('div', { 'data-cm-facts': '' },
+          h('button', {
+            'data-cm-btn': '', 'data-cm-compact': '',
+            disabled: busy,
+            onClick: () => load(path),
+          }, busy ? '读…' : '刷新'),
+          // 上传用 <label> 包一个隐藏 input：浏览器自己会打开文件选择框，
+          // 不需要 useRef + .click()（那样还得担心 ref 被当成字符串传下去）。
+          h('label', {
+            'data-cm-btn': '', 'data-cm-compact': '',
+            'data-upload': uploading ? 'busy' : 'idle',
+            title: '上传文件到当前目录',
+            style: { cursor: uploading ? 'progress' : 'pointer' },
+          },
+          uploading ? '传…' : '上传',
+          h('input', { type: 'file', style: { display: 'none' }, onChange: onUpload })),
+          h('input', {
+            'data-cm-input': '',
+            'data-cm-fnew': '',
+            placeholder: '新目录名',
+            value: newDir,
+            onChange: event => setNewDir(event.target.value),
+            onKeyDown: event => { if (event.key === 'Enter') makeDir() },
+          }),
+          h('button', { 'data-cm-btn': '', 'data-cm-compact': '', onClick: makeDir, disabled: !newDir.trim() }, '建目录')))
+
+      let paneBody = null
+      if (!lxc && !running) {
+        paneBody = h('div', { 'data-cm-hintbox': '' },
+          '容器没在运行。Podman 列目录要进容器里跑命令，所以现在列不出来；已经知道路径的单个文件仍可读写。')
+      } else if (error && !dir) {
+        paneBody = h('div', { 'data-cm-warn': '' }, error)
+      } else if (busy && !dir) {
+        paneBody = h('div', { 'data-cm-dim': '' }, '读目录…')
+      } else {
+        const rows = entries.map(entry => {
+          const active = Boolean(open) && open.path === join(path, entry.name)
+          const confirmHere = removing === entry.name
+          return h('div', {
+            key: entry.name,
+            'data-cm-frow': '',
+            ...(active ? { 'data-on': '' } : {}),
+          },
+          h('button', {
+            'data-cm-fopen': '',
+            'data-kind': entry.type,
+            title: entry.type === 'dir' ? '进这个目录' : '打开这个文件',
+            onClick: () => openEntry(entry),
+          },
+          h('span', { 'data-cm-ficon': '', 'data-kind': entry.type }, entry.type === 'dir' ? '▸' : entry.type === 'symlink' ? '↗' : '·'),
+          h('span', { 'data-cm-fname': '' }, entry.name)),
+          h('span', { 'data-cm-fsize': '' }, entry.type === 'dir' ? '目录' : sizeText(entry.size)),
+          confirmHere
+            ? h('span', { 'data-cm-facts': '' },
+              h('button', { 'data-cm-btn': '', 'data-cm-compact': '', 'data-danger': '', onClick: () => removeEntry(entry.name) }, '真删'),
+              h('button', { 'data-cm-btn': '', 'data-cm-compact': '', onClick: () => setRemoving('') }, '算了'))
+            : h('button', {
+              'data-cm-btn': '', 'data-cm-compact': '',
+              title: '删掉 ' + entry.name,
+              onClick: () => setRemoving(entry.name),
+            }, '删'))
+        })
+        paneBody = h('div', { 'data-cm-flist': '' },
+          path === '/' ? null : h('div', { 'data-cm-frow': '', key: '..' },
+            h('button', { 'data-cm-fopen': '', 'data-kind': 'dir', onClick: () => goTo(fileParentOf(path)) },
+              h('span', { 'data-cm-ficon': '', 'data-kind': 'dir' }, '←'),
+              h('span', { 'data-cm-fname': '' }, '..'))),
+          rows.length ? rows : h('div', { 'data-cm-dim': '' }, '这个目录是空的。'),
+          dir && dir.truncated ? h('div', { 'data-cm-dim': '' }, '项太多，只列了前 2000 个。') : null)
+      }
+
+      const editorBody = open
+        ? h('div', { 'data-cm-feditor': '' },
+          h('div', { 'data-cm-feh': '' },
+            h('div', { 'data-cm-fename': '', title: open.path }, open.path),
+            h('div', { 'data-cm-facts': '' },
+              h('span', { 'data-cm-dim': '' }, sizeText(open.size) + (open.binary ? ' · 二进制' : ' ·utf8')),
+              open.binary
+                ? h('button', { 'data-cm-btn': '', 'data-cm-compact': '', onClick: () => downloadBytes(open.name, open.base64) }, '下载')
+                : h('button', {
+                  'data-cm-btn': '', 'data-cm-compact': '',
+                  onClick: () => downloadText(open.name, draft),
+                }, '下载'),
+              h('button', { 'data-cm-btn': '', 'data-cm-compact': '', onClick: () => { setOpen(null); setDraft('') } }, '关闭'))),
+          open.binary
+            ? h('div', { 'data-cm-hintbox': '' }, '这是二进制文件，面板里只给下载，不在文本框里改。')
+            : h('textarea', {
+              'data-cm-ftext': '',
+              spellCheck: false,
+              value: draft,
+              onChange: event => setDraft(event.target.value),
+            }),
+          h('div', { 'data-cm-facts': '' },
+            !open.binary && dirty
+              ? h('button', { 'data-cm-btn': '', 'data-primary': '', 'data-cm-compact': '', disabled: saving, onClick: save }, saving ? '写…' : '保存')
+              : null,
+            !open.binary && dirty ? h('span', { 'data-cm-dim': '' }, '改过，没保存') : null,
+            !open.binary && !dirty ? h('span', { 'data-cm-dim': '' }, '没有改动') : null))
+        : null
+
+      return h('div', { 'data-cm-files': '' },
+        head,
+        error && dir ? h('div', { 'data-cm-warn': '' }, error) : null,
+        h('div', { 'data-cm-fgrid': '' },
+          h('div', { 'data-cm-fcol': '' }, paneBody),
+          editorBody))
+    }
+
     /* ───────────────────────── 活动日志（审计） ───────────────────────── */
 
     const AUDIT_FILTERS = [
@@ -4023,6 +4697,7 @@ function macSwapText(swaps) {
       ['images', '镜像'],
       ['networks', '网络'],
       ['storage', '存储'],
+      ['backup', '备份'],
     ]
     const HOST_TABS = [
       ['interfaces', '网卡'],
@@ -4537,7 +5212,10 @@ function macSwapText(swaps) {
             snapshot,
             comment: comment.trim() || undefined,
           })
-          if (result && result.status === 'pending') {
+          const queued = noteJobResult(result)
+          if (queued) {
+            onToast && onToast(queued)
+          } else if (result && result.status === 'pending') {
             onToast && onToast('已挂起，在下面「待确认」里点确认：' + (result.summary || ''))
           } else {
             onToast && onToast(text)
@@ -4622,7 +5300,8 @@ function macSwapText(swaps) {
         setError(null)
         try {
           const result = await jpost('/containers/' + encodeURIComponent(container.nodeId) + '/' + encodeURIComponent(container.name) + '/clone', { newName: target })
-          onToast && onToast('已克隆成 ' + (result && result.name ? result.name : target))
+          const queued = noteJobResult(result)
+          onToast && onToast(queued || ('已克隆成 ' + (result && result.name ? result.name : target)))
           setName('')
         } catch (e) {
           setError(e && e.message ? e.message : String(e))
@@ -5921,6 +6600,195 @@ function macSwapText(swaps) {
                 h('span', { 'data-cm-mono': '', 'data-cm-dim': '' }, item.size || humanBytes(item.bytes))),
               h('div', { 'data-cm-dim': '', 'data-cm-mono': '', style: { fontSize: 'var(--cm-f-xs)', marginTop: '2px' } },
                 (item.disks || []).map(entry => entry.file + ' ' + entry.size).join('　')))))))
+    }
+
+    /**
+     * LXC 备份：导出 / 导入 / 归档管理。
+     *
+     * 这里要老实交代一件事故级的事：ext4 + loop 后端上，导出的是一整份 rootfs，
+     * 一个 8G 容器就是 8G 归档。所以页面顶部先把这件事写出来，别让人以为「点一下很便宜」。
+     */
+    function LxcBackupPane({ nodeId, containers, onToast, onPending }) {
+      const [items, setItems] = React.useState([])
+      const [dir, setDir] = React.useState('')
+      const [error, setError] = React.useState(null)
+      const [loading, setLoading] = React.useState(true)
+      const [busy, setBusy] = React.useState(false)
+      const [pick, setPick] = React.useState('')
+      const [instanceOnly, setInstanceOnly] = React.useState(true)
+      const [importFile, setImportFile] = React.useState('')
+      const [importName, setImportName] = React.useState('')
+
+      const load = React.useCallback(async () => {
+        if (!nodeId) {
+          setLoading(false)
+          return
+        }
+        try {
+          const value = await jget('/lxc/exports?node=' + encodeURIComponent(nodeId)
+            + (dir.trim() ? '&dir=' + encodeURIComponent(dir.trim()) : ''))
+          setItems(Array.isArray(value.files) ? value.files : [])
+          setError(null)
+        } catch (e) {
+          setError(e && e.message ? e.message : String(e))
+        } finally {
+          setLoading(false)
+        }
+      }, [nodeId, dir])
+
+      React.useEffect(() => { load() }, [load])
+
+      async function doExport() {
+        if (!nodeId) return
+        if (!pick) { onToast && onToast({ bad: true, text: '先选一个容器。' }); return }
+        setBusy(true)
+        try {
+          const result = await jpost('/lxc/export', {
+            node: nodeId,
+            name: pick,
+            dir: dir.trim() || undefined,
+            instanceOnly,
+          })
+          const queued = noteJobResult(result)
+          onToast && onToast(queued || '已导出')
+          await load()
+        } catch (e) {
+          onToast && onToast({ bad: true, text: e && e.message ? e.message : String(e) })
+        } finally {
+          setBusy(false)
+        }
+      }
+
+      async function doImport() {
+        if (!nodeId) return
+        const file = importFile.trim()
+        const name = importName.trim()
+        if (!file || !name) { onToast && onToast({ bad: true, text: '归档路径与新容器名都要给。' }); return }
+        setBusy(true)
+        try {
+          const result = await jpost('/lxc/import', { node: nodeId, file, name })
+          const queued = noteJobResult(result)
+          onToast && onToast(queued || '已导入')
+          setImportFile('')
+          setImportName('')
+        } catch (e) {
+          onToast && onToast({ bad: true, text: e && e.message ? e.message : String(e) })
+        } finally {
+          setBusy(false)
+        }
+      }
+
+      async function removeArchive(name) {
+        if (!nodeId) return
+        setBusy(true)
+        try {
+          const result = await jpost('/lxc/exports/delete', { node: nodeId, name, dir: dir.trim() || undefined })
+          if (result && result.status === 'pending') {
+            onPending && onPending()
+            onToast && onToast('删除已挂起 —— 去页面底部「待确认」点一下。')
+          } else {
+            onToast && onToast('已删除归档')
+            await load()
+          }
+        } catch (e) {
+          onToast && onToast({ bad: true, text: e && e.message ? e.message : String(e) })
+        } finally {
+          setBusy(false)
+        }
+      }
+
+      if (!nodeId) return h('div', { 'data-cm-card': '' }, h('div', { 'data-cm-warn': '' }, '没有可用的 LXC 节点（要装 root helper）。'))
+
+      /** 归档表单独提出来：一行五个 td 挤在 JSX 里，括号一多就看不清谁闭谁。 */
+      function archiveTable() {
+        const rows = items.map(entry => h('tr', { key: entry.name },
+          h('td', { style: { wordBreak: 'break-all' } }, entry.name),
+          h('td', { 'data-cm-mono': '' }, humanBytes(entry.bytes) || '—'),
+          h('td', { 'data-cm-dim': '' }, clockText(entry.at)),
+          h('td', null, h('div', { 'data-cm-line': '' },
+            h('button', {
+              'data-cm-btn': '',
+              disabled: busy,
+              onClick: () => {
+                setImportFile(entry.path)
+                setImportName(String(entry.name).replace(/\.tar.*$/, ''))
+              },
+            }, '导入这个'),
+            h('button', {
+              'data-cm-btn': '',
+              'data-danger': '',
+              disabled: busy,
+              onClick: () => removeArchive(entry.name),
+            }, '删除')))))
+        return h('table', { 'data-cm-table': '' },
+          h('thead', null, h('tr', null,
+            h('th', null, '归档'), h('th', null, '大小'), h('th', null, '时间'), h('th', null, ''))),
+          h('tbody', null, ...rows))
+      }
+
+      return h('div', null,
+        h('div', { 'data-cm-card': '' },
+          h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } }, '导出容器'),
+          h('div', { 'data-cm-hintbox': '', style: { marginBottom: '8px' } },
+            '导出的是整份 rootfs：ext4 + loop 上一个 8G 容器就是 8G 归档，慢也占盘。',
+            '归档落在宿主的备份目录里，容器本身不动。'),
+          error ? h('div', { 'data-cm-warn': '', style: { marginBottom: '8px' } }, error) : null,
+          h('div', { 'data-cm-formrow': '' },
+            h('select', {
+              'data-cm-select': '',
+              value: pick,
+              disabled: busy,
+              onChange: event => setPick(event.target.value),
+            },
+              h('option', { value: '' }, '选一个容器…'),
+              ...containers.map(container => h('option', { key: container.name, value: container.name },
+                container.name + (container.state === 'running' ? '（运行中）' : '')))),
+            h('input', {
+              'data-cm-input': '',
+              style: { flex: '1', minWidth: '200px' },
+              placeholder: '归档目录（留空 = 默认 /var/lib/dsh-container-manager/exports）',
+              value: dir,
+              onChange: event => setDir(event.target.value),
+            }),
+            h('button', { 'data-cm-btn': '', 'data-primary': '', disabled: busy || !pick, onClick: doExport },
+              busy ? '处理中…' : '导出'),
+            h('button', { 'data-cm-btn': '', disabled: busy, onClick: () => load() }, '刷新')),
+          h('label', { 'data-cm-checkline': '' },
+            h('input', {
+              type: 'checkbox',
+              checked: instanceOnly,
+              onChange: event => setInstanceOnly(event.target.checked),
+            }),
+            '只导实例，不带快照（推荐）')),
+
+        h('div', { 'data-cm-card': '' },
+          h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } }, '从归档导入'),
+          h('div', { 'data-cm-hintbox': '', style: { marginBottom: '8px' } },
+            '归档必须是 lxc export 产出的 .tar / .tar.gz / .tar.xz；导入后的容器是停止状态，名字不能和现有的重。'),
+          h('div', { 'data-cm-formrow': '' },
+            h('input', {
+              'data-cm-input': '',
+              style: { flex: '2', minWidth: '240px' },
+              placeholder: '归档绝对路径，例如 /var/lib/dsh-container-manager/exports/xxx.tar.gz',
+              value: importFile,
+              onChange: event => setImportFile(event.target.value),
+            }),
+            h('input', {
+              'data-cm-input': '',
+              placeholder: '新容器名',
+              value: importName,
+              onChange: event => setImportName(event.target.value),
+            }),
+            h('button', { 'data-cm-btn': '', 'data-primary': '', disabled: busy, onClick: doImport },
+              busy ? '处理中…' : '导入'))),
+
+        h('div', { 'data-cm-card': '' },
+          h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } }, '归档（' + items.length + '）'),
+          loading
+            ? h('div', { 'data-cm-dim': '' }, '读取中…')
+            : (items.length === 0
+              ? h('div', { 'data-cm-dim': '' }, '这个目录里还没有归档。')
+              : archiveTable())))
     }
 
     function VolumesPane({ nodeId, onToast, onPending }) {

@@ -19,14 +19,16 @@
  * 这个文件由 helper/install-helper.sh 装到 /usr/local/lib/dsh-container-manager/。
  */
 
-import { execFile } from 'node:child_process'
+import { execFile, spawn } from 'node:child_process'
 import {
   chmodSync,
   chownSync,
   existsSync,
+  lstatSync,
   mkdirSync,
   readFileSync,
   readdirSync,
+  realpathSync,
   renameSync,
   rmSync,
   statfsSync,
@@ -55,7 +57,7 @@ import {
   replaceNetSection,
   writeLxcSettings,
 } from './net-config.mjs'
-import { dirname, join } from 'node:path'
+import { basename, dirname, join } from 'node:path'
 import { promisify } from 'node:util'
 
 const execFileAsync = promisify(execFile)
@@ -76,7 +78,9 @@ const AUDIT_FILE = process.env.LXCD_AUDIT || '/var/log/dsh-container-manager/aud
 // systemd 启动时没有 SUDO_USER，所以正常路径是 unit 里写死的 LXCD_GROUP；
 // 手工跑的时候退回到调用 sudo 的那个用户。
 const SOCKET_GROUP = process.env.LXCD_GROUP || process.env.SUDO_USER || process.env.USER || 'root'
-const MAX_BODY = 1_000_000
+// 请求体上限：普通配置都是几 KB，但容器内文件写入整份走 base64，
+// 8MB 的文件编码后约 10.7MB —— 所以给到 16MB。套接字是 0660/root 组，不是对外的口子。
+const MAX_BODY = 16 * 1024 * 1024
 
 const MODULE_ALLOW = new Set(['macvlan', 'ipvlan', 'veth', 'bridge', '8021q', 'br_netfilter'])
 const ACTION_ALLOW = new Set(['start', 'stop', 'restart', 'freeze', 'unfreeze', 'destroy'])
@@ -1548,6 +1552,510 @@ function readBody(req) {
   })
 }
 
+/* ───────────────────────── 导出 / 导入 ───────────────────────── */
+
+// 导出落盘目录：默认放在插件自己的地盘里，别顺手写进 /var/lib/lxc 把 rootfs 目录搞乱。
+const EXPORT_DIR = process.env.LXCD_EXPORT_DIR || '/var/lib/dsh-container-manager/exports'
+const ARCHIVE_EXT = /\.tar(\.gz|\.xz|\.bz2|\.zst|\.lzma)?$/
+
+/** 导出目录必须存在且可写；路径不允许是相对路径，也不允许穿出目录。 */
+function resolveExportDir(dir) {
+  const wanted = String(dir || EXPORT_DIR).trim()
+  if (!wanted.startsWith('/')) throw new HelperError('BAD_ARGS', '导出目录要给绝对路径。')
+  if (wanted.includes('..')) throw new HelperError('BAD_ARGS', '导出目录里不许出现 ..')
+  mkdirSync(wanted, { recursive: true, mode: 0o750 })
+  return wanted
+}
+
+function archiveName(container) {
+  const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\..+$/, '')
+  return container + '-' + stamp + '.tar.gz'
+}
+
+/**
+ * lxc export：整份打包。ext4 + dir 后端上 --optimized 没有意义（那是 btrfs/zfs 的），
+ * 所以默认不带；--instance-only 默认开 —— 快照单独占一份空间，导出它往往是意外。
+ */
+async function exportContainer(spec) {
+  const container = assertName(spec?.name)
+  if (!containerExists(container)) throw new HelperError('NOT_FOUND', `没有这个容器：${container}`)
+  const dir = resolveExportDir(spec?.dir)
+  const target = join(dir, archiveName(container))
+  const args = ['export', container, target]
+  if (spec?.instanceOnly !== false) args.push('--instance-only')
+  const result = await run('lxc', args, { timeoutMs: 1_800_000 })
+  let bytes = 0
+  try {
+    bytes = statSync(target).size
+  } catch {
+    bytes = 0
+  }
+  if (result.code !== 0 || bytes === 0) {
+    const detail = (result.stderr || result.stdout || '').trim()
+    throw new HelperError(
+      'LXC_ERROR',
+      detail || '导出失败：没有生成归档文件。',
+      '导出要写一整份 rootfs，磁盘满或路径不可写都会失败；运行中的容器导出的是活文件系统，建议先停。',
+    )
+  }
+  audit({ action: 'lxc.export', target: container, file: target, bytes })
+  return {
+    name: container,
+    file: target,
+    bytes,
+    instanceOnly: spec?.instanceOnly !== false,
+    output: (result.stdout || result.stderr || '').trim(),
+  }
+}
+
+/** 列导出目录里的归档：只看后缀对得上的，别把别的文件当备份。 */
+async function listExports(spec) {
+  const dir = resolveExportDir(spec?.dir)
+  let names = []
+  try {
+    names = readdirSync(dir)
+  } catch {
+    names = []
+  }
+  const files = []
+  for (const name of names) {
+    if (!ARCHIVE_EXT.test(name)) continue
+    let stats = null
+    try {
+      stats = statSync(join(dir, name))
+    } catch {
+      continue
+    }
+    if (!stats || !stats.isFile()) continue
+    files.push({
+      name,
+      path: join(dir, name),
+      bytes: stats.size,
+      at: new Date(stats.mtimeMs).toISOString(),
+    })
+  }
+  files.sort((left, right) => String(right.at).localeCompare(String(left.at)))
+  return { dir, files }
+}
+
+async function deleteExport(spec) {
+  const dir = resolveExportDir(spec?.dir)
+  const name = String(spec?.name || '')
+  if (!ARCHIVE_EXT.test(name) || name.includes('/')) throw new HelperError('BAD_ARGS', '归档名不合法。')
+  const target = join(dir, name)
+  if (!existsSync(target)) throw new HelperError('NOT_FOUND', `没有这个归档：${name}`)
+  unlinkSync(target)
+  audit({ action: 'lxc.export.delete', file: target })
+  return { name, dir }
+}
+
+/** lxc import：从一个归档建容器。名字必须给，别让 lxc 自己从文件名猜。 */
+async function importContainer(spec) {
+  const file = String(spec?.file || '').trim()
+  const name = assertName(spec?.name)
+  if (!file.startsWith('/')) throw new HelperError('BAD_ARGS', '归档路径要给绝对路径。')
+  if (!ARCHIVE_EXT.test(file)) throw new HelperError('BAD_ARGS', '只认 .tar / .tar.gz / .tar.xz / .tar.bz2 / .tar.zst 归档。')
+  if (!existsSync(file)) throw new HelperError('NOT_FOUND', `没有这个归档：${file}`)
+  if (containerExists(name)) throw new HelperError('BAD_ARGS', `目标容器已存在：${name}`)
+  const result = await run('lxc', ['import', file, name], { timeoutMs: 1_800_000 })
+  if (result.code !== 0 || !containerExists(name)) {
+    const detail = (result.stderr || result.stdout || '').trim()
+    throw new HelperError(
+      'LXC_ERROR',
+      detail || '导入失败：容器没有建出来。',
+      '归档要能被 lxc 认出来（lxc export 产出的那种）；名字不能和现有容器重名。',
+    )
+  }
+  audit({ action: 'lxc.import', target: name, file })
+  return {
+    name,
+    file,
+    state: await containerState(name),
+    output: (result.stdout || result.stderr || '').trim(),
+  }
+}
+
+
+/* ───────────────────────── 容器内文件 ───────────────────────── */
+
+/**
+ * LXC 的好处：rootfs 就在宿主上，停着也能读写。
+ * 代价是这里以 root 身份直接动文件系统，所以路径校验必须自己扛：
+ *  - 规整掉 . 空段，拒绝 ..
+ *  - 对最终路径做 realpath，确认没有从软链接跑到 rootfs 外面
+ *  - 单次读写 8MB 封顶
+ */
+const FILE_LIMIT = 8 * 1024 * 1024
+
+/**
+ * 容器的 rootfs 有两种完全不同的形态，文件面板必须分开走：
+ *  - dir（目录型，模板/非特权常见）：rootfs 就是宿主上的一个目录 —— 停着也能读写，这是 LXC 的便宜。
+ *  - image / 子卷（loop: / btrfs: / zfs: / lvm: / overlayfs:）：rootfs 是一块镜像或子卷，
+ *    宿主上看不到挂载点（lxc-start 是在容器自己的命名空间里挂的），只能进容器里操作，
+ *    所以这种必须运行中，走 lxc-attach。
+ * 猜是不行的：猜错会把空的挂载点当成 rootfs，列出「一个空目录」还理直气壮。
+ */
+
+/** 从 <LXC_ROOT>/<名字>/config 读 lxc.rootfs.path，判断后端类型。 */
+function rootfsSpec(container) {
+  const configFile = join(LXC_ROOT, container, 'config')
+  let text = ''
+  try {
+    text = readFileSync(configFile, 'utf8')
+  } catch {
+    throw new HelperError('NOT_FOUND', `读不到 ${container} 的 config。`)
+  }
+  const line = text.split('\n').map(row => row.trim()).find(row => row.startsWith('lxc.rootfs.path'))
+  const fallback = join(LXC_ROOT, container, 'rootfs')
+  if (!line) return { kind: 'dir', path: fallback }
+  const value = line.slice(line.indexOf('=') + 1).trim()
+  if (value.startsWith('dir:')) return { kind: 'dir', path: value.slice(4) }
+  const colon = value.indexOf(':')
+  if (colon > 0) return { kind: value.slice(0, colon), path: value.slice(colon + 1) }
+  return { kind: 'dir', path: value.startsWith('/') ? value : fallback }
+}
+
+/** 容器是不是活着：attach 路线的前提。 */
+async function isRunning(container) {
+  try {
+    const { stdout } = await execFileAsync('lxc-info', ['-n', container, '-sH'], { timeout: 10_000 })
+    return String(stdout).trim().toLowerCase() === 'running'
+  } catch {
+    return false
+  }
+}
+
+/** 判定这一台该走哪条路，顺便把「为什么不能」说清楚。 */
+async function backendOf(name) {
+  const container = assertName(name)
+  const spec = rootfsSpec(container)
+  if (spec.kind === 'dir') {
+    const root = spec.path
+    let info = null
+    try {
+      info = statSync(root)
+    } catch {
+      throw new HelperError('BAD_ARGS', `${container} 的 rootfs 目录不在了：${root}`)
+    }
+    if (!info.isDirectory()) {
+      throw new HelperError('BAD_ARGS', `${container} 的 rootfs 不是目录：${root}`)
+    }
+    return { container, mode: 'direct', root: realpathSync(root) }
+  }
+  if (!(await isRunning(container))) {
+    throw new HelperError('BAD_ARGS',
+      `${container} 的 rootfs 是 ${spec.kind} 后端（${spec.path}），宿主上看不到它的挂载点，` +
+      '所以文件操作要进容器里做 —— 但现在容器没在运行。',
+      '先启动容器再从「文件」里看；或者用「备份」页的导出把整份 rootfs 打包出来。')
+  }
+  return { container, mode: 'attach', backend: spec.kind }
+}
+
+/** 进容器里跑一条命令，返回 Buffer（文件内容可能是二进制，不能走 utf8）。 */
+function attachBuffer(container, argv, { input = null, timeoutMs = 30_000, maxBytes = FILE_LIMIT + 4 * 1024 * 1024 } = {}) {
+  return new Promise((resolve, reject) => {
+    let child = null
+    try {
+      child = spawn('lxc-attach', ['-n', container, '--', ...argv], { stdio: ['pipe', 'pipe', 'pipe'] })
+    } catch (error) {
+      reject(new HelperError('LXC_ERROR', `起不了 lxc-attach：${error?.message ?? error}`))
+      return
+    }
+    const out = []
+    const err = []
+    let bytes = 0
+    let settled = false
+    const finish = (error, value) => {
+      if (settled) return
+      settled = true
+      if (error) reject(error)
+      else resolve(value)
+    }
+    const timer = setTimeout(() => {
+      try { child.kill('SIGKILL') } catch { /* 已经退了 */ }
+      finish(new HelperError('TIMEOUT', `进容器执行超时（${argv[0]}）。`))
+    }, timeoutMs)
+    if (timer.unref) timer.unref()
+    child.stdout.on('data', chunk => {
+      bytes += chunk.length
+      if (bytes > maxBytes) {
+        try { child.kill('SIGKILL') } catch { /* ignore */ }
+        finish(new HelperError('BAD_ARGS', '读出来的内容太大，已中止。', '大文件请用「终端」：tail / less。'))
+        return
+      }
+      out.push(chunk)
+    })
+    child.stderr.on('data', chunk => err.push(chunk))
+    child.on('error', error => {
+      clearTimeout(timer)
+      finish(new HelperError('LXC_ERROR', `lxc-attach 失败：${error?.message ?? error}`))
+    })
+    child.on('close', code => {
+      clearTimeout(timer)
+      finish(null, {
+        code,
+        stdout: Buffer.concat(out),
+        stderr: Buffer.concat(err).toString('utf8'),
+      })
+    })
+    try {
+      child.stdin.end(input ?? '')
+    } catch { /* 命令不需要 stdin 就算了 */ }
+  })
+}
+
+function normalizeRel(raw) {
+  const text = String(raw ?? '/')
+  if (!text.startsWith('/')) throw new HelperError('BAD_ARGS', '容器内路径要给绝对路径。')
+  if (text.includes('\0')) throw new HelperError('BAD_ARGS', '路径里有 NUL 字节。')
+  if (text.length > 4096) throw new HelperError('BAD_ARGS', '路径太长了。')
+  const parts = []
+  for (const segment of text.split('/')) {
+    if (!segment || segment === '.') continue
+    if (segment === '..') throw new HelperError('BAD_ARGS', '路径里不许出现 ..（越界）。')
+    parts.push(segment)
+  }
+  return { rel: '/' + parts.join('/'), parts }
+}
+
+function insideRoot(root, target) {
+  if (target === root) return true
+  return target.startsWith(root + '/')
+}
+
+/** 已经存在的路径：realpath 之后必须还在 rootfs 里（挡软链接逃逸）。 */
+function resolveExisting(root, container, raw) {
+  const { rel, parts } = normalizeRel(raw)
+  const target = join(root, ...parts)
+  let real = null
+  try {
+    real = realpathSync(target)
+  } catch {
+    throw new HelperError('NOT_FOUND', `容器 ${container} 里没有这个路径：${rel}`)
+  }
+  if (!insideRoot(root, real)) {
+    throw new HelperError('BAD_ARGS', '这个路径通过软链接跑到 rootfs 外面了，拒绝访问。')
+  }
+  return { rel, real }
+}
+
+/** 还不存在的路径（新建文件 / 目录）：父目录必须存在且在 rootfs 里。 */
+function resolveNew(root, container, raw) {
+  const { rel, parts } = normalizeRel(raw)
+  if (parts.length === 0) throw new HelperError('BAD_ARGS', '不能对根目录做这个操作。')
+  const parentRel = '/' + parts.slice(0, -1).join('/')
+  const parent = join(root, ...parts.slice(0, -1))
+  let realParent = null
+  try {
+    realParent = realpathSync(parent)
+  } catch {
+    throw new HelperError('NOT_FOUND', `父目录不存在：${parentRel}`)
+  }
+  if (!insideRoot(root, realParent)) {
+    throw new HelperError('BAD_ARGS', '父目录通过软链接跑到 rootfs 外面了，拒绝访问。')
+  }
+  return { rel, target: join(realParent, parts[parts.length - 1]) }
+}
+
+// 进容器列目录用的脚本：路径从 $1 进，不拼字符串（文件名里有引号也不会被 shell 吃掉）。
+const LIST_SCRIPT = [
+  'd="$1"',
+  'cd "$d" 2>/dev/null || { echo "__CM_ERR__"; exit 3; }',
+  'for f in .* *',
+  'do',
+  '  case "$f" in .|..) continue;; esac',
+  '  [ -e "$f" ] || [ -L "$f" ] || continue',
+  '  t=f',
+  '  [ -d "$f" ] && t=d',
+  '  [ -L "$f" ] && t=l',
+  '  s=$(stat -c %s "$f" 2>/dev/null || echo 0)',
+  '  m=$(stat -c %Y "$f" 2>/dev/null || echo 0)',
+  '  printf "%s\\t%s\\t%s\\t%s\\n" "$t" "$s" "$m" "$f"',
+  'done',
+].join('\n')
+
+function sortEntries(entries) {
+  entries.sort((left, right) => {
+    if (left.type === 'dir' && right.type !== 'dir') return -1
+    if (right.type === 'dir' && left.type !== 'dir') return 1
+    return left.name.localeCompare(right.name)
+  })
+  return entries
+}
+
+async function filesList(spec) {
+  const backend = await backendOf(spec?.name)
+  const { rel } = normalizeRel(spec?.path)
+  if (backend.mode === 'direct') {
+    const { real } = resolveExisting(backend.root, backend.container, spec?.path)
+    let info = null
+    try {
+      info = statSync(real)
+    } catch {
+      throw new HelperError('NOT_FOUND', '读不到这个路径。')
+    }
+    if (!info.isDirectory()) throw new HelperError('BAD_ARGS', `这不是目录：${rel}`)
+    const entries = []
+    for (const entry of readdirSync(real, { withFileTypes: true })) {
+      const full = join(real, entry.name)
+      let size = 0
+      let mtime = null
+      try {
+        const item = lstatSync(full)
+        size = item.size
+        mtime = new Date(item.mtimeMs).toISOString()
+      } catch {
+        continue
+      }
+      entries.push({
+        name: entry.name,
+        type: entry.isDirectory() ? 'dir' : entry.isSymbolicLink() ? 'symlink' : 'file',
+        size,
+        mtime,
+      })
+    }
+    return { name: backend.container, path: rel, mode: 'direct', entries: sortEntries(entries) }
+  }
+
+  const result = await attachBuffer(backend.container, ['sh', '-c', LIST_SCRIPT, 'sh', rel], {
+    maxBytes: 4 * 1024 * 1024,
+  })
+  if (result.code !== 0 || /__CM_ERR__/.test(result.stdout.toString('utf8'))) {
+    throw new HelperError('LXC_ERROR',
+      result.stderr.trim() || `容器 ${backend.container} 里打不开这个目录：${rel}`,
+      '目录不存在或没有读权限时会这样。')
+  }
+  const entries = []
+  for (const line of result.stdout.toString('utf8').split('\n')) {
+    if (!line.trim()) continue
+    const parts = line.split('\t')
+    if (parts.length < 4) continue
+    const [type, size, mtime, ...rest] = parts
+    const name = rest.join('\t')
+    if (!name) continue
+    entries.push({
+      name,
+      type: type === 'd' ? 'dir' : type === 'l' ? 'symlink' : 'file',
+      size: Number(size) || 0,
+      mtime: Number(mtime) ? new Date(Number(mtime) * 1000).toISOString() : null,
+    })
+  }
+  return { name: backend.container, path: rel, mode: 'attach', entries: sortEntries(entries) }
+}
+
+async function filesRead(spec) {
+  const backend = await backendOf(spec?.name)
+  if (backend.mode === 'direct') {
+    const { real, rel } = resolveExisting(backend.root, backend.container, spec?.path)
+    const info = statSync(real)
+    if (info.isDirectory()) throw new HelperError('BAD_ARGS', `这是个目录：${rel}`)
+    if (info.size > FILE_LIMIT) {
+      throw new HelperError('BAD_ARGS', `文件有 ${info.size} 字节，超过 8MB 上限，不在浏览器里打开。`,
+        '要看大文件请用「终端」：tail -n 200 或 less。')
+    }
+    const data = readFileSync(real)
+    return { name: backend.container, path: rel, mode: 'direct', size: data.length, base64: data.toString('base64') }
+  }
+
+  const { rel } = normalizeRel(spec?.path)
+  const stat = await attachBuffer(backend.container, ['sh', '-c', 'stat -c %s -- "$1" 2>/dev/null || echo -', 'sh', rel], { timeoutMs: 15_000 })
+  const size = Number(stat.stdout.toString('utf8').trim())
+  if (!Number.isFinite(size)) {
+    throw new HelperError('NOT_FOUND', `容器 ${backend.container} 里没有这个文件：${rel}`)
+  }
+  if (size > FILE_LIMIT) {
+    throw new HelperError('BAD_ARGS', `文件有 ${size} 字节，超过 8MB 上限，不在浏览器里打开。`,
+      '要看大文件请用「终端」：tail -n 200 或 less。')
+  }
+  const result = await attachBuffer(backend.container, ['cat', '--', rel], { timeoutMs: 60_000 })
+  if (result.code !== 0) {
+    throw new HelperError('LXC_ERROR', result.stderr.trim() || `读不出这个文件：${rel}`,
+      '它可能是个目录，或者没有读权限。')
+  }
+  return {
+    name: backend.container,
+    path: rel,
+    mode: 'attach',
+    size: result.stdout.length,
+    base64: result.stdout.toString('base64'),
+  }
+}
+
+async function filesWrite(spec) {
+  const data = spec?.base64 != null
+    ? Buffer.from(String(spec.base64), 'base64')
+    : Buffer.from(String(spec?.text ?? ''), 'utf8')
+  if (data.length > FILE_LIMIT) throw new HelperError('BAD_ARGS', '内容超过 8MB，不在浏览器里写。')
+  const backend = await backendOf(spec?.name)
+
+  if (backend.mode === 'direct') {
+    const { rel, target } = resolveNew(backend.root, backend.container, spec?.path)
+    try {
+      writeFileSync(target, data, { mode: 0o644 })
+    } catch (error) {
+      throw new HelperError('LXC_ERROR', error?.message ?? '写文件失败。', '只读挂载里的文件写不了。')
+    }
+    audit({ action: 'lxc.files.write', target: backend.container, path: rel, bytes: data.length, mode: 'direct' })
+    return { name: backend.container, path: rel, mode: 'direct', bytes: data.length }
+  }
+
+  const { rel } = normalizeRel(spec?.path)
+  const result = await attachBuffer(backend.container, ['sh', '-c', 'mkdir -p "$(dirname "$1")" && cat > "$1"', 'sh', rel], {
+    input: data,
+    timeoutMs: 60_000,
+  })
+  if (result.code !== 0) {
+    throw new HelperError('LXC_ERROR', result.stderr.trim() || `写不进去：${rel}`,
+      '父目录不存在、或者容器里那块是只读挂载。')
+  }
+  audit({ action: 'lxc.files.write', target: backend.container, path: rel, bytes: data.length, mode: 'attach' })
+  return { name: backend.container, path: rel, mode: 'attach', bytes: data.length }
+}
+
+async function filesMkdir(spec) {
+  const backend = await backendOf(spec?.name)
+  if (backend.mode === 'direct') {
+    const { rel, target } = resolveNew(backend.root, backend.container, spec?.path)
+    try {
+      mkdirSync(target, { recursive: true, mode: 0o755 })
+    } catch (error) {
+      throw new HelperError('LXC_ERROR', error?.message ?? '建目录失败。')
+    }
+    audit({ action: 'lxc.files.mkdir', target: backend.container, path: rel, mode: 'direct' })
+    return { name: backend.container, path: rel, mode: 'direct', created: true }
+  }
+  const { rel } = normalizeRel(spec?.path)
+  const result = await attachBuffer(backend.container, ['mkdir', '-p', '--', rel], { timeoutMs: 20_000 })
+  if (result.code !== 0) {
+    throw new HelperError('LXC_ERROR', result.stderr.trim() || `建不了目录：${rel}`)
+  }
+  audit({ action: 'lxc.files.mkdir', target: backend.container, path: rel, mode: 'attach' })
+  return { name: backend.container, path: rel, mode: 'attach', created: true }
+}
+
+async function filesRemove(spec) {
+  const backend = await backendOf(spec?.name)
+  if (backend.mode === 'direct') {
+    const { rel, real } = resolveExisting(backend.root, backend.container, spec?.path)
+    if (real === backend.root) throw new HelperError('BAD_ARGS', '不能删 rootfs 根目录。')
+    try {
+      rmSync(real, { recursive: true, force: true })
+    } catch (error) {
+      throw new HelperError('LXC_ERROR', error?.message ?? '删除失败。')
+    }
+    audit({ action: 'lxc.files.remove', target: backend.container, path: rel, mode: 'direct' })
+    return { name: backend.container, path: rel, mode: 'direct', removed: true }
+  }
+  const { rel, parts } = normalizeRel(spec?.path)
+  if (parts.length === 0) throw new HelperError('BAD_ARGS', '不能删容器根目录。')
+  const result = await attachBuffer(backend.container, ['rm', '-rf', '--', rel], { timeoutMs: 30_000 })
+  if (result.code !== 0) {
+    throw new HelperError('LXC_ERROR', result.stderr.trim() || `删不掉：${rel}`)
+  }
+  audit({ action: 'lxc.files.remove', target: backend.container, path: rel, mode: 'attach' })
+  return { name: backend.container, path: rel, mode: 'attach', removed: true }
+}
+
 function send(res, status, value) {
   const body = JSON.stringify(value)
   res.writeHead(status, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' })
@@ -1624,6 +2132,24 @@ async function route(req, res) {
       return send(res, 200, ok(await snapshotOp(assertName(body?.name), String(body?.op ?? ''), body ?? {})))
     case '/lxc/clone':
       return send(res, 200, ok(await cloneContainer(body ?? {})))
+    case '/lxc/files/list':
+      return send(res, 200, ok(await filesList(body ?? {})))
+    case '/lxc/files/read':
+      return send(res, 200, ok(await filesRead(body ?? {})))
+    case '/lxc/files/write':
+      return send(res, 200, ok(await filesWrite(body ?? {})))
+    case '/lxc/files/mkdir':
+      return send(res, 200, ok(await filesMkdir(body ?? {})))
+    case '/lxc/files/remove':
+      return send(res, 200, ok(await filesRemove(body ?? {})))
+    case '/lxc/export':
+      return send(res, 200, ok(await exportContainer(body ?? {})))
+    case '/lxc/export/list':
+      return send(res, 200, ok(await listExports(body ?? {})))
+    case '/lxc/export/delete':
+      return send(res, 200, ok(await deleteExport(body ?? {})))
+    case '/lxc/import':
+      return send(res, 200, ok(await importContainer(body ?? {})))
     case '/lxc/mounts/get':
       return send(res, 200, ok(readMounts(assertName(body?.name))))
     case '/lxc/mounts/set':

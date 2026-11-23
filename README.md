@@ -276,7 +276,7 @@ DHCP 保留地址、按 MAC 写的防火墙规则、以及需要识别同一块�
 
 ---
 
-## 25 个 AI 工具
+## 29 个 AI 工具
 
 | 工具 | 性质 | 说明 |
 | --- | --- | --- |
@@ -305,6 +305,10 @@ DHCP 保留地址、按 MAC 写的防火墙规则、以及需要识别同一块�
 | `lxc_clone` | 写 | 整份克隆（源容器必须先停），直接执行 |
 | `lxc_mounts` | 危险 | list 直读；**set 改宿主 config，挂起** |
 | `pending_operations` | 只读 | 查待确认队列，**没有确认能力** |
+| `container_files` | 混合 | list / read 直读；**write / mkdir / remove 挂起**（AI 写容器里的文件一律要人点头，单次写入上限 256KB） |
+| `container_jobs` | 混合 | 长任务队列：list / get 直读，cancel 直接发信号 |
+| `container_capabilities` | 只读 | rootless 体检：subuid / uidmap / 存储驱动 / cgroup / linger / pasta / skopeo / LXC 后端，每条带原因与修复命令 |
+| `lxc_backup` | 混合 | list 直读；export / import 返回 jobId；delete 挂起 |
 
 容器启动/停止/重启不挂起——它们可逆、且是日常操作。创建也不挂起（不删数据、参数可见）。
 删除、网络拓扑改动、LXC 网卡与启动项改动会挂起。
@@ -327,9 +331,14 @@ AI 没有任何确认通道：`/actions/confirm` 要求请求头 `x-cm-principal
 默认数据目录 `~/.dsh-next/container-manager/`（可用 `DSH_CM_DIR` 覆盖）：
 ```
 config.json    节点列表与开关（0600）
-pending.json   待确认队列
+pending.json   待确认队列（含每个危险操作的影响清单）
 audit.jsonl    审计，按行保留 2000 条
+jobs.json      长任务队列（重启后未完成的标成「已中断」，不假装还在跑）
+metrics.ndjson 宿主负载历史（默认 30 秒一采，留 3 天，超过 8MB 只留后一半）
 ```
+
+任务队列与指标都是**只追加**的：队列状态变更先改内存再落盘（1.5 秒去抖），
+指标每天切一次文件、按天剪枝 —— 都不做「读全量再重写」，因为这两个文件会一直长。
 
 LXC 的系统镜像缓存在别处，跟数据目录分开（2026-11-21 迁到新根）：
 
