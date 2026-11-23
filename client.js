@@ -4662,8 +4662,70 @@ function macSwapText(swaps) {
                     title: check.fix,
                     onClick: () => copyFix(check.fix),
                   }, '复制修复命令')
-                  : null))))
+                  : null))),
+          h(AuthzCard, { onToast }))
           : null)
+    }
+
+    /* ── AI 权限：三档角色 + deny 黑名单（只有面板能改，AI 不能给自己提权） ── */
+
+    function AuthzCard({ onToast }) {
+      const [data, setData] = React.useState(null)
+      const [error, setError] = React.useState('')
+      const [busy, setBusy] = React.useState(false)
+
+      const load = React.useCallback(async () => {
+        try {
+          setData(await jget('/authz'))
+          setError('')
+        } catch (err) {
+          setError(err && err.message ? err.message : String(err))
+        }
+      }, [])
+
+      React.useEffect(() => { load() }, [load])
+
+      async function pick(role) {
+        setBusy(true)
+        try {
+          await jpost('/authz/set', { role })
+          await load()
+          if (onToast) onToast('AI 现在是 ' + role)
+        } catch (err) {
+          setError('改不了：' + (err && err.message ? err.message : String(err)))
+        } finally {
+          setBusy(false)
+        }
+      }
+
+      if (!data) {
+        return error
+          ? h('div', { 'data-cm-card': '' }, h('div', { 'data-cm-warn': '' }, error))
+          : null
+      }
+
+      const matrix = Array.isArray(data.matrix) ? data.matrix : []
+      return h('div', { 'data-cm-card': '' },
+        h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0, margin: 0 } }, 'AI 权限'),
+        h('div', { 'data-cm-dim': '', style: { marginTop: '4px' } },
+          '这道闸门管的是 AI 能「发起」什么，不是替人省确认：危险操作永远还要你在待确认里点一下。'),
+        h('div', { 'data-cm-facts': '', style: { marginTop: '8px', flexWrap: 'wrap' } },
+          matrix.map(row => h('button', {
+            key: row.role,
+            'data-cm-btn': '',
+            'data-cm-compact': '',
+            ...(row.role === data.role ? { 'data-primary': '' } : {}),
+            disabled: busy,
+            title: row.text,
+            onClick: () => pick(row.role),
+          }, row.role))),
+        h('div', { 'data-cm-dim': '', style: { fontSize: 'var(--cm-f-xs)', marginTop: '6px' } },
+          (matrix.find(row => row.role === data.role) || {}).text || ''),
+        data.deny && data.deny.length > 0
+          ? h('div', { 'data-cm-warn': '', style: { marginTop: '6px' } },
+            '配置里还有 deny 名单挡着这些工具：' + data.deny.join('、'))
+          : null,
+        error ? h('div', { 'data-cm-warn': '', style: { marginTop: '6px' } }, error) : null)
     }
 
     /* ───────────────── 容器内网络排障 ───────────────── */
