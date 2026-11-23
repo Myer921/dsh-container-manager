@@ -4663,8 +4663,161 @@ function macSwapText(swaps) {
                     onClick: () => copyFix(check.fix),
                   }, '复制修复命令')
                   : null))),
-          h(AuthzCard, { onToast }))
+          h(AuthzCard, { onToast }),
+          h(AlertsCard, { onToast }))
           : null)
+    }
+
+
+    /* ── 告警：规则 + 出口 + 发一条测试 ── */
+
+    function AlertsCard({ onToast }) {
+      const [data, setData] = React.useState(null)
+      const [error, setError] = React.useState('')
+      const [busy, setBusy] = React.useState(false)
+      const [hookUrl, setHookUrl] = React.useState('')
+      const [hookKind, setHookKind] = React.useState('json')
+
+      const load = React.useCallback(async () => {
+        try {
+          setData(await jget('/alerts'))
+          setError('')
+        } catch (err) {
+          setError(err && err.message ? err.message : String(err))
+        }
+      }, [])
+
+      React.useEffect(() => { load() }, [load])
+
+      async function saveRules(rules) {
+        setBusy(true)
+        try {
+          await jpost('/alerts/rules', { rules })
+          await load()
+        } catch (err) {
+          setError('存不了：' + (err && err.message ? err.message : String(err)))
+        } finally {
+          setBusy(false)
+        }
+      }
+
+      function toggleRule(rule) {
+        const rules = (data.rules || []).map(item => item.kind === rule.kind ? { ...item, enabled: item.enabled === false } : item)
+        saveRules(rules)
+      }
+
+      async function addHook() {
+        const url = hookUrl.trim()
+        if (!/^https?:\/\//.test(url)) {
+          setError('出口地址要以 http:// 或 https:// 开头。')
+          return
+        }
+        setBusy(true)
+        try {
+          const next = [...(data.webhooks || []).map(hook => ({ ...hook, url: hook.url })), {
+            id: 'hook-' + Date.now().toString(36),
+            name: hookKind + ' 出口',
+            url,
+            kind: hookKind,
+            enabled: true,
+          }]
+          await jpost('/alerts/webhooks', { webhooks: next })
+          setHookUrl('')
+          await load()
+          onToast && onToast('出口加好了，点「发一条测试」验证')
+        } catch (err) {
+          setError('加不了：' + (err && err.message ? err.message : String(err)))
+        } finally {
+          setBusy(false)
+        }
+      }
+
+      async function removeHook(id) {
+        setBusy(true)
+        try {
+          const next = (data.webhooks || []).filter(hook => hook.id !== id)
+          await jpost('/alerts/webhooks', { webhooks: next })
+          await load()
+        } catch (err) {
+          setError('删不掉：' + (err && err.message ? err.message : String(err)))
+        } finally {
+          setBusy(false)
+        }
+      }
+
+      async function sendTest() {
+        setBusy(true)
+        try {
+          const result = await jpost('/alerts/test', {})
+          const sent = (result.sent || []).length
+          const failed = (result.failed || []).length
+          onToast && onToast(failed > 0
+            ? { bad: true, text: sent + ' 条发出，' + failed + ' 条失败：' + (result.failed[0].message || '') }
+            : '测试告警发出 ' + sent + ' 条')
+          await load()
+        } catch (err) {
+          setError('发不了：' + (err && err.message ? err.message : String(err)))
+        } finally {
+          setBusy(false)
+        }
+      }
+
+      if (!data) {
+        return error ? h('div', { 'data-cm-card': '' }, h('div', { 'data-cm-warn': '' }, error)) : null
+      }
+
+      const rules = data.rules || []
+      const hooks = data.webhooks || []
+      const KIND_TEXT = { unhealthy: '容器不健康', restarts: '容器反复重启', disk: '宿主盘占用', pending: '危险操作等人确认太久' }
+      return h('div', { 'data-cm-card': '' },
+        h('div', { 'data-cm-line': '' },
+          h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0, margin: 0 } }, '告警出口'),
+          h('div', { 'data-cm-grow': '' }),
+          h('button', { 'data-cm-btn': '', disabled: busy || hooks.length === 0, onClick: sendTest }, '发一条测试')),
+        h('div', { 'data-cm-dim': '', style: { marginTop: '4px' } },
+          '同一件事在 ' + (data.dedupeMinutes || 30) + ' 分钟内只发一次。出口地址只显示掩码，token 不会打到面板上。'),
+        h('div', { 'data-cm-facts': '', style: { marginTop: '8px', flexWrap: 'wrap' } },
+          rules.length === 0
+            ? h('span', { 'data-cm-dim': '' }, '还没有规则（在配置文件的 alerts.rules 里加）。')
+            : rules.map(rule => h('button', {
+              key: rule.kind,
+              'data-cm-chip': '',
+              ...(rule.enabled === false ? {} : { 'data-on': '' }),
+              title: '阈值 ' + rule.threshold,
+              disabled: busy,
+              onClick: () => toggleRule(rule),
+            }, (KIND_TEXT[rule.kind] || rule.kind) + ' ≥ ' + rule.threshold))),
+        hooks.length === 0
+          ? h('div', { 'data-cm-warn': '', style: { marginTop: '8px' } }, '还没有出口 —— 告警只会留在面板里，没人会收到通知。')
+          : h('div', { style: { marginTop: '8px' } },
+            ...hooks.map(hook => h('div', { key: hook.id, 'data-cm-line': '' },
+              h(Dot, { tone: hook.enabled ? 'on' : 'off' }),
+              h('span', { 'data-cm-mono': '', style: { fontSize: 'var(--cm-f-xs)' } }, hook.url),
+              h('span', { 'data-cm-dim': '' }, hook.kind),
+              h('div', { 'data-cm-grow': '' }),
+              h('button', { 'data-cm-btn': '', 'data-cm-compact': '', disabled: busy, onClick: () => removeHook(hook.id) }, '删')))),
+        h('div', { 'data-cm-formrow': '', style: { marginTop: '8px' } },
+          h('select', {
+            'data-cm-select': '',
+            value: hookKind,
+            onChange: event => setHookKind(event.target.value),
+          },
+            h('option', { value: 'json' }, 'json（POST 结构化体）'),
+            h('option', { value: 'ntfy' }, 'ntfy'),
+            h('option', { value: 'bark' }, 'bark')),
+          h('input', {
+            'data-cm-input': '',
+            style: { flex: '1', minWidth: '240px' },
+            placeholder: 'https://ntfy.sh/你的主题 或 https://api.day.app/你的key',
+            value: hookUrl,
+            onChange: event => setHookUrl(event.target.value),
+          }),
+          h('button', { 'data-cm-btn': '', disabled: busy || !hookUrl.trim(), onClick: addHook }, '加出口')),
+        (data.recent || []).length > 0
+          ? h('div', { 'data-cm-dim': '', style: { fontSize: 'var(--cm-f-xs)', marginTop: '6px' } },
+            '最近发过：' + data.recent.slice(-3).map(item => item.title).join(' / '))
+          : null,
+        error ? h('div', { 'data-cm-warn': '', style: { marginTop: '6px' } }, error) : null)
     }
 
     /* ── AI 权限：三档角色 + deny 黑名单（只有面板能改，AI 不能给自己提权） ── */
