@@ -534,6 +534,13 @@ body[data-ds-dark-theme] [data-cm-page]{
 [data-cm-tag][data-bad]{border-color:var(--cm-danger-line);color:var(--cm-danger);background:var(--cm-danger-soft);}
 [data-cm-tag][data-warn]{border-color:var(--cm-warn-line);color:var(--cm-warn-text);background:var(--cm-warn-soft);}
 [data-cm-hintbox]{font-size:var(--cm-f-sm);color:var(--cm-text-dim);margin-top:var(--cm-s2);line-height:1.6;}
+/* ── Podman secret：名字一行，值永不回显 ── */
+[data-cm-secrets]{display:flex;flex-direction:column;gap:var(--cm-s3);min-height:0;flex:1;}
+[data-cm-srow]{display:flex;align-items:flex-start;gap:var(--cm-s2);padding:6px 0;
+  border-top:1px solid var(--cm-line-soft);}
+[data-cm-srow]:first-child{border-top:0;}
+[data-cm-srow] [data-cm-btn]{flex:none;}
+
 /* ── Quadlet：一行一个 unit，状态点 + 文件 + 镜像 ── */
 [data-cm-quadlet]{display:flex;flex-direction:column;gap:var(--cm-s3);min-height:0;flex:1;}
 [data-cm-qrow]{display:flex;align-items:flex-start;gap:var(--cm-s2);padding:6px 0;
@@ -2556,6 +2563,7 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
         else if (pageTab === 'images') bodyPane = h(ImagesPane, { nodeId: podmanNodeId, onToast: setToast, onPending: () => { load(false) } })
         else if (pageTab === 'volumes') bodyPane = h(VolumesPane, { nodeId: podmanNodeId, onToast: setToast, onPending: () => { load(false) } })
         else if (pageTab === 'networks') bodyPane = containerNetworksView('podman')
+        else if (pageTab === 'secrets') bodyPane = h(SecretsPane, { nodeId: podmanNodeId, onToast: setToast })
         else if (pageTab === 'quadlet') bodyPane = h(QuadletPane, { nodeId: podmanNodeId, onToast: setToast })
       } else if (view === 'lxc') {
         if (pageTab === 'images') bodyPane = h(LxcImagesPane, { nodeId: lxcNodeId, onToast: setToast, onPending: () => { load(false) } })
@@ -4350,6 +4358,107 @@ function macSwapText(swaps) {
 
     const COMPOSE_REFRESH_MS = 12000
     // 顶层导航（对齐 cockpit-podman 的五段）：项目是落地页。
+    /* ───────────────── Podman 的 secret（只看名字，永远没有明文） ───────────────── */
+
+    function SecretsPane({ nodeId, onToast }) {
+      const [data, setData] = React.useState(null)
+      const [error, setError] = React.useState('')
+      const [busy, setBusy] = React.useState(false)
+      const [draftName, setDraftName] = React.useState('')
+      const [draftValue, setDraftValue] = React.useState('')
+      const [removing, setRemoving] = React.useState('')
+
+      const load = React.useCallback(async () => {
+        setBusy(true)
+        setError('')
+        try {
+          setData(await jget('/secrets?node=' + encodeURIComponent(nodeId)))
+        } catch (err) {
+          setData(null)
+          setError(err && err.message ? err.message : String(err))
+        } finally {
+          setBusy(false)
+        }
+      }, [nodeId])
+
+      React.useEffect(() => { load() }, [load])
+
+      async function create() {
+        const name = draftName.trim()
+        if (!name || !draftValue) return
+        setError('')
+        try {
+          await jpost('/secrets/create', { node: nodeId, name, value: draftValue })
+          // 明文只活在这一刻：建完立刻从输入框里擦掉，不留在内存里
+          setDraftName('')
+          setDraftValue('')
+          if (onToast) onToast('建好了 ' + name)
+          load()
+        } catch (err) {
+          setError('建不了：' + (err && err.message ? err.message : String(err)))
+        }
+      }
+
+      async function remove(name) {
+        setError('')
+        try {
+          await jpost('/secrets/delete', { node: nodeId, name })
+          setRemoving('')
+          if (onToast) onToast('删掉了 ' + name)
+          load()
+        } catch (err) {
+          setError('删不掉：' + (err && err.message ? err.message : String(err)))
+        }
+      }
+
+      const items = data && Array.isArray(data.items) ? data.items : []
+
+      return h('div', { 'data-cm-secrets': '' },
+        h('div', { 'data-cm-card': '' },
+          h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0, margin: 0 } }, 'Podman secret'),
+          h('div', { 'data-cm-dim': '', style: { marginTop: '4px' } },
+            '值写完就再也读不回来（podman 本身不给回读），所以这里只列名字。挂到容器上用 --secret 名字。'),
+          h('div', { 'data-cm-formrow': '', style: { marginTop: '10px' } },
+            h('input', {
+              'data-cm-input': '',
+              value: draftName,
+              placeholder: '名字，例如 db-password',
+              onChange: event => setDraftName(event.target.value),
+            }),
+            h('input', {
+              'data-cm-input': '',
+              type: 'password',
+              value: draftValue,
+              placeholder: '值（只在这台浏览器里待一会）',
+              onChange: event => setDraftValue(event.target.value),
+            }),
+            h('button', {
+              'data-cm-btn': '',
+              'data-primary': '',
+              disabled: busy || !draftName.trim() || !draftValue,
+              onClick: create,
+            }, '建')),
+          h('div', { 'data-cm-dim': '', style: { fontSize: 'var(--cm-f-xs)', marginTop: '4px' } },
+            '新建只从面板走：AI 那边（container_secret）会被明确拒绝，密钥不该经过模型。')),
+        error ? h('div', { 'data-cm-warn': '' }, error) : null,
+        h('div', { 'data-cm-card': '' },
+          busy && !data ? h('div', { 'data-cm-dim': '' }, '读…') : null,
+          items.length === 0 && data
+            ? h('div', { 'data-cm-dim': '' }, '还没有 secret。')
+            : null,
+          items.map(item => h('div', { key: item.id || item.name, 'data-cm-srow': '' },
+            h('div', { 'data-cm-grow': '' },
+              h('div', { 'data-cm-qname': '' }, item.name),
+              h('div', { 'data-cm-dim': '', style: { fontSize: 'var(--cm-f-xs)' } },
+                [item.driver, '建 ' + item.createdAt, item.updatedAt && item.updatedAt !== item.createdAt ? '改 ' + item.updatedAt : '']
+                  .filter(Boolean).join(' · '))),
+            removing === item.name
+              ? h('span', { 'data-cm-facts': '' },
+                h('button', { 'data-cm-btn': '', 'data-cm-compact': '', 'data-danger': '', onClick: () => remove(item.name) }, '真删'),
+                h('button', { 'data-cm-btn': '', 'data-cm-compact': '', onClick: () => setRemoving('') }, '算了'))
+              : h('button', { 'data-cm-btn': '', 'data-cm-compact': '', onClick: () => setRemoving(item.name) }, '删')))))
+    }
+
     /* ───────────────── Quadlet（systemd 管的容器定义） ───────────────── */
 
     const QUADLET_SAMPLE = [
@@ -5053,6 +5162,7 @@ function macSwapText(swaps) {
       ['images', '镜像'],
       ['volumes', '卷'],
       ['networks', '网络'],
+      ['secrets', '密钥'],
       ['quadlet', 'Quadlet'],
     ]
     const LXC_TABS = [
@@ -5083,6 +5193,7 @@ function macSwapText(swaps) {
       const [tab, setTab] = React.useState('services')
       const [rootDraft, setRootDraft] = React.useState('')
       const [portTarget, setPortTarget] = React.useState(null)
+      const [recreateTarget, setRecreateTarget] = React.useState('')
       const alive = React.useRef(true)
       const rootTouched = React.useRef(false)
 
@@ -5372,11 +5483,33 @@ function macSwapText(swaps) {
                   ...(service.state === 'running' ? { 'data-ok': '' } : service.state === 'missing' ? { 'data-bad': '' } : {}),
                 }, service.state)),
                 h('td', null, (service.expectedPorts || []).map(port => port.raw).join(', ') || '—'),
-                h('td', null, h('button', {
-                  'data-cm-btn': '',
-                  disabled: busy,
-                  onClick: () => setPortTarget(portTarget === service.name ? null : service.name),
-                }, '改端口'))))))),
+                h('td', null, h('span', { 'data-cm-facts': '' },
+                  h('button', {
+                    'data-cm-btn': '',
+                    'data-cm-compact': '',
+                    disabled: busy,
+                    onClick: () => setPortTarget(portTarget === service.name ? null : service.name),
+                  }, '改端口'),
+                  recreateTarget === service.name
+                    ? h('span', { 'data-cm-facts': '' },
+                      h('button', {
+                        'data-cm-btn': '',
+                        'data-cm-compact': '',
+                        'data-danger': '',
+                        disabled: busy,
+                        onClick: () => act(
+                          jpost('/compose/projects/' + encodeURIComponent(name) + '/services/' + encodeURIComponent(service.name) + '/recreate'),
+                          '已重建 ' + service.name,
+                        ).then(() => setRecreateTarget('')),
+                      }, '确认重建'),
+                      h('button', { 'data-cm-btn': '', 'data-cm-compact': '', disabled: busy, onClick: () => setRecreateTarget('') }, '算了'))
+                    : h('button', {
+                      'data-cm-btn': '',
+                      'data-cm-compact': '',
+                      disabled: busy,
+                      title: '先 pull 这个服务的镜像，再只重建它（别的服务不动）',
+                      onClick: () => setRecreateTarget(service.name),
+                    }, '拉新重建')))))))),
           portTarget
             ? h(PortEditor, {
               key: 'ports:' + name + ':' + portTarget,
@@ -6677,6 +6810,8 @@ function macSwapText(swaps) {
       const [confirmTarget, setConfirmTarget] = React.useState(null)
       const [searching, setSearching] = React.useState(false)
       const [found, setFound] = React.useState(null)
+      const [updates, setUpdates] = React.useState(null)
+      const [checking, setChecking] = React.useState(false)
 
       const load = React.useCallback(async () => {
         if (!nodeId) {
@@ -6711,6 +6846,25 @@ function macSwapText(swaps) {
           setBusy(false)
         }
       }
+
+      /** 查更新：只比 digest。没装 skopeo 就是 unknown，不给假的「已是最新」。 */
+      async function checkUpdates() {
+        setChecking(true)
+        try {
+          const value = await jget('/image-updates?node=' + encodeURIComponent(nodeId) + '&limit=12')
+          const map = {}
+          for (const row of (value && value.items) || []) map[row.reference] = row
+          setUpdates({ map, summary: value })
+        } catch (e) {
+          setUpdates({ map: {}, summary: { ok: false, reason: e && e.message ? e.message : String(e) } })
+        } finally {
+          setChecking(false)
+        }
+      }
+
+      const updateOf = item => (updates && updates.map ? updates.map[item.reference] : null)
+      const UPDATE_LABEL = { current: '最新', stale: '有新版', unknown: '比不了' }
+      const UPDATE_TONE = { current: 'on', stale: 'warn', unknown: 'off' }
 
       /** 去 Docker Hub 搜一下：不通就直说，别挡着直接填名字拉取。 */
       async function search() {
@@ -6787,7 +6941,15 @@ function macSwapText(swaps) {
           h('div', { 'data-cm-line': '', style: { marginBottom: '8px' } },
             h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } }, '镜像（' + items.length + '）'),
             h('div', { 'data-cm-grow': '' }),
-            h('button', { 'data-cm-btn': '', disabled: busy, onClick: load }, '刷新')),
+            h('button', { 'data-cm-btn': '', disabled: busy, onClick: load }, '刷新'),
+            h('button', { 'data-cm-btn': '', disabled: checking, onClick: checkUpdates }, checking ? '问仓库…' : '查更新')),
+          updates && updates.summary && updates.summary.items
+            ? h('div', { 'data-cm-dim': '', style: { fontSize: 'var(--cm-f-xs)', marginBottom: '6px' } },
+              '查了 ' + updates.summary.checked + ' 个镜像，' + updates.summary.stale + ' 个有新版' +
+              (updates.summary.skipped > 0 ? '，还有 ' + updates.summary.skipped + ' 个这轮没查（一次最多 12 个）' : '') +
+              (updates.summary.unknown > 0 ? '，' + updates.summary.unknown + ' 个比不了' : '') + '。' +
+              (updates.summary.hasSkopeo ? '' : ' 本机没装 skopeo，远端 digest 问不到 —— 装上才能真的比。'))
+            : null,
           error ? h('div', { 'data-cm-warn': '' }, error) : null,
           loading
             ? h('div', { 'data-cm-empty': '' }, '读取中…')
@@ -6795,12 +6957,18 @@ function macSwapText(swaps) {
               ? h('div', { 'data-cm-empty': '' }, '还没有镜像。')
               : h('table', { 'data-cm-table': '' },
                 h('thead', null, h('tr', null,
-                  h('th', null, '镜像'), h('th', null, '标签'), h('th', null, '大小'), h('th', null, '创建'), h('th', null, ''))),
+                  h('th', null, '镜像'), h('th', null, '标签'), h('th', null, '大小'), h('th', null, '创建'),
+                  h('th', null, '更新'), h('th', null, ''))),
                 h('tbody', null, ...items.map(item => h('tr', { key: item.reference },
                   h('td', null, item.repository),
                   h('td', { 'data-cm-dim': '' }, item.tag),
                   h('td', null, item.size != null ? formatBytesShort(item.size) : '—'),
                   h('td', { 'data-cm-dim': '' }, item.created ? String(item.created).replace('T', ' ').slice(0, 19) : '—'),
+                  h('td', null, updateOf(item)
+                    ? h('span', { 'data-cm-facts': '', title: updateOf(item).reason || '' },
+                      h(Dot, { tone: UPDATE_TONE[updateOf(item).state] || 'off' }),
+                      UPDATE_LABEL[updateOf(item).state] || updateOf(item).state)
+                    : h('span', { 'data-cm-dim': '' }, '—')),
                   h('td', null, h('button', {
                     'data-cm-btn': '',
                     'data-danger': '',

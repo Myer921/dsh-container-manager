@@ -18,7 +18,7 @@
 | 半边 | 位置 | 干什么 |
 | --- | --- | --- |
 | 浏览器 | `client.js` | 左侧主面板「容器」：项目 / 容器 / 镜像 / 卷 / 网络五段 + 内嵌终端 + 待确认抽屉 |
-| 主机 | `lib/` | 17 个 AI 工具 + 一段系统提示词 + `/api/container-manager` REST + WebSocket 终端 |
+| 主机 | `lib/` | 33 个 AI 工具 + 一段系统提示词 + `/api/container-manager` REST + WebSocket 终端 |
 | compose | `lib/compose/` | 发现项目、解析 YAML、算状态、改端口、调 podman-compose |
 | 提权小助手 | `helper/` | `dsh-lxcd` root 服务，LXC 的全部真实操作由它执行 |
 | 前端依赖 | `vendor/` | xterm.js 5.5.0 / addon-fit 0.10.0 / yaml 2.9.1，全部 vendored，不联网 |
@@ -276,7 +276,7 @@ DHCP 保留地址、按 MAC 写的防火墙规则、以及需要识别同一块�
 
 ---
 
-## 29 个 AI 工具
+## 33 个 AI 工具
 
 | 工具 | 性质 | 说明 |
 | --- | --- | --- |
@@ -294,12 +294,13 @@ DHCP 保留地址、按 MAC 写的防火墙规则、以及需要识别同一块�
 | `container_resources` | 写 | LXC 全套资源：绑核 / 配额 / 权重 / 内存 / swap / PIDs / IO / 主机名 / 启动项 / capabilities，**直接执行** |
 | `container_image_list` | 只读 | Podman 是本地镜像库；**LXC 是系统镜像缓存**（`/opt/dsh-container/lxc/image`） |
 | `container_image_delete` | 危险 | 删镜像。Podman 删 OCI 镜像、LXC 删系统缓存，都**挂起** |
+| `container_image_update` | 只读 | 比 digest 查有没有新版：**current / stale / unknown 三态**，unknown 不当「已是最新」 |
 | `network_manage` | 危险 | list/inspect 直读；create/remove/connect/disconnect **挂起** |
 | `network_host` | 只读 | 宿主网卡 / 路由 / DNS / NM 连接 / nftables / ping 诊断 |
 | `network_host_apply` | 危险 | 改宿主 DNS / 静态 IP / 启停连接，**挂起**（会断网一下） |
 | `compose_projects` | 只读 | 项目列表：服务、容器状态、端口、游离容器 |
 | `compose_inspect` | 只读 | 单项目详情 + compose 文件原文 |
-| `compose_action` | 混合 | up / restart / logs 直行；**down / adopt 挂起**；install-runtime 装 venv |
+| `compose_action` | 混合 | up / restart / logs 直行；**down / adopt 挂起**；install-runtime 装 venv；**recreate-service 只重建一个服务** |
 | `compose_set_ports` | 写 | **改端口写回 YAML**（保留注释、自动备份），改完要 `up` 才生效 |
 | `lxc_snapshot` | 危险 | list 直读；create / restore / delete **挂起** |
 | `lxc_clone` | 写 | 整份克隆（源容器必须先停），直接执行 |
@@ -307,6 +308,9 @@ DHCP 保留地址、按 MAC 写的防火墙规则、以及需要识别同一块�
 | `pending_operations` | 只读 | 查待确认队列，**没有确认能力** |
 | `container_files` | 混合 | list / read 直读；**write / mkdir / remove 挂起**（AI 写容器里的文件一律要人点头，单次写入上限 256KB） |
 | `container_jobs` | 混合 | 长任务队列：list / get 直读，cancel 直接发信号 |
+| `container_secret` | 混合 | Podman secret 只看名字；**新建一律拒绝**（明文不经过模型），删除挂起 |
+| `container_diagnose` | 只读 | 容器里跑 7 步网络诊断（网卡 / 路由 / DNS / 解析 / ping / TCP） |
+| `container_quadlet` | 混合 | Quadlet 单元：list / show 直读，reload / start / stop 直行；4.3.1 会如实报不支持 |
 | `container_capabilities` | 只读 | rootless 体检：subuid / uidmap / 存储驱动 / cgroup / linger / pasta / skopeo / LXC 后端，每条带原因与修复命令 |
 | `lxc_backup` | 混合 | list 直读；export / import 返回 jobId；delete 挂起 |
 
