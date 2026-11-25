@@ -30,12 +30,12 @@ window.__ModuleLoader__.load({
   background:var(--cm-canvas-glow),var(--cm-base);
   font-size:var(--cm-f-md);line-height:1.5;-webkit-font-smoothing:antialiased;
   /* ── 颜色全部派生自 DSH 主题令牌 ──
-     这里写的是**亮色基线**；暗色只覆盖 6 个会发光的令牌，见下面 body[data-ds-dark-theme] 那一块。
+     这里写的是**亮色基线**；暗色只覆盖 9 个会发光的令牌，见下面 body[data-ds-dark-theme] 那一块。
      宿主换主题 = 换这套 alias 令牌，面板自动跟上，不需要再改一次。
      色值只允许写在这一批 --cm-* 定义行里（test/theme.test.mjs 会过滤这些行）。 */
   --cm-text:var(--dsw-alias-label-primary,currentColor);
   --cm-text-2:var(--dsw-alias-label-secondary,currentColor);
-  --cm-text-dim:var(--dsw-alias-label-tertiary,#8b9096);
+  --cm-text-dim:var(--dsw-alias-label-tertiary,#6b7280);
   --cm-base:var(--dsw-alias-bg-base,transparent);
   --cm-surface:var(--dsw-alias-card-fill,rgba(128,128,128,.08));
   --cm-surface-hover:var(--dsw-alias-card-fill-hover,rgba(128,128,128,.12));
@@ -53,7 +53,7 @@ window.__ModuleLoader__.load({
   --cm-warn:var(--dsw-alias-state-warn-primary,#f59e0b);
   --cm-warn-text:var(--dsw-alias-state-warn-label,#dd8629);
   --cm-danger:var(--dsw-alias-state-error-primary,#ef4444);
-  --cm-idle:var(--dsw-alias-label-tertiary,#8b9096);
+  --cm-idle:var(--dsw-alias-label-tertiary,#6b7280);
   /* 线条由文字色派生：亮色得「黑 8%」、暗色得「白 8%」，一条公式两套成立 */
   --cm-line-soft:color-mix(in srgb,var(--cm-text) 8%,transparent);
   --cm-line:color-mix(in srgb,var(--cm-text) 12%,transparent);
@@ -81,10 +81,10 @@ window.__ModuleLoader__.load({
   --cm-warn-line:color-mix(in srgb,var(--cm-warn) 42%,transparent);
   /* ── 间距刻度：8px 基准（4 / 8 / 12 / 16 / 20 / 24 / 32），卡片内边距 20、外边距 16 ── */
   --cm-s1:4px;--cm-s2:8px;--cm-s3:12px;--cm-s4:16px;--cm-s5:20px;--cm-s6:24px;--cm-s7:32px;
-  /* ── 圆角刻度：大卡片 14、列表项与输入框 10、标签胶囊 6 ── */
-  --cm-r-xs:6px;--cm-r-sm:10px;--cm-r-md:10px;--cm-r-lg:14px;--cm-r-full:999px;
-  /* ── 字号刻度：封死 6 档（11 / 12 / 13 / 16 / 22 / 28），2xl 只给 Bento 大号指标 ── */
-  --cm-f-xs:11px;--cm-f-sm:12px;--cm-f-md:13px;--cm-f-lg:16px;--cm-f-xl:22px;--cm-f-2xl:28px;
+  /* ── 圆角刻度：大卡片 14、分区 12、列表项与输入框 10、标签胶囊 6（四档拉开不重复） ── */
+  --cm-r-xs:6px;--cm-r-sm:10px;--cm-r-md:12px;--cm-r-lg:14px;--cm-r-full:999px;
+  /* ── 字号刻度：封死 6 档（12 / 13 / 14 / 16 / 22 / 28）。下限 12：中文 11px 笔画发糊 ── */
+  --cm-f-xs:12px;--cm-f-sm:13px;--cm-f-md:14px;--cm-f-lg:16px;--cm-f-xl:22px;--cm-f-2xl:28px;
   /* ── 动效：一条曲线走到底，时长克制 ── */
   --cm-ease:cubic-bezier(.2,.7,.3,1);
   --cm-fast:.14s;--cm-slow:.24s;
@@ -92,7 +92,9 @@ window.__ModuleLoader__.load({
   --cm-shadow-sm:0 1px 2px rgba(0,0,0,.06);
   --cm-shadow-md:0 4px 14px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
   --cm-shadow-lg:0 12px 32px rgba(0,0,0,.12),0 2px 6px rgba(0,0,0,.06);
-  --cm-ring:0 0 0 3px var(--cm-accent-soft);}
+  --cm-ring:0 0 0 3px var(--cm-accent-soft);
+  /* 等宽字体栈只有一个出处，13 处引用全走这个令牌 */
+  --cm-mono:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;}
 
 /* ── 暗色分支：只换这 9 个令牌，其余全部由上面派生 ──
    DSH 用 body[data-ds-dark-theme] 表示暗色（client.js 的 MutationObserver 已经在盯它给终端用），
@@ -134,12 +136,19 @@ body[data-ds-dark-theme] [data-cm-page]{
 [data-cm-btn]:hover{background:var(--cm-hover);}
 [data-cm-btn]:active{transform:translateY(.5px);background:var(--cm-active);}
 [data-cm-btn]:focus-visible{outline:none;border-color:var(--cm-accent);box-shadow:var(--cm-ring);}
-[data-cm-btn][data-primary]{background:var(--cm-accent);border-color:transparent;
-  color:var(--cm-on-accent);box-shadow:var(--cm-shadow-sm);}
-[data-cm-btn][data-primary]:hover{background:var(--cm-accent-hover);box-shadow:var(--cm-shadow-md);}
+/* 主按钮：电光青渐变 + 发光。整个界面只有它和选中态发光，亮度才有意义。
+   亮暗各自成立：亮色 glow 是 1px 细描边、暗色是真光晕，令牌层已分好。 */
+[data-cm-btn][data-primary]{background:linear-gradient(180deg,var(--cm-accent-hover),var(--cm-accent));
+  border-color:transparent;color:var(--cm-on-accent);font-weight:600;
+  box-shadow:var(--cm-glow-accent),var(--cm-glow-top);}
+[data-cm-btn][data-primary]:hover{background:linear-gradient(180deg,var(--cm-accent),var(--cm-accent-hover));
+  box-shadow:var(--cm-glow-accent),var(--cm-shadow-md);}
 [data-cm-btn][data-danger]{border-color:var(--cm-danger-line);color:var(--cm-danger);background:transparent;}
 [data-cm-btn][data-danger]:hover{background:var(--cm-danger-soft);border-color:var(--cm-danger);}
 [data-cm-btn][disabled]{opacity:.42;cursor:not-allowed;box-shadow:none;transform:none;}
+/* 键盘焦点兜底：tab / segitem / rangeitem / 可点击行没有各自的 ring，这条统一给 */
+[data-cm-page] button:focus-visible,[data-cm-page] a:focus-visible,
+[data-cm-page] [tabindex]:focus-visible{outline:none;box-shadow:var(--cm-ring);}
 
 /* ── 两栏骨架 ── */
 [data-cm-body]{display:flex;flex:1;min-height:0;}
@@ -244,7 +253,7 @@ body[data-ds-dark-theme] [data-cm-page]{
 [data-cm-portpill]{display:inline-flex;align-items:center;padding:1px 7px;
   border-radius:var(--cm-r-xs);background:var(--cm-accent-soft);color:var(--cm-accent);
   border:1px solid var(--cm-accent-line);
-  font-family:ui-monospace,Menlo,Consolas,monospace;font-size:var(--cm-f-xs);
+  font-family:var(--cm-mono);font-size:var(--cm-f-xs);
   font-variant-numeric:tabular-nums;}
 [data-cm-portpill][data-muted]{background:transparent;color:var(--cm-text-2);
   border-color:var(--cm-line);}
@@ -304,7 +313,7 @@ body[data-ds-dark-theme] [data-cm-page]{
 [data-cm-rname]{font-size:var(--cm-f-md);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.45;}
 [data-cm-rmeta]{font-size:var(--cm-f-xs);color:var(--cm-text-dim);overflow:hidden;
   text-overflow:ellipsis;white-space:nowrap;line-height:1.45;}
-[data-cm-live]{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:var(--cm-f-xs);
+[data-cm-live]{font-family:var(--cm-mono);font-size:var(--cm-f-xs);
   color:var(--cm-text-2);font-variant-numeric:tabular-nums;}
 
 /* ── 重建差量表：点之前得看清改了哪几项、原来是什么 ── */
@@ -365,10 +374,10 @@ body[data-ds-dark-theme] [data-cm-page]{
 [data-cm-card]:hover{border-color:var(--cm-line-strong);}
 [data-cm-kv]{display:grid;grid-template-columns:96px 1fr;gap:var(--cm-s2) var(--cm-s4);font-size:var(--cm-f-sm);}
 [data-cm-kv] b{font-weight:500;color:var(--cm-text-dim);}
-[data-cm-mono]{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:var(--cm-f-sm);word-break:break-all;}
+[data-cm-mono]{font-family:var(--cm-mono);font-size:var(--cm-f-sm);word-break:break-all;}
 [data-cm-pre]{background:var(--cm-base);border-radius:var(--cm-r-md);border:1px solid var(--cm-line-soft);
   padding:var(--cm-s3) var(--cm-s4);overflow:auto;max-height:60vh;
-  font-family:ui-monospace,Menlo,Consolas,monospace;font-size:var(--cm-f-sm);white-space:pre-wrap;
+  font-family:var(--cm-mono);font-size:var(--cm-f-sm);white-space:pre-wrap;
   word-break:break-word;margin:0;line-height:1.55;}
 [data-cm-actions]{display:flex;flex-wrap:wrap;row-gap:var(--cm-s2);gap:var(--cm-s2);margin-top:var(--cm-s4);}
 
@@ -450,7 +459,7 @@ body[data-ds-dark-theme] [data-cm-page]{
   color:var(--cm-text-2);}
 [data-cm-healthrow][data-tone='bad']{color:var(--cm-danger);}
 [data-cm-healthout]{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-  font-family:ui-monospace,Menlo,Consolas,monospace;}
+  font-family:var(--cm-mono);}
 
 /* ── 空态 / 提示条 ── */
 [data-cm-empty]{padding:var(--cm-s7) var(--cm-s5);text-align:center;color:var(--cm-text-dim);
@@ -493,8 +502,9 @@ body[data-ds-dark-theme] [data-cm-page]{
   padding:var(--cm-s3) var(--cm-s4);cursor:pointer;background:var(--cm-surface);text-align:left;
   color:inherit;font-family:inherit;width:100%;box-shadow:var(--cm-shadow-sm);
   transition:background-color var(--cm-fast) var(--cm-ease),border-color var(--cm-fast) var(--cm-ease),
-    box-shadow var(--cm-fast) var(--cm-ease);}
-[data-cm-projcard]:hover{background:var(--cm-surface-hover);box-shadow:var(--cm-shadow-md);}
+    box-shadow var(--cm-fast) var(--cm-ease),transform var(--cm-fast) var(--cm-ease);}
+[data-cm-projcard]:hover{background:var(--cm-surface-hover);border-color:var(--cm-line-strong);
+  box-shadow:var(--cm-shadow-md);transform:translateY(-1px);}
 [data-cm-projcard][data-on]{border-color:var(--cm-accent-line);background:var(--cm-accent-soft);}
 
 /* ── 表格：独立边框 + 行 hover ── */
@@ -513,10 +523,10 @@ body[data-ds-dark-theme] [data-cm-page]{
 [data-cm-editor]{width:100%;box-sizing:border-box;min-height:320px;resize:vertical;outline:none;
   background:var(--cm-base);color:inherit;border:1px solid var(--cm-line-strong);
   border-radius:var(--cm-r-md);padding:var(--cm-s3);
-  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:var(--cm-f-sm);line-height:1.6;
+  font-family:var(--cm-mono);font-size:var(--cm-f-sm);line-height:1.6;
   transition:border-color var(--cm-fast) var(--cm-ease),box-shadow var(--cm-fast) var(--cm-ease);}
 [data-cm-editor]:focus{border-color:var(--cm-accent);box-shadow:var(--cm-ring);}
-[data-cm-logbox]{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:var(--cm-f-sm);
+[data-cm-logbox]{font-family:var(--cm-mono);font-size:var(--cm-f-sm);
   line-height:1.6;white-space:pre-wrap;word-break:break-all;max-height:360px;overflow:auto;
   background:var(--cm-base);border:1px solid var(--cm-line-soft);border-radius:var(--cm-r-md);
   padding:var(--cm-s3);margin:0;}
@@ -547,7 +557,7 @@ body[data-ds-dark-theme] [data-cm-page]{
   border-top:1px solid var(--cm-line-soft);}
 [data-cm-qrow]:first-child{border-top:0;}
 [data-cm-qname]{font-size:var(--cm-f-sm);line-height:1.45;
-  font-family:ui-monospace,Menlo,Consolas,monospace;word-break:break-all;}
+  font-family:var(--cm-mono);word-break:break-all;}
 [data-cm-qmeta]{font-size:var(--cm-f-xs);line-height:1.5;margin-top:1px;word-break:break-word;}
 
 /* ── 能力体检：一条一条列，状态点用 Dot，修复命令可复制 ── */
@@ -582,7 +592,7 @@ body[data-ds-dark-theme] [data-cm-page]{
   color:var(--cm-text-dim);transition:transform var(--cm-fast) var(--cm-ease);}
 [data-cm-dsec][open] summary::before{transform:rotate(90deg);}
 [data-cm-dout]{margin:0;padding:var(--cm-s2);border-top:1px solid var(--cm-line-soft);
-  font-family:ui-monospace,Menlo,Consolas,monospace;font-size:var(--cm-f-xs);
+  font-family:var(--cm-mono);font-size:var(--cm-f-xs);
   line-height:1.55;white-space:pre-wrap;word-break:break-word;color:var(--cm-text);
   max-height:280px;overflow:auto;}
 
@@ -590,7 +600,7 @@ body[data-ds-dark-theme] [data-cm-page]{
 [data-cm-files]{display:flex;flex-direction:column;gap:var(--cm-s3);min-height:0;flex:1;}
 [data-cm-fhead]{display:flex;align-items:center;gap:var(--cm-s2);flex-wrap:wrap;}
 [data-cm-crumbs]{display:flex;align-items:center;gap:2px;flex:1;min-width:0;flex-wrap:wrap;
-  font-family:ui-monospace,Menlo,Consolas,monospace;font-size:var(--cm-f-sm);}
+  font-family:var(--cm-mono);font-size:var(--cm-f-sm);}
 [data-cm-crumb]{border:0;background:none;color:var(--cm-text-dim);cursor:pointer;
   padding:2px 5px;border-radius:var(--cm-r-xs);font:inherit;
   transition:background-color var(--cm-fast) var(--cm-ease),color var(--cm-fast) var(--cm-ease);}
@@ -624,10 +634,10 @@ body[data-ds-dark-theme] [data-cm-page]{
   padding:var(--cm-s3);min-height:0;}
 [data-cm-feh]{display:flex;align-items:center;gap:var(--cm-s2);flex-wrap:wrap;}
 [data-cm-fename]{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-  font-family:ui-monospace,Menlo,Consolas,monospace;font-size:var(--cm-f-sm);}
+  font-family:var(--cm-mono);font-size:var(--cm-f-sm);}
 [data-cm-ftext]{flex:1;min-height:240px;resize:vertical;width:100%;box-sizing:border-box;
   background:var(--cm-base);border:1px solid var(--cm-line-strong);border-radius:var(--cm-r-sm);
-  color:inherit;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:var(--cm-f-sm);
+  color:inherit;font-family:var(--cm-mono);font-size:var(--cm-f-sm);
   line-height:1.55;padding:var(--cm-s2);outline:none;
   transition:border-color var(--cm-fast) var(--cm-ease),box-shadow var(--cm-fast) var(--cm-ease);}
 [data-cm-ftext]:focus{border-color:var(--cm-accent);box-shadow:var(--cm-ring);}
@@ -690,7 +700,7 @@ body[data-ds-dark-theme] [data-cm-page]{
   background:var(--cm-base);z-index:1;}
 [data-cm-audit-row][data-bad]{color:var(--cm-danger);}
 [data-cm-audit-row][data-bad] span:last-child{font-weight:600;}
-[data-cm-audit-tag]{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:var(--cm-f-xs);
+[data-cm-audit-tag]{font-family:var(--cm-mono);font-size:var(--cm-f-xs);
   padding:1px 6px;border:1px solid var(--cm-line);border-radius:var(--cm-r-sm);
   color:var(--cm-text-dim);}
 [data-cm-audit-tag][data-panel]{border-color:var(--cm-ok-line);color:var(--cm-ok);background:var(--cm-ok-soft);}
@@ -714,18 +724,28 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
   [data-cm-row]>*{min-width:0;}
   /* 宿主信息两块并排 → 单列 */
   [data-cm-host]{grid-template-columns:1fr;}
-  /* 活动日志五行并排挤不下，改两列自动换行 */
-  [data-cm-audit-row]{grid-template-columns:1fr auto;}
+  /* 活动日志六列挤不下：只留 时间/动作/说明 三列，其余藏掉，表头同规则对齐 */
+  [data-cm-audit-row]{grid-template-columns:64px 1fr auto;}
+  [data-cm-audit-row]>span:nth-child(2),
+  [data-cm-audit-row]>span:nth-child(4),
+  [data-cm-audit-row]>span:nth-child(6){display:none;}
+  /* 窄屏触控目标放大：可点元素统一过 24px 底线 */
+  [data-cm-btn]{min-height:32px;}
+  [data-cm-chip]{min-height:30px;}
+  [data-cm-tab]{min-height:36px;}
+}
+/* 中间断点（≤700px）：双栏 body 转单栏，列表占上半、详情占下半 ——
+   600-900px 区间的 detail 不再被 300px 左栏挤到只剩几百像素 */
+@media (max-width:700px){
+  [data-cm-body]{flex-direction:column;}
+  [data-cm-list]{width:100%;max-height:42%;border-right:0;
+    border-bottom:1px solid var(--cm-line-soft);}
+  [data-cm-dbody]{padding:var(--cm-s3) var(--cm-s4) var(--cm-s5);}
 }
 
 /* ═══ Obsidian Glass HUD：新增部件的材质与刻度 ═══ */
 
-/* 主按钮：电光青渐变 + 外发光。整个界面只有它和选中态发光，亮度才有意义。 */
-[data-cm-btn][data-primary]{background:linear-gradient(180deg,var(--cm-accent-hover),var(--cm-accent));
-  border-color:transparent;color:var(--cm-on-accent);font-weight:600;
-  box-shadow:var(--cm-glow-accent),var(--cm-glow-top);}
-[data-cm-btn][data-primary]:hover{background:linear-gradient(180deg,var(--cm-accent),var(--cm-accent-hover));
-  box-shadow:var(--cm-glow-accent),var(--cm-shadow-md);}
+/* 主按钮样式已并入基线段 data-primary（原来这里有一份后置覆盖，维护会漂移）。 */
 
 /* 刷新按钮的 4 秒脉冲环：和数据刷新同一个节拍，不是装饰动画 */
 [data-cm-pulsedot]{position:relative;width:6px;height:6px;flex:none;border-radius:var(--cm-r-full);
@@ -788,7 +808,7 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
 [data-cm-nodehead]{display:flex;align-items:center;gap:6px;font-size:var(--cm-f-sm);
   margin-bottom:var(--cm-s1);}
 [data-cm-tech]{display:flex;flex-wrap:wrap;gap:4px;}
-[data-cm-tip]{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:var(--cm-f-xs);
+[data-cm-tip]{font-family:var(--cm-mono);font-size:var(--cm-f-xs);
   line-height:1.7;padding:0 6px;border-radius:var(--cm-r-xs);
   border:1px solid var(--cm-line-soft);background:var(--cm-layer-2);
   color:var(--cm-text-2);white-space:nowrap;}
@@ -804,6 +824,19 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
 @media (max-width:600px){
   [data-cm-bento],[data-cm-matrix],[data-cm-nodes]{grid-template-columns:1fr;}
 }
+/* ── 骨架：首屏读取时的占位，shimmer 全部用主题令牌调色 ── */
+[data-cm-skeleton]{display:flex;flex-direction:column;gap:var(--cm-s2);padding:var(--cm-s3);}
+[data-cm-skeleton]>div{height:46px;border-radius:var(--cm-r-sm);
+  background:linear-gradient(90deg,var(--cm-hover) 25%,var(--cm-surface-hover) 50%,var(--cm-hover) 75%);
+  background-size:200% 100%;animation:cm-shimmer 1.4s linear infinite;}
+[data-cm-skeleton]>div:nth-child(2){animation-delay:.12s;}
+[data-cm-skeleton]>div:nth-child(3){animation-delay:.24s;}
+@keyframes cm-shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+
+/* ── 遥测轻闪：数字变化时 DOM 重建（key=值），动画重放一次提示「更新了」 ── */
+[data-cm-big]{animation:cm-tick .6s var(--cm-ease);}
+@keyframes cm-tick{from{opacity:.35;}to{opacity:1;}}
+
 /* ── 尊重系统的降低动效偏好 ── */
 @media (prefers-reduced-motion:reduce){
   [data-cm-page] *,[data-cm-page] *::before,[data-cm-page] *::after{
@@ -913,7 +946,8 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
         h('div', { 'data-cm-tilehead': '' },
           icon ? h('span', { 'data-cm-tileicon': '' }, h(Glyph, { name: icon, size: 13 })) : null,
           label),
-        h('div', { 'data-cm-big': '' }, value,
+        /* key=值：值变了 React 重建这个 DOM，CSS 的 cm-tick 动画重放一次，提示「更新了」 */
+        h('div', { 'data-cm-big': '', key: String(value) }, value,
           unit ? h('span', { 'data-cm-bigunit': '' }, unit) : null,
           trail || null),
         sub ? h('div', { 'data-cm-tilesub': '' }, sub) : null,
@@ -1794,7 +1828,15 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
         ))
       }
       if (groups.length === 0) {
-        groups.push(h('div', { key: 'empty', 'data-cm-empty': '' }, loading ? '读取中…' : '没有节点。'))
+        if (loading) {
+          groups.push(h('div', { key: 'skel', 'data-cm-skeleton': '' },
+            h('div', { key: 'sk1' }), h('div', { key: 'sk2' }), h('div', { key: 'sk3' })))
+        } else {
+          groups.push(h('div', { key: 'empty', 'data-cm-empty': '' },
+            '没有可用节点。',
+            h('div', { style: { marginTop: '10px' } },
+              h('button', { 'data-cm-btn': '', onClick: () => load(true) }, '重新读取'))))
+        }
       }
       if (picked.length > 0) {
         listChildren.push(h('div', { key: 'bulk', 'data-cm-bulk': '' },
@@ -2012,14 +2054,14 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
                     ...(String(hostMinutes) === entry[0] ? { 'data-on': '' } : {}),
                     onClick: () => setHostMinutes(Number(entry[0])),
                   }, entry[1])))),
-              h('div', { 'data-cm-big': '' }, two(load.one)),
+              h('div', { 'data-cm-big': '', key: String(load.one) }, two(load.one)),
               h('div', { 'data-cm-tilesub': '' }, '5 分 ' + two(load.five) + ' · 15 分 ' + two(load.fifteen)),
               h(HostSpark, { series: sparkSeries })),
             h('div', { key: 'mem', 'data-cm-tile': '' },
               h('div', { 'data-cm-tilehead': '' },
                 h('span', { 'data-cm-tileicon': '' }, h(Glyph, { name: 'cpu', size: 13 })),
                 '内存'),
-              h('div', { 'data-cm-big': '' }, String(memory.percent || 0),
+              h('div', { 'data-cm-big': '', key: String(memory.percent || 0) }, String(memory.percent || 0),
                 h('span', { 'data-cm-bigunit': '' }, '%')),
               h('div', { 'data-cm-tilesub': '' }, sizeText(memory.used) + ' / ' + sizeText(memory.total)),
               h(Meter, { percent: memory.percent, tall: true })),
@@ -2028,7 +2070,7 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
                 h('span', { 'data-cm-tileicon': '' }, h(Glyph, { name: 'disk', size: 13 })),
                 '磁盘' + (tower ? ' ' + tower.mount : '')),
               tower
-                ? h('div', { 'data-cm-big': '' }, String(tower.percent || 0),
+                ? h('div', { 'data-cm-big': '', key: String(tower.percent || 0) }, String(tower.percent || 0),
                   h('span', { 'data-cm-bigunit': '' }, '%'))
                 : h('div', { 'data-cm-big': '' }, '—'),
               h('div', { 'data-cm-tilesub': '' },
@@ -3675,7 +3717,7 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
             value: nicMac,
             placeholder: '00:16:3e:8a:1c:44',
             spellCheck: false,
-            style: { flex: '1', minWidth: '0', fontFamily: 'ui-monospace, Menlo, Consolas, monospace', ...(nicMac.trim() && !MAC_RE.test(nicMac.trim()) ? { borderColor: 'var(--cm-danger)' } : {}) },
+            style: { flex: '1', minWidth: '0', fontFamily: 'var(--cm-mono)', ...(nicMac.trim() && !MAC_RE.test(nicMac.trim()) ? { borderColor: 'var(--cm-danger)' } : {}) },
             onChange: e => { setNicMac(e.target.value); setNicMacAuto(false) },
           }),
           h('button', {
@@ -3721,7 +3763,7 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
         nicRawMode
           ? fieldWide('网卡数组（JSON）', h('textarea', {
             'data-cm-input': '',
-            style: { width: '100%', minHeight: '180px', fontFamily: 'ui-monospace, Menlo, Consolas, monospace', fontSize: 'var(--cm-f-sm)', whiteSpace: 'pre' },
+            style: { width: '100%', minHeight: '180px', fontFamily: 'var(--cm-mono)', fontSize: 'var(--cm-f-sm)', whiteSpace: 'pre' },
             value: nicText,
             onChange: event => setNicText(event.target.value),
           }))
@@ -4206,7 +4248,7 @@ function macSwapText(swaps) {
               'data-cm-input': '',
               value: lxcMac,
               spellCheck: false,
-              style: { flex: '0 0 200px', fontFamily: 'ui-monospace, Menlo, Consolas, monospace', ...(MAC_RE.test(lxcMac.trim()) ? {} : { borderColor: 'var(--cm-danger)' }) },
+              style: { flex: '0 0 200px', fontFamily: 'var(--cm-mono)', ...(MAC_RE.test(lxcMac.trim()) ? {} : { borderColor: 'var(--cm-danger)' }) },
               onChange: e => { setLxcMac(e.target.value); setLxcMacAuto(false) },
             }),
             h('button', {
@@ -5335,7 +5377,8 @@ function macSwapText(swaps) {
           error
             ? h('div', { 'data-cm-warn': '' }, '读不到活动日志：' + error)
             : loading && rows.length === 0
-              ? h('div', { 'data-cm-empty': '' }, '读取中…')
+              ? h('div', { 'data-cm-skeleton': '' },
+                h('div', { key: 'sk1' }), h('div', { key: 'sk2' }), h('div', { key: 'sk3' }))
               : shown.length === 0
                 ? h('div', { 'data-cm-empty': '' }, '这个筛选下还没有记录。')
                 : h('div', { 'data-cm-audit': '' },
