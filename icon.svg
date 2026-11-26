@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36" fill="none">
+  <title>Container manager</title>
+  <path d="M18 5.5 30 12v12L18 30.5 6 24V12L18 5.5Z" stroke="#4D6BFE" stroke-width="2.2" stroke-linejoin="round"/>
+  <path d="m6.5 12.2 11.5 6.4 11.5-6.4M18 18.6v11.2" stroke="#4D6BFE" stroke-width="2.2" stroke-linejoin="round"/>
+  <circle cx="27.5" cy="8.5" r="3.2" fill="#22C55E" stroke="#FFFFFF" stroke-width="1.5"/>
+</svg>

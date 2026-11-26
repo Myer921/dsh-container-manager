@@ -12,6 +12,7 @@ import { join } from 'node:path'
 process.env.DSH_CM_DIR = mkdtempSync(join(tmpdir(), 'cm-selfcheck-'))
 
 const { apply, name } = await import('../lib/index.js')
+const { TOOL_ACCESS } = await import('../lib/authz.js')
 
 const seen = { tools: [], sections: [], routes: [], upgrades: [] }
 const cleanups = []
@@ -62,30 +63,7 @@ const root = {
 apply(root, {})
 for (const dispose of cleanups) dispose()
 
-const expectedTools = [
-  'container_nodes',
-  'container_list',
-  'container_inspect',
-  'container_logs',
-  'container_action',
-  'container_create',
-  'container_limits',
-  'container_stats',
-  'container_rename',
-  'container_commit',
-  'container_config',
-  'network_manage',
-  'network_host',
-  'network_host_apply',
-  'compose_projects',
-  'compose_inspect',
-  'compose_action',
-  'compose_set_ports',
-  'lxc_snapshot',
-  'lxc_clone',
-  'lxc_mounts',
-  'pending_operations',
-]
+const expectedTools = Object.keys(TOOL_ACCESS).sort()
 
 const problems = []
 for (const tool of expectedTools) {

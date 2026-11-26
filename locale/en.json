@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "Container manager",
+    "description": "Manage local Podman and LXC containers, compose projects, Pods, networks, backups, and diagnostics from DSH.",
+    "detail": "docs/DETAIL.md"
+  }
+}

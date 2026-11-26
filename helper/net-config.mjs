@@ -19,6 +19,14 @@ export const NAME_RE = /^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,62}$/
 export const IFNAME_RE = /^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,14}$/
 export const NIC_TYPES = new Set(['veth', 'macvlan', 'phys', 'none', 'empty'])
 export const MACVLAN_MODES = ['bridge', 'vepa', 'private', 'passthru']
+export const CAP_DROP_ALLOW = new Set([
+  'CHOWN', 'DAC_OVERRIDE', 'DAC_READ_SEARCH', 'FOWNER', 'FSETID', 'KILL', 'SETGID', 'SETUID',
+  'SETPCAP', 'LINUX_IMMUTABLE', 'NET_BIND_SERVICE', 'NET_BROADCAST', 'NET_ADMIN', 'NET_RAW',
+  'IPC_LOCK', 'IPC_OWNER', 'SYS_MODULE', 'SYS_RAWIO', 'SYS_CHROOT', 'SYS_PTRACE', 'SYS_PACCT',
+  'SYS_ADMIN', 'SYS_BOOT', 'SYS_NICE', 'SYS_RESOURCE', 'SYS_TIME', 'SYS_TTY_CONFIG', 'MKNOD',
+  'LEASE', 'AUDIT_WRITE', 'AUDIT_CONTROL', 'SETFCAP', 'MAC_OVERRIDE', 'MAC_ADMIN', 'SYSLOG',
+  'WAKE_ALARM', 'BLOCK_SUSPEND', 'AUDIT_READ', 'PERFMON', 'BPF', 'CHECKPOINT_RESTORE',
+])
 
 export function assertName(value, field = '容器名') {
   const text = String(value ?? '').trim()
@@ -236,6 +244,10 @@ export function writeLxcSettings(configText, settings = {}) {
     lines.splice(insertAt, 0, rendered)
   }
 
+  function assertScalar(key, rawValue) {
+    if (/[\r\n\0]/.test(String(rawValue))) throw new HelperError('BAD_ARGS', `${key} 不允许换行或 NUL。`)
+  }
+
   function setOne(key, rawValue) {
     const re = keyRe(key)
     const index = lines.findIndex(line => re.test(line))
@@ -243,6 +255,7 @@ export function writeLxcSettings(configText, settings = {}) {
       if (index >= 0) lines.splice(index, 1)
       return
     }
+    assertScalar(key, rawValue)
     const rendered = `${key} = ${rawValue}`
     if (index >= 0) {
       lines[index] = rendered
@@ -258,6 +271,12 @@ export function writeLxcSettings(configText, settings = {}) {
       if (re.test(lines[index])) lines.splice(index, 1)
     }
     if (!rawValue) return
+    assertScalar(key, rawValue)
+    if (key === LXC_SETTINGS.capDrop) {
+      for (const cap of String(rawValue).trim().split(/\s+/)) {
+        if (!CAP_DROP_ALLOW.has(cap.toUpperCase())) throw new HelperError('BAD_ARGS', '未知 capability：' + cap)
+      }
+    }
     insertAtEnd(`${key} = ${rawValue}`)
   }
 

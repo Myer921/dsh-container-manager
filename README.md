@@ -18,7 +18,7 @@
 | 半边 | 位置 | 干什么 |
 | --- | --- | --- |
 | 浏览器 | `client.js` | 左侧主面板「容器」：项目 / 容器 / 镜像 / 卷 / 网络五段 + 内嵌终端 + 待确认抽屉 |
-| 主机 | `lib/` | 35 个 AI 工具 + 一段系统提示词 + `/api/container-manager` REST + WebSocket 终端 |
+| 主机 | `lib/` | 36 个 AI 工具 + 一段系统提示词 + `/api/container-manager` REST + WebSocket 终端 |
 | compose | `lib/compose/` | 发现项目、解析 YAML、算状态、改端口、调 podman-compose |
 | 提权小助手 | `helper/` | `dsh-lxcd` root 服务，LXC 的全部真实操作由它执行 |
 | 前端依赖 | `vendor/` | xterm.js 5.5.0 / addon-fit 0.10.0 / yaml 2.9.1，全部 vendored，不联网 |
@@ -116,7 +116,7 @@ linger / pasta / skopeo / LXC 后端），跟哪个运行时归属无关，挂�
 
 ### Podman 页
 
-子 tab：项目 / 容器 / 镜像 / 卷 / 网络 / 密钥 / Quadlet。
+子 tab：项目 / 容器 / 镜像 / 卷 / 网络 / Pod / 密钥 / Quadlet。
 
 #### 项目（compose）
 
@@ -162,11 +162,15 @@ smokeping 这份 compose 有两个容易踩的点，都验证过了：
 - **概览**：状态、镜像、端口、挂载、网络（含 IP/MAC）、环境变量**键名**
 - **新建容器**：Podman 填镜像/端口/环境变量/挂载/命令/重启策略/内存/CPU；
   LXC 填发行版/版本/架构/网桥/IP 模式/内存上限，可选创建后启动与开机自启
-- **资源限制**（Podman）：概览里的内存 / CPU 输入框，走 `podman update`，保存后会读回来核对是否真的生效
+- **资源限制**（Podman）：概览里的内存 / CPU 输入框，走 `podman update`，保存后会读容器内真实 cgroup 核对
+- **私有 registry**：镜像页可登录，密码直接走 `podman login --password-stdin`，不进入插件配置或审计
+- **卷备份/恢复**：卷页可把命名卷打包到宿主目录，也可从归档恢复；恢复会挂起确认
 - **以此配置新建**：把现有容器的镜像、端口、挂载、命令、网络、重启策略预填进创建表单（环境变量只回填键名）
 - **配置**（LXC）：直接编辑 `lxc.net.N.*`；另有「启动项」区块改开机自启与内存上限。两者都写前备份 `config.cm-bak-<时间戳>`
 - **快照 / 挂载 / 克隆**（LXC，只在 LXC 容器上出现）：建快照、回滚、删；`lxc.mount.entry` 一行一条编辑；整份克隆
 - **终端**（Podman 与 LXC 都有）：WebSocket 接进来，Podman 走 `podman exec -it`，LXC 走 `lxc-attach`
+- **日志跟随**：容器日志支持每 2 秒拉取增量、暂停与自动滚动
+- **更新回滚**：compose 单服务拉新重建前记录旧镜像 ID，服务行可直接回滚
 - **镜像**：列表、拉取、删除（删除挂起）
 - **查更新**：比本地镜像的 digest 和仓库里 tag 现在指向的 digest，三态 ——
   「当前」/「有新版」/「比不了」。**「比不了」不等于「已是最新」**：自建镜像本来没有 digest，
@@ -239,12 +243,14 @@ smokeping 这份 compose 有两个容易踩的点，都验证过了：
 - **分区余量**：缓存和虚盘所在分区的总量 / 已用 / 剩余 / 百分比
 
 LXC 用 `-B loop` 后备存储，每个容器一个稀疏 `.img` 文件，面板按实际占用的块算大小，不是按「申请了多少」。
+存储页可设置新容器的默认后端（loop / dir）与 loop 大小；btrfs / zfs / lvm 要装对应工具后才会出现在能力体检里。
 
 #### 备份
 
 - **导出 / 导入**：`lxc export` 整份打包（默认只导实例、不带快照），导入后容器是停止状态。
   两者都进任务队列，不在 HTTP 请求里干等
 - **自动备份**：开关 + 勾选要备的容器 + 每几小时一次 + 留几份 / 留几天。
+- **定时快照**：独立开关、目标容器、周期与保留份数；只清理本策略创建的快照，手工快照不动。
   到点自动导出，然后按保留策略删旧归档（导出走任务队列，一次只跑一个，不并发拷 rootfs）
 - **只做 LXC**：Podman 那边备份的正解是 compose 文件 + 具名卷 + 镜像 digest，
   把 rootfs 打包下来既重又难恢复 —— 不假装能做，面板上也直说
@@ -329,7 +335,7 @@ DHCP 保留地址、按 MAC 写的防火墙规则、以及需要识别同一块�
 
 ---
 
-## 35 个 AI 工具
+## 36 个 AI 工具
 
 | 工具 | 性质 | 说明 |
 | --- | --- | --- |
@@ -360,17 +366,19 @@ DHCP 保留地址、按 MAC 写的防火墙规则、以及需要识别同一块�
 | `lxc_mounts` | 危险 | list 直读；**set 改宿主 config，挂起** |
 | `pending_operations` | 只读 | 查待确认队列，**没有确认能力** |
 | `container_files` | 混合 | list / read 直读；**write / mkdir / remove 挂起**（AI 写容器里的文件一律要人点头，单次写入上限 256KB） |
-| `container_jobs` | 混合 | 长任务队列：list / get 直读，cancel 直接发信号 |
+| `container_jobs` | 混合 | 长任务队列：list / get 直读，cancel 发信号，retry 重试失败/中断任务 |
 | `container_secret` | 混合 | Podman secret 只看名字；**新建一律拒绝**（明文不经过模型），删除挂起 |
 | `container_diagnose` | 只读 | 容器里跑 7 步网络诊断（网卡 / 路由 / DNS / 解析 / ping / TCP） |
 | `container_quadlet` | 混合 | Quadlet 单元：list / show 直读，reload / start / stop 直行；4.3.1 会如实报不支持 |
+| `container_pod` | 混合 | Podman Pod：列表、创建、启停；删除挂起 |
 | `container_capabilities` | 只读 | rootless 体检：subuid / uidmap / 存储驱动 / cgroup / linger / pasta / skopeo / LXC 后端，每条带原因与修复命令 |
 | `lxc_backup` | 混合 | list / policy 直读；export / import / run 返回 jobId；delete 挂起 |
 | `container_alert` | 混合 | 告警看与试：list 直读，test 直接发 |
 | `container_audit` | 只读 | 活动 / 审计记录，AI 每次调用的「人话说明」也在里面 |
 
-容器启动/停止/重启不挂起——它们可逆、且是日常操作。创建也不挂起（不删数据、参数可见）。
-删除、网络拓扑改动、LXC 网卡与启动项改动会挂起。
+容器启动/停止/重启不挂起——它们可逆、且是日常操作。普通镜像创建直行；含宿主挂载、自定义命令、
+host UTS 或 LXC 归档导入的创建必须 `admin` 发起并挂起。删除、网络拓扑改动、LXC 网卡与安全/启动项改动会挂起。
+Podman 删除会先进入回收站，可恢复或彻底删除。
 
 ### AI 能发起什么：三道闸
 
@@ -449,6 +457,12 @@ LXC 的系统镜像缓存在别处，跟数据目录分开（2026-11-21 迁到�
 | `backupPolicy.everyHours` | `24` | 多久导一次，1–720 |
 | `backupPolicy.keepCount` | `5` | 每个容器留几份 |
 | `backupPolicy.keepDays` | `14` | 超过几天的一律删 |
+| `snapshotPolicy.enabled` | `false` | LXC 定时快照开关 |
+| `snapshotPolicy.targets` | `[]` | 要定时快照的 LXC 容器名 |
+| `snapshotPolicy.everyHours` | `24` | 多久建一次，1–720 |
+| `snapshotPolicy.keepCount` | `5` | 每个容器保留几份策略快照 |
+| `lxcDefaults.backend` | `'loop'` | 新 LXC 容器默认 rootfs 后端：loop / dir |
+| `lxcDefaults.diskSize` | `'8G'` | loop 后端默认磁盘大小 |
 | `alerts.webhooks` | `[]` | 出口：`{id, name, url, kind: json/ntfy/bark, enabled}` |
 | `alerts.rules` | `[]` | 规则：`{id, kind: unhealthy/restarts/disk/pending, threshold, enabled}` |
 | `alerts.dedupeMinutes` | `30` | 同一件事多久内只发一次 |
@@ -524,9 +538,8 @@ DSH_HOME=/tmp/cm-smoke node scripts/smoke-terminal.mjs   # 静态资源 + WS 终
 node scripts/smoke-lxc-extras.mjs                        # LXC 快照 / 克隆 / 挂载点，直接打 helper socket，需要 root
 ```
 
-单元测试在本地 `test/` 下：`npm test`（= `node --test test/*.test.mjs`，380 条）。
-这个目录**不在公开仓库里**（`.git/info/exclude` 排掉了）—— 它带着本机路径和真实容器名，
-所以 `npm test` 只在开发机上跑得通，克隆下来是没有的。
+单元测试在 `test/` 下：`npm test`（= `node --test test/*.test.mjs`）。测试已纳入版本库，CI 会同时执行
+`npm test`、`npm run selfcheck` 和关键入口的语法检查。
 
 `livecheck` / `writetest` / `lxc-smoke` 都用临时数据目录，不碰 `~/.dsh-next/container-manager/`。
 `lxc-smoke` 需要先手工建一个测试容器：
@@ -565,7 +578,7 @@ lib/
   nodes.js       节点注册表，把多节点结果摊平
   config.js      配置读写（原子写、0600）
   audit.js       审计 JSONL
-  tools.js       35 个 AI 工具
+  tools.js       36 个 AI 工具
   static.js      /static/* 只服务 vendor/ 下的白名单
   ws.js          手搓的 RFC 6455 服务端（不引 ws 依赖）
   terminal.js    容器终端：升级 → pty → 双向管道
@@ -584,7 +597,10 @@ lib/
   drivers/
     podman.js    本机 / ssh Podman
     lxc.js       经 root helper 的 unix socket
-client.js        浏览器半（左侧主面板，React.createElement，无 JSX）
+src/client.template.js  浏览器半源码模板（React.createElement，无 JSX）
+src/client.css          面板样式源文件
+src/client-messages.json 界面英文文案映射
+client.js               构建产物（由 npm run build:client 生成）
 vendor/          xterm.js / addon-fit / yaml（运行时不联网）
 helper/
   dsh-lxcd.mjs       root 服务：白名单动作、只有 JSON over HTTP
@@ -594,6 +610,18 @@ helper/
 scripts/         selfcheck / livecheck / writetest / lxc-smoke / smoke-compose / smoke-terminal
 docs/design.md   分层、状态机、安全边界、决策记录
 ```
+
+## 前端构建
+
+`client.js` 是生成产物，直接编辑会在下次构建时被覆盖。样式与英文文案已拆到 `src/`：
+
+```bash
+npm run build:client   # 从 src/ 生成 client.js
+npm run check:client   # 只校验产物与源码一致，不写文件
+```
+
+CI 会执行 `check:client`，避免出现“改了源码但忘了重新生成”。英文文案集中在 `src/client-messages.json`，
+界面根据 `document.documentElement.lang` / `navigator.language` 自动切换；未知文案与技术标识保持原样。
 
 ## 第三方代码
 

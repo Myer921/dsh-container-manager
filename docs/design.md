@@ -492,3 +492,16 @@ btrfs / zfs 才能真 CoW，这台没有 —— 不假装有。
 
 代价是可读性。缓解手段是把每个视图拆成一个 `function XxxView()`，
 列表渲染统一用 `h(Component, props)`，不用内联三元堆嵌套。
+
+## 11. v0.13.0：权限、备份与恢复闭环
+
+- REST 写操作以 Connection 的 owner Peer 身份为准，`x-cm-principal` 只用于显示，不再承担授权。
+- 宿主根目录挂载、自定义命令、host UTS、LXC 归档导入升级为 `admin + pending`；LXC 配置标量拒绝换行。
+- AI 工具使用专用投影：环境变量只给键名，compose YAML 默认不返回，pending 不返回原始参数。
+- 备份调度等待真实 job 终态；保留策略只处理目标容器；导出先写 `.part`，成功后原子 rename。
+- Podman 删除进入回收站；compose adopt 仍保留原流程，但网络/快照恢复增加安全点与失败回滚。
+- 新增 Podman Pod 管理、任务重试、增量日志跟随、容器指标历史接口、GUI 告警规则创建。
+- helper 协议升为 v2，文件写入使用 `O_NOFOLLOW`，导出/导入增加归档安全检查。
+- v0.14.0 增加 LXC 定时快照策略与默认存储配置；快照保留只针对策略创建的快照，失败目标不清理旧快照。
+- v0.14.1 修复 CSS 拆分后的 details 箭头转义，并从 podman inspect 补齐 ps JSON 缺失的网络信息。
+- 客户端增加基于 document lang / navigator language 的英文文案映射与统一 h() 翻译包装，未知文案和技术标识保持原样。

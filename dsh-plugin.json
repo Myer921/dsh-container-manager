@@ -3,7 +3,7 @@
   "manifestVersion": "0.15",
   "id": "dsh-container-manager.local",
   "name": "dsh-container-manager",
-  "version": "0.12.0",
+  "version": "0.14.1",
   "license": "MIT",
   "description": "DSH 容器台：Cockpit 风格面板 + AI 工具，用 podman-compose 分组管理 Podman、直管 LXC，能改端口、开终端、改网络",
   "facets": {
@@ -25,7 +25,7 @@
     "x-display": [
       {
         "title": "dsh-container-manager",
-        "description": "左侧「容器」主面板（项目/容器/镜像/卷/网络 + 终端）+ 17 个工具；危险操作走面板确认"
+        "description": "左侧「容器」主面板（Podman/LXC/Compose/Pod/Quadlet/终端）+ 36 个工具；危险操作走面板确认"
       }
     ]
   }

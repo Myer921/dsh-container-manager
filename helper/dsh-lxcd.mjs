@@ -23,9 +23,14 @@ import { execFile, spawn } from 'node:child_process'
 import {
   chmodSync,
   chownSync,
+  closeSync,
+  constants as fsConstants,
   existsSync,
+  fsyncSync,
+  writeSync,
   lstatSync,
   mkdirSync,
+  openSync,
   readFileSync,
   readdirSync,
   realpathSync,
@@ -36,7 +41,7 @@ import {
   unlinkSync,
   writeFileSync,
 } from 'node:fs'
-import { randomBytes } from 'node:crypto'
+import { createHash, randomBytes } from 'node:crypto'
 import { createServer } from 'node:http'
 import { isIPv4, isIPv6 } from 'node:net'
 
@@ -83,6 +88,7 @@ const SOCKET_GROUP = process.env.LXCD_GROUP || process.env.SUDO_USER || process.
 // 请求体上限：普通配置都是几 KB，但容器内文件写入整份走 base64，
 // 8MB 的文件编码后约 10.7MB —— 所以给到 16MB。套接字是 0660/root 组，不是对外的口子。
 const MAX_BODY = 16 * 1024 * 1024
+const HELPER_PROTOCOL = 2
 
 const MODULE_ALLOW = new Set(['macvlan', 'ipvlan', 'veth', 'bridge', '8021q', 'br_netfilter'])
 const ACTION_ALLOW = new Set(['start', 'stop', 'restart', 'freeze', 'unfreeze', 'destroy'])
@@ -105,22 +111,34 @@ function audit(entry) {
   }
 }
 
-async function run(command, args, { timeoutMs = 60_000, env } = {}) {
+const activeRuns = new Map()
+
+async function run(command, args, { timeoutMs = 60_000, env, maxBuffer = 8 * 1024 * 1024, cancelKey = null } = {}) {
   // env 是「在这条命令上追加的环境变量」，比如给 lxc-create 指定 LXC_CACHE_PATH。
-  const options = { timeout: timeoutMs, maxBuffer: 8 * 1024 * 1024 }
+  const options = { timeout: timeoutMs, maxBuffer }
   if (env) options.env = { ...process.env, ...env }
-  try {
-    const { stdout, stderr } = await execFileAsync(command, args, options)
-    return { code: 0, stdout: String(stdout ?? ''), stderr: String(stderr ?? '') }
-  } catch (error) {
-    return {
-      code: typeof error?.code === 'number' ? error.code : null,
-      stdout: String(error?.stdout ?? ''),
-      stderr: String(error?.stderr ?? error?.message ?? String(error)),
-      missing: error?.code === 'ENOENT',
-      timedOut: error?.killed === true,
+  return new Promise(resolve => {
+    let settled = false
+    const done = value => {
+      if (settled) return
+      settled = true
+      if (cancelKey) activeRuns.delete(cancelKey)
+      resolve(value)
     }
-  }
+    const child = execFile(command, args, options, (error, stdout, stderr) => {
+      done({
+        code: error && typeof error.code === 'number' ? error.code : error ? null : 0,
+        stdout: String(stdout ?? ''),
+        stderr: String(stderr ?? error?.message ?? ''),
+        missing: error?.code === 'ENOENT',
+        timedOut: Boolean(error && (error.killed || error.signal === 'SIGTERM' || error.signal === 'SIGKILL')),
+      })
+    })
+    if (cancelKey) activeRuns.set(cancelKey, child)
+    child.on('error', error => {
+      done({ code: error?.code === 'ENOENT' ? null : (typeof error?.code === 'number' ? error.code : null), stdout: '', stderr: error?.message ?? String(error), missing: error?.code === 'ENOENT', timedOut: false })
+    })
+  })
 }
 
 function ok(data) {
@@ -260,10 +278,12 @@ async function containerInfo(name) {
   }
 }
 
-async function containerLogs(name, lines) {
+async function containerLogs(name, lines, since) {
   const count = Math.max(1, Math.min(2000, Number(lines) || 100))
+  const args = ['-u', `lxc@${name}`, '-n', String(count), '--no-pager', '-o', 'short-iso']
+  if (since) args.push('--since', String(since).slice(0, 64))
   // 先试 journal，再退到 /var/log/lxc/<name>.log
-  const journal = await run('journalctl', ['-u', `lxc@${name}`, '-n', String(count), '--no-pager', '-o', 'short-iso'], { timeoutMs: 20_000 })
+  const journal = await run('journalctl', args, { timeoutMs: 20_000 })
   if (journal.code === 0 && journal.stdout.trim()) {
     return { text: journal.stdout.slice(-1_000_000), source: 'journal' }
   }
@@ -389,11 +409,14 @@ const MAC_LINE_RE = /^([0-9a-f]{2}:){5}[0-9a-f]{2}$/
     if (state === 'running' || state === 'frozen') {
       const stopped = await run('lxc-stop', ['-n', container, '-t', '10'], { timeoutMs: 30_000 })
       if (stopped.code !== 0) {
-        throw new HelperError('LXC_ERROR', `配置已写入，但停容器失败：${stopped.stderr.trim() || stopped.stdout.trim()}`, `备份在 ${backup}`)
+        writeFileSync(path, before, { mode: 0o644 })
+        throw new HelperError('LXC_ERROR', `停容器失败，已恢复旧网络配置：${stopped.stderr.trim() || stopped.stdout.trim()}`, `备份在 ${backup}`)
       }
       const started = await run('lxc-start', ['-n', container, '-d'], { timeoutMs: 60_000 })
       if (started.code !== 0) {
-        throw new HelperError('LXC_ERROR', `配置已写入、容器已停，但启动失败：${started.stderr.trim() || started.stdout.trim()}`, `用 lxc-start -n ${container} -F 看前台日志；备份在 ${backup}`)
+        writeFileSync(path, before, { mode: 0o644 })
+        const recovered = await run('lxc-start', ['-n', container, '-d'], { timeoutMs: 60_000 })
+        throw new HelperError('LXC_ERROR', `新网络启动失败，已恢复旧配置${recovered.code === 0 ? '并重新启动容器' : '，但旧配置启动也失败'}：${started.stderr.trim() || started.stdout.trim()}`, `用 lxc-start -n ${container} -F 看前台日志；备份在 ${backup}`)
       }
       restarted = true
     }
@@ -1274,11 +1297,12 @@ async function listSnapshots(name) {
 
 async function snapshotOp(name, op, options = {}) {
   const container = assertName(name)
+  const cancelKey = options.cancelKey || null
   if (!containerExists(container)) throw new HelperError('NOT_FOUND', `没有这个容器：${container}`)
   if (op === 'create') {
     const before = (await listSnapshots(container)).snapshots
     const args = ['-n', container, '-c', String(options.comment || 'dsh-container-manager').slice(0, 120)]
-    const result = await run('lxc-snapshot', args, { timeoutMs: 600_000 })
+    const result = await run('lxc-snapshot', args, { timeoutMs: 600_000, cancelKey })
     // 上游 dir 后端有个脾气：快照确实建出来了，命令却退 1 且没有任何输出。
     // 所以不看退出码，看「快照数量有没有变多」——这才是事实。
     const after = (await listSnapshots(container)).snapshots
@@ -1303,24 +1327,26 @@ async function snapshotOp(name, op, options = {}) {
   const tag = String(options.snapshot || '')
   if (!SNAPSHOT_TAG.test(tag)) throw new HelperError('BAD_ARGS', `快照名不合法：${tag}`)
   if (op === 'restore') {
-    const result = await run('lxc-snapshot', ['-n', container, '-r', tag], { timeoutMs: 600_000 })
+    const before = (await listSnapshots(container)).snapshots.map(item => item.name)
+    const safety = await snapshotOp(container, 'create', { comment: 'before-restore-' + tag, cancelKey })
+    const safetyTag = safety.snapshots.map(item => item.name).find(name => !before.includes(name))
+    if (!safetyTag) throw new HelperError('LXC_ERROR', '恢复前安全快照没有建出来，已中止恢复。')
+    const result = await run('lxc-snapshot', ['-n', container, '-r', tag], { timeoutMs: 600_000, cancelKey })
     if (result.code !== 0) {
       const detail = result.stderr.trim() || result.stdout.trim()
-    const hasSnapshots = /has snapshots|snapshot/i.test(detail)
-    throw new HelperError(
-      'LXC_ERROR',
-      detail || '恢复快照失败',
-      hasSnapshots
-        ? '恢复会把整个 rootfs 覆盖回快照时刻，容器会被停掉；有快照的容器不能直接 destroy，先删快照。'
-        : '恢复会把整个 rootfs 覆盖回快照时刻，容器会被停掉。',
-    )
+      const rollback = await run('lxc-snapshot', ['-n', container, '-r', safetyTag], { timeoutMs: 600_000, cancelKey })
+      throw new HelperError(
+        'LXC_ERROR',
+        (detail || '恢复快照失败') + (rollback.code === 0 ? '，已回滚到恢复前安全快照。' : '，恢复前安全快照回滚失败。'),
+        '安全快照：' + safetyTag,
+      )
     }
-    audit({ action: 'lxc.snapshot.restore', target: container, snapshot: tag })
-    return { name: container, op, snapshot: tag, output: (result.stdout || result.stderr || '').trim() }
+    audit({ action: 'lxc.snapshot.restore', target: container, snapshot: tag, safetySnapshot: safetyTag })
+    return { name: container, op, snapshot: tag, safetySnapshot: safetyTag, state: await containerState(container), output: (result.stdout || result.stderr || '').trim() }
   }
   if (op === 'delete') {
     const before = (await listSnapshots(container)).snapshots
-    const result = await run('lxc-snapshot', ['-n', container, '-d', tag], { timeoutMs: 120_000 })
+    const result = await run('lxc-snapshot', ['-n', container, '-d', tag], { timeoutMs: 120_000, cancelKey })
     const after = (await listSnapshots(container)).snapshots
     if (after.length >= before.length) {
       throw new HelperError('LXC_ERROR', result.stderr.trim() || '删快照失败，快照还在。')
@@ -1341,11 +1367,19 @@ async function cloneContainer(spec) {
   if (state === 'running') {
     throw new HelperError('BAD_ARGS', '运行中的容器不能直接克隆，先停掉。', 'lxc-copy 需要源容器处于停止状态才能保证 rootfs 一致。')
   }
-  const result = await run('lxc-copy', ['-n', source, '-N', target], { timeoutMs: 900_000 })
+  const result = await run('lxc-copy', ['-n', source, '-N', target], { timeoutMs: 900_000, cancelKey: spec?.cancelKey })
   if (result.code !== 0) {
     throw new HelperError('LXC_ERROR', result.stderr.trim() || result.stdout.trim() || '克隆失败', 'ext4 上克隆是整份复制，磁盘不够就会失败。')
   }
-  audit({ action: 'lxc.clone', target, source })
+  const configPath = containerConfigPath(target)
+  const cloned = readConfig(target).split('\n').map(line => {
+    const mac = /^(\s*lxc\.net\.\d+\.hwaddr\s*=).*$/i.exec(line)
+    if (mac) return mac[1] + ' ' + randomMac()
+    if (/^\s*lxc\.net\.\d+\.ipv[46]\.(address|gateway)\s*=/i.test(line)) return null
+    return line
+  }).filter(line => line !== null).join('\n')
+  writeFileSync(configPath, cloned, { mode: 0o644 })
+  audit({ action: 'lxc.clone', target, source, networkIdentityReset: true })
   return { name: target, source, state: await containerState(target) }
 }
 
@@ -1572,6 +1606,28 @@ function readBody(req) {
   })
 }
 
+let templateCache = null
+let templateCacheAt = 0
+async function listTemplates() {
+  if (templateCache && Date.now() - templateCacheAt < 3_600_000) return templateCache
+  const result = await run('/usr/share/lxc/templates/lxc-download', ['--list'], { timeoutMs: 45_000, maxBuffer: 4 * 1024 * 1024 })
+  if (result.code !== 0) throw new HelperError('LXC_ERROR', '读不到 LXC 模板列表：' + (result.stderr || result.stdout).trim())
+  const grouped = new Map()
+  for (const line of String(result.stdout).split('\n')) {
+    const parts = line.trim().split(/\s+/)
+    if (parts.length < 5 || parts[0] === 'DIST') continue
+    const [distro, release, arch, variant] = parts
+    if (!grouped.has(distro)) grouped.set(distro, { distro, releases: [], arches: [] })
+    const item = grouped.get(distro)
+    if (!item.releases.includes(release)) item.releases.push(release)
+    if (!item.arches.includes(arch)) item.arches.push(arch)
+    if (variant !== 'default' && !item.arches.includes(variant)) item.arches.push(variant)
+  }
+  templateCache = { suggestions: [...grouped.values()], arches: [...new Set([...grouped.values()].flatMap(item => item.arches))] }
+  templateCacheAt = Date.now()
+  return templateCache
+}
+
 /* ───────────────────────── 导出 / 导入 ───────────────────────── */
 
 // 导出落盘目录：默认放在插件自己的地盘里，别顺手写进 /var/lib/lxc 把 rootfs 目录搞乱。
@@ -1601,16 +1657,21 @@ async function exportContainer(spec) {
   if (!containerExists(container)) throw new HelperError('NOT_FOUND', `没有这个容器：${container}`)
   const dir = resolveExportDir(spec?.dir)
   const target = join(dir, archiveName(container))
-  const args = ['export', container, target]
+  const partial = target + '.part'
+  try { unlinkSync(partial) } catch { /* 上次失败可能没留下文件 */ }
+  const args = ['export', container, partial]
   if (spec?.instanceOnly !== false) args.push('--instance-only')
-  const result = await run('lxc', args, { timeoutMs: 1_800_000 })
+  const result = await run('lxc', args, { timeoutMs: 1_800_000, cancelKey: spec?.cancelKey })
   let bytes = 0
+  let sha256 = null
   try {
-    bytes = statSync(target).size
+    bytes = statSync(partial).size
+    if (bytes > 0) sha256 = createHash('sha256').update(readFileSync(partial)).digest('hex')
   } catch {
     bytes = 0
   }
   if (result.code !== 0 || bytes === 0) {
+    try { unlinkSync(partial) } catch { /* best effort */ }
     const detail = (result.stderr || result.stdout || '').trim()
     throw new HelperError(
       'LXC_ERROR',
@@ -1618,11 +1679,13 @@ async function exportContainer(spec) {
       '导出要写一整份 rootfs，磁盘满或路径不可写都会失败；运行中的容器导出的是活文件系统，建议先停。',
     )
   }
-  audit({ action: 'lxc.export', target: container, file: target, bytes })
+  renameSync(partial, target)
+  audit({ action: 'lxc.export', target: container, file: target, bytes, sha256 })
   return {
     name: container,
     file: target,
     bytes,
+    sha256,
     instanceOnly: spec?.instanceOnly !== false,
     output: (result.stdout || result.stderr || '').trim(),
   }
@@ -1669,6 +1732,30 @@ async function deleteExport(spec) {
   return { name, dir }
 }
 
+async function validateLxcArchive(file, cancelKey = null) {
+  const listed = await run('tar', ['-tf', file], { timeoutMs: 60_000, cancelKey })
+  if (listed.code !== 0) throw new HelperError('BAD_ARGS', '归档无法读取：' + (listed.stderr || listed.stdout).trim())
+  const entries = String(listed.stdout).split('\n').map(line => line.trim()).filter(Boolean)
+  const configEntry = entries
+    .filter(entry => basename(entry) === 'config')
+    .sort((left, right) => left.split('/').length - right.split('/').length)[0]
+  if (!configEntry) throw new HelperError('BAD_ARGS', '归档里没有 LXC config，拒绝导入。')
+  const extracted = await run('tar', ['-xOf', file, configEntry], { timeoutMs: 60_000, maxBuffer: 4 * 1024 * 1024, cancelKey })
+  if (extracted.code !== 0) throw new HelperError('BAD_ARGS', '读不到归档里的 config。')
+  for (const raw of String(extracted.stdout).split('\n')) {
+    const line = raw.trim()
+    if (!line || line.startsWith('#')) continue
+    if (/^lxc\.hook\./i.test(line)) throw new HelperError('BAD_ARGS', '归档含 lxc.hook，拒绝导入。')
+    if (/^lxc\.apparmor\.profile\s*=\s*unconfined/i.test(line)) throw new HelperError('BAD_ARGS', '归档关闭 AppArmor，拒绝导入。')
+    if (/^lxc\.mount\.entry\s*=/i.test(line)) {
+      const source = line.slice(line.indexOf('=') + 1).trim().split(/\s+/)[0]
+      if (['/', '/home', '/root', '/etc'].includes(source) || source.startsWith('/home/') || source.startsWith('/root/')) {
+        throw new HelperError('BAD_ARGS', '归档含宿主敏感目录挂载，拒绝导入。')
+      }
+    }
+  }
+}
+
 /** lxc import：从一个归档建容器。名字必须给，别让 lxc 自己从文件名猜。 */
 async function importContainer(spec) {
   const file = String(spec?.file || '').trim()
@@ -1677,7 +1764,8 @@ async function importContainer(spec) {
   if (!ARCHIVE_EXT.test(file)) throw new HelperError('BAD_ARGS', '只认 .tar / .tar.gz / .tar.xz / .tar.bz2 / .tar.zst 归档。')
   if (!existsSync(file)) throw new HelperError('NOT_FOUND', `没有这个归档：${file}`)
   if (containerExists(name)) throw new HelperError('BAD_ARGS', `目标容器已存在：${name}`)
-  const result = await run('lxc', ['import', file, name], { timeoutMs: 1_800_000 })
+  await validateLxcArchive(file, spec?.cancelKey)
+  const result = await run('lxc', ['import', file, name], { timeoutMs: 1_800_000, cancelKey: spec?.cancelKey })
   if (result.code !== 0 || !containerExists(name)) {
     const detail = (result.stderr || result.stdout || '').trim()
     throw new HelperError(
@@ -1874,7 +1962,15 @@ function resolveNew(root, container, raw) {
   if (!insideRoot(root, realParent)) {
     throw new HelperError('BAD_ARGS', '父目录通过软链接跑到 rootfs 外面了，拒绝访问。')
   }
-  return { rel, target: join(realParent, parts[parts.length - 1]) }
+  const target = join(realParent, parts[parts.length - 1])
+  try {
+    const info = lstatSync(target)
+    if (info.isSymbolicLink()) throw new HelperError('BAD_ARGS', '拒绝通过最终软链接写入。')
+  } catch (error) {
+    if (error instanceof HelperError) throw error
+    if (error?.code !== 'ENOENT') throw error
+  }
+  return { rel, target }
 }
 
 // 进容器列目录用的脚本：路径从 $1 进，不拼字符串（文件名里有引号也不会被 shell 吃掉）。
@@ -2035,10 +2131,18 @@ async function filesWrite(spec) {
 
   if (backend.mode === 'direct') {
     const { rel, target } = resolveNew(backend.root, backend.container, spec?.path)
+    let fd = null
     try {
-      writeFileSync(target, data, { mode: 0o644 })
+      fd = openSync(target, fsConstants.O_WRONLY | fsConstants.O_CREAT | fsConstants.O_TRUNC | fsConstants.O_NOFOLLOW, 0o644)
+      let offset = 0
+      while (offset < data.length) {
+        offset += writeSync(fd, data, offset, data.length - offset)
+      }
+      fsyncSync(fd)
     } catch (error) {
-      throw new HelperError('LXC_ERROR', error?.message ?? '写文件失败。', '只读挂载里的文件写不了。')
+      throw new HelperError('LXC_ERROR', error?.message ?? '写文件失败。', '只读挂载、软链接或权限问题都会阻止写入。')
+    } finally {
+      if (fd !== null) closeSync(fd)
     }
     audit({ action: 'lxc.files.write', target: backend.container, path: rel, bytes: data.length, mode: 'direct' })
     return { name: backend.container, path: rel, mode: 'direct', bytes: data.length }
@@ -2101,6 +2205,16 @@ async function filesRemove(spec) {
   return { name: backend.container, path: rel, mode: 'attach', removed: true }
 }
 
+function cancelRun(id) {
+  const key = String(id ?? '')
+  const child = activeRuns.get(key)
+  if (!child) return { id: key, cancelled: false }
+  try { child.kill('SIGTERM') } catch { /* 已经退出 */ }
+  setTimeout(() => { try { child.kill('SIGKILL') } catch { /* 已经退出 */ } }, 5000).unref()
+  audit({ action: 'lxc.run.cancel', id: key })
+  return { id: key, cancelled: true }
+}
+
 function send(res, status, value) {
   const body = JSON.stringify(value)
   res.writeHead(status, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' })
@@ -2122,12 +2236,16 @@ async function route(req, res) {
       ipvlan: moduleLoaded('ipvlan'),
       lxcbr0: { name: net.name, subnet: net.subnet, up: net.up },
       root: typeof process.getuid === 'function' ? process.getuid() === 0 : null,
+      protocol: HELPER_PROTOCOL,
       socket: SOCKET,
       pid: process.pid,
     }))
   }
 
   if (method !== 'POST') return send(res, 405, fail('BAD_ARGS', '只支持 GET /health 与 POST 操作。'))
+  if (String(req.headers['x-cm-helper'] ?? '') !== String(HELPER_PROTOCOL)) {
+    return send(res, 400, fail('BAD_ARGS', 'helper 协议版本不匹配，请升级插件与 helper。'))
+  }
   const body = await readBody(req)
 
   switch (path) {
@@ -2135,6 +2253,10 @@ async function route(req, res) {
       return send(res, 200, ok(await listContainers()))
     case '/lxc/stats':
       return send(res, 200, ok(await statsAll()))
+    case '/lxc/cancel':
+      return send(res, 200, ok(cancelRun(body?.id)))
+    case '/lxc/templates':
+      return send(res, 200, ok(await listTemplates()))
     case '/lxc/images':
       return send(res, 200, ok(await listImageCache()))
     case '/lxc/images/delete':
@@ -2152,7 +2274,7 @@ async function route(req, res) {
       return send(res, 200, ok(info))
     }
     case '/lxc/logs':
-      return send(res, 200, ok(await containerLogs(assertName(body?.name), body?.lines)))
+      return send(res, 200, ok(await containerLogs(assertName(body?.name), body?.lines, body?.since)))
     case '/lxc/action':
       return send(res, 200, ok(await action(assertName(body?.name), String(body?.action ?? ''))))
     case '/lxc/create':

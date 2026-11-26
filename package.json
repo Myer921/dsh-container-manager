@@ -1,24 +1,29 @@
 {
   "name": "dsh-container-manager",
-  "version": "0.12.0",
+  "version": "0.14.1",
   "description": "DSH 容器台：Cockpit 风格面板 + AI 工具，用 podman-compose 分组管理 Podman、直管 LXC，能改端口、开终端、改网络",
   "type": "module",
   "main": "lib/index.js",
   "exports": {
     ".": "./lib/index.js",
     "./client": "./client.js",
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
   },
   "files": [
     "lib",
     "vendor",
     "client.js",
+    "icon.svg",
+    "locale/*.json",
     "cordis.patch.yml",
     "dsh-plugin.json",
     "README.md",
     "helper",
     "docs",
     "scripts",
+    "src",
     "test"
   ],
   "dsh": {
@@ -26,18 +31,21 @@
       "patch": "./cordis.patch.yml"
     },
     "client": {
-      "platform": "web",
-      "inject": [
-        "@deepseek-ai/dsh-client-runtime"
-      ]
+      "platform": "web"
     }
+  },
+  "devDependencies": {
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
   },
   "engines": {
     "dsh": ">=0.2.0"
   },
   "scripts": {
     "test": "node --test test/*.test.mjs",
-    "selfcheck": "node scripts/selfcheck.mjs"
+    "selfcheck": "node scripts/selfcheck.mjs",
+    "build:client": "node scripts/build-client.mjs",
+    "check:client": "node scripts/build-client.mjs --check"
   },
   "os": [
     "linux"

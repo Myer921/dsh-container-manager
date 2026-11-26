@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "容器台",
+    "description": "在 DSH 中管理本机 Podman 与 LXC、compose 项目、Pod、网络、备份和诊断。",
+    "detail": "docs/DETAIL.md"
+  }
+}

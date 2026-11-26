@@ -13,837 +13,35 @@ window.__ModuleLoader__.load({
   id: 'dsh-container-manager',
   factory: (require) => {
     const React = require('react')
-    const h = React.createElement
+    const rawH = React.createElement
+    const locale = String((typeof document !== 'undefined' && document.documentElement && document.documentElement.lang)
+      || (typeof navigator !== 'undefined' && navigator.language) || 'zh-CN').toLowerCase()
+    const isEnglish = locale.startsWith('en')
+    const MESSAGES = {"容器台":"Containers","Podman":"Podman","LXC":"LXC","宿主网络":"Host network","体检":"Health check","活动":"Activity","项目":"Projects","容器":"Container","镜像":"Images","卷":"Volumes","网络":"Network","Pod":"Pods","密钥":"Secret","Quadlet":"Quadlet","存储":"Storage","备份":"Back up","网卡":"Interface","路由":"Routes","DNS":"DNS","防火墙":"Firewall","诊断":"Diagnostics","概览":"Overview","新建":"Create","日志":"Logs","配置":"Configuration","终端":"Terminal","文件":"File","刷新":"Refresh","读取中…":"Loading…","启动":"Start","停止":"Stop","重启":"Restart","删除":"Delete","创建":"Create","保存":"Save","取消":"Cancel","确认":"Confirm","重试":"Retry","关闭":"Off","开启":"Enable","下载":"Download","跟随":"Follow","暂停跟随":"Pause following","拉取":"Pull","拉取镜像":"Pull image","搜索":"Search","搜一下":"Search","登录":"Log in","恢复":"Restore","备份卷":"Back up volume","恢复卷":"Restore volume","导出":"Export","导入":"Import","快照":"Snapshot","克隆":"Clone","挂载":"Mount","回收站":"Trash","彻底删除":"Delete permanently","定时快照":"Scheduled snapshots","自动备份":"Automatic backup","默认存储配置":"Default storage configuration","私有 registry":"Private registry","用户名":"Username","密码":"Password","容器名":"Container name","镜像名":"Image name","端口":"Port","环境变量":"Environment variables","挂载点":"Mount point","资源":"Resources","磁盘":"Disk","网络配置":"Network configuration","基本信息":"Basic info","安全":"Security","状态":"Status","运行中":"Running","已停止":"Stopped","失败":"Failed","成功":"Success","未知":"Unknown","没有数据":"No data","还没有容器":"No containers","没有可用的 LXC 节点":"No LXC node available","没有可用的 Podman 节点":"No Podman node available","本机 Podman":"Local Podman","本机 LXC":"Local LXC","待确认":"Pending confirmation","任务":"Tasks","活动日志":"Activity log","告警":"Alert","出口":"Destination","规则":"Rules","发送测试":"Send test","容量":"Capacity","内存":"Memory","CPU":"CPU","进程":"Processes","健康":"Healthy","全部隐藏":"Hide all","共享 namespace（可选）":"Shared namespace (optional)","关掉":"Turn off","关掉 IPv4":"Disable IPv4","关掉 IPv6":"Disable IPv6","关着的，点一下开启":"Off. Click to turn on","其他（手填）":"Other (enter manually)","内存 + swap":"Memory + swap","内存上限":"Memory limit","内存耗尽时":"When memory runs out","内存超限被杀":"Killed for exceeding the memory limit","内存软限":"Memory soft limit","写…":"Write…","写不进去：":"Cannot write:","写之前会备份，写之后要「重启」才生效。":"Backs up before writing. Restart to apply changes.","写入中…":"Writing…","写回 compose 文件":"Write back to compose file","写死进 lxc.net.0.hwaddr —— 你指定的值，撞了会被拦下来，不会偷偷换掉。":"Pin to lxc.net.0.hwaddr — your value is kept; conflicts are blocked, never silently changed.","写死进 lxc.net.0.hwaddr —— 容器里 ip link 看到的永远是这一个。撞了会自动换一个。":"Pin to lxc.net.0.hwaddr — this is what ip link shows in the container. Conflicts are replaced automatically.","写进 /var/lib/lxc/<名字>/config（写前自动备份）。主机名会顺手在运行中的容器里也改掉；":"Writes to /var/lib/lxc/<名字>/config (backs up first). Also updates the hostname in running containers;","写进去就生效，容器不用重启。注意 podman inspect 里的 HostConfig 不会跟着变，":"Applies immediately without restarting the container. Note that HostConfig in podman inspect will not change,","出口加好了，点「发一条测试」验证":"Destination added. Click \"Send a test\" to verify.","出口地址要以 http:// 或 https:// 开头。":"Destination URL must start with http:// or https://.","出错了":"Something went wrong","分区":"Partition","分钟内只发一次。出口地址只显示掩码，token 不会打到面板上。":"Sends at most once per minute. The destination URL is masked, and the token never appears in the panel.","创建 Pod":"Create Pod","创建中…":"Creating…","创建后启动":"Start after creation","创建（会挂起）":"Create (requires confirmation)","删不掉：":"Could not delete:","删了":"Deleted","删了下次建这个发行版要重新下一遍，所以走「待确认」。":"Deleting it means downloading this distro again next time, so confirmation is required.","删掉":"Delete","删掉了":"Deleted","删除 Pod 已挂起，去待确认里点一下":"Pod deletion is pending. Confirm it in \"Pending\".","删除不可撤销，数据卷不会自动清":"Deletion cannot be undone. Data volumes are not removed automatically.","删除中":"Deleting","删除中…":"Deleting…","删除卷":"Delete volume","删除失败：":"Delete failed:","删除容器、改网络会先挂起，在本页底部「待确认」里点确认才执行。":"Container deletion and network changes require confirmation in \"Pending\" at the bottom of this page.","删除已挂起":"Deletion pending confirmation","删除已挂起 —— 去页面底部「待确认」点一下。":"Deletion pending — confirm it in \"Pending\" at the bottom of the page.","删除已挂起，去待确认里点一下":"Deletion pending. Confirm it in \"Pending\".","删除快照":"Delete snapshot","删除连接":"Delete connection","删除镜像":"Delete image","到点自动导出选中的容器，并按「留几份 / 留几天」删旧归档。只做 LXC —— Podman 的备份正解是 compose 文件加卷，不假装打包 rootfs。":"Automatically exports selected containers on schedule and removes old archives based on retention count and age. LXC only — for Podman, back up compose files and volumes instead of pretending to package the rootfs.","刷新一次；还不行就看 DSH 日志里的 [container-manager]。":"Refresh once. If it still fails, check [container-manager] in the DSH logs.","加不了：":"Could not add:","加出口":"Add destination","加载失败：":"Failed to load:","动作":"Action","匿名":"Anonymous","协议":"Protocol","占位":"Placeholder","占内存上限":"Memory reservation limit","危险":"Danger","危险动作":"Dangerous action","危险操作":"Dangerous operation","危险操作在执行前卡在这里":"Dangerous operations wait here for confirmation","危险操作等人确认太久":"Dangerous operation awaiting confirmation too long","即将变更":"Upcoming changes","卷备份已入队":"Volume backup queued","卷恢复已入队":"Volume restore queued","卷（":"Volume (","发一条测试":"Send a test","发不了：":"Could not send:","发行版":"Distro","只动 NetworkManager 连接里的 ipv4.dns。改完那条连接要重启一次才生效，所以走待确认，主网卡会断一下。":"Changes only ipv4.dns in the NetworkManager connection. The connection must restart to apply, so confirmation is required; the primary network will briefly drop.","只导实例，不带快照（推荐）":"Instance only, without snapshots (recommended)","只杀一个进程":"Kill one process only","只能建时设":"Can only be set at creation","只读":"Read-only","只读信息":"Read-only info","可能是容器停了、会话过期，或者反代把连接掐了。":"The container may be stopped, the session expired, or the reverse proxy may have closed the connection.","同一件事在":"The same action within","名字":"Name","名字（可选）":"Name (optional)","名字，例如 db-password":"Name, e.g. db-password","启动与身份":"Startup and identity","启动中":"Starting","启动于":"Started at","启动命令":"Startup command","启动命令（可选）":"Startup command (optional)","启动命令（空格分隔，留空 = 用镜像的）":"Startup command (space-separated; blank uses the image default)","启动延迟（秒）":"Startup delay (seconds)","启动顺序":"Startup order","启用":"Enable","启用 lxcbr0":"Enable lxcbr0","告警出口":"Alert destination","命令不可执行":"Command is not executable","命令不存在":"Command not found","命令已复制":"Command copied","回到节点视图":"Back to node view","回收站是空的。":"Trash is empty.","回滚":"Roll back","回滚到":"Roll back to","回滚到上次拉新重建前的镜像":"Roll back to the image from before the last pull and rebuild","在新标签打开":"Open in new tab","在涨":"Rising","在落":"Falling","地址（每行一个，带前缀）":"Addresses (one per line, with prefix)","块设备权重":"Block device weight","基本与安全":"Basics and security","基本持平":"Stable","处理中…":"Processing…","备份失败：":"Backup failed:","备份目录（绝对路径）":"Backup directory (absolute path)","备份策略已保存":"Backup policy saved","复制":"Copy","复制修复命令":"Copy fix command","复制失败，手动选一下":"Copy failed. Select it manually.","复制规则全文":"Copy full rule","复制这个值":"Copy value","多网卡、macvlan、mtu 这些只能在这里改；切换时会把表单里的值带过去。":"Multiple NICs, macvlan, and MTU can only be changed here. Values are carried over when switching.","大小":"Size","子网":"Subnet","存不了：":"Could not save:","存成镜像":"Save as image","安全选项":"Security options","安全选项（空格分隔）":"Security options (space-separated)","完成":"Done","定时快照完成":"Scheduled snapshot completed","定时快照策略已保存":"Snapshot schedule saved","审查变更并重建（":"Review changes and rebuild (","容器 ID":"Container ID","容器不健康":"Container unhealthy","容器内挂载点，例如 data":"Mount point in container, e.g. data","容器参数":"Container arguments","容器反复重启":"Container keeps restarting","容器台配置":"Container manager settings","容器根目录（如 /opt/dsh-container）":"Container root directory (e.g. /opt/dsh-container)","容器没在跑，进不去终端。":"The container is not running, so the terminal is unavailable.","容器没在运行。Podman 列目录要进容器里跑命令，所以现在列不出来；已经知道路径的单个文件仍可读写。":"The container is not running. Podman directory listings require commands inside the container, so they are unavailable now; individual files at known paths can still be read and written.","容器没在运行。诊断要进容器里跑 ip / getent / nc，起它一下再来。":"The container is not running. Diagnostics require ip / getent / nc inside the container. Start it and try again.","容器磁盘":"Container disk","容器端口":"Container port","容器端口看不懂：":"Invalid container port:","容器路径":"Container path","容器里没挂在卷上的数据会丢。面板的做法是「先建新的、起来之后换名字、再删旧的」，":"Data not on volumes will be lost. The panel creates a new container, starts it, swaps names, then removes the old one,","宿主盘占用":"Host disk usage","宿主端口":"Host port","宿主端口看不懂：":"Invalid host port:","宿主网卡（":"Host interface (","宿主路径":"Host path","密码直接交给 podman login --password-stdin，不写入插件配置、审计或会话。":"The password goes directly to podman login --password-stdin and is not stored in plugin settings, audits, or sessions.","对端":"Peer","对端读不到：":"Could not read from peer:","导入这个":"Import this","导出了":"Exported","导出容器":"Export container","导出的是整份 rootfs：ext4 + loop 上一个 8G 容器就是 8G 归档，慢也占盘。":"The export contains the entire rootfs: an 8G container on ext4 + loop produces an 8G archive, which is slow and disk-intensive.","小时":"Hours","小时一次":"Hourly","展开原始数据":"Show raw data","工作目录":"Working directory","左侧「容器」——数据每 4 秒刷新一次。":"\"Containers\" on the left — data refreshes every 4 seconds.","已保存。":"Saved.","已保存并生效":"Saved and applied","已克隆成":"Cloned as","已入队：":"Queued:","已写入":"Written","已写入 cgroup，立即生效，不用重启容器":"Written to cgroup. Applies immediately; no container restart needed.","已写入 lxc-net 配置并重启（若失败看提示）":"Written to lxc-net configuration and restarted (check the message if it fails)","已写回，旧文件有备份。":"Written back. The previous file is backed up.","已写进 config":"Written to config","已写进 config。容器没在运行，下次启动生效":"Written to config. Applies on next start while the container is stopped.","已冻结":"Frozen","已创建":"Created","已删除":"Deleted","已删除卷":"Volume deleted","已删除归档":"Archive deleted","已刷新":"Refreshed","已取消":"Cancelled","已取消。":"Cancelled.","已启动":"Started","已回滚":"Rolled back","已导入":"Imported","已导出":"Exported","已开启，点一下关掉":"On. Click to turn off","已开始建快照":"Snapshot creation started","已执行。":"Done.","已把配置填进「新建」，环境变量的值不会回填（面板只读得到键名）。":"Settings were copied to \"Create\". Environment variable values are not copied; the panel can only read their names.","已拉取":"Pulled","已挂起 —— 去底部「待确认」点一下才会真正重建":"Pending confirmation — click \"Pending\" at the bottom to rebuild.","已挂起，去下面「待确认」点确认才会真删。":"Pending confirmation — click \"Pending\" below to delete.","已挂起，去下面「待确认」点确认；确认后会重启容器。":"Pending confirmation — click \"Pending\" below. The container will restart after confirmation.","已挂起，去待确认里点一下":"Pending confirmation — click \"Pending\".","已挂起，在下面「待确认」里点一次才执行：":"Pending confirmation — click \"Pending\" below to run:","已挂起，在下面「待确认」里点确认：":"Pending confirmation — confirm in \"Pending\" below:","已挂起，等待你在下面「待确认」里点确认：":"Pending confirmation — confirm in \"Pending\" below:","已按新参数重建，容器 ID 变了":"Rebuilt with new settings. The container ID has changed.","已接管":"Adopted","已提交成镜像":"Committed as an image","已断开":"Disconnected","已暂停":"Paused","已生效":"Applied","已立即生效：cgroup 改了，config 也写好了（下次开机还是这个值）":"Applied immediately: cgroup updated and config saved (this value will persist after reboot).","已请求取消，正在收尾":"Cancellation requested. Finishing up.","已过期":"Expired","已运行":"Running","已连接":"Connected","已退出":"Exited","已重启":"Restarted","已重建":"Rebuilt","已重新入队":"Requeued","并装 podman-compose":"and install podman-compose","应用中…":"Applying…","应用限制":"Apply limits","建不了：":"Could not create:","% · 内存":"% · Memory","+ 新建":"+ New","-0.img，数据盘按 -1、-2 往下排；都落在 /opt/dsh-container/lxc/":"-0.img; data disks continue with -1, -2, and so on. All are stored under /opt/dsh-container/lxc/","/rootfs；数据盘仍然是 loop 镜像，落在 /opt/dsh-container/lxc/":"/rootfs; data disks are still loop images stored under /opt/dsh-container/lxc/","1 小时":"1 hour","1..10000，默认 100":"1..10000, default 100","1.1.1.1 8.8.8.8（空格隔开，留空 = 清空）":"1.1.1.1 8.8.8.8 (space-separated; empty = clear)","1.5 = 一个半核，留空 = 不限":"1.5 = one and a half cores; empty = unlimited","1.5，留空 = 不限":"1.5; empty = unlimited","1.5，留空不限":"1.5; empty = unlimited","10.0.3.1，可留空":"10.0.3.1; optional","24 小时":"24 hours","256m / 1g，留空 = 不限":"256m / 1g; empty = unlimited","256m / 1g，留空不限":"256m / 1g; empty = unlimited","256m，留空不限":"256m; empty = unlimited","2天14小时":"2d 14h","3小时20分":"3h 20m","42秒":"42s","5 分":"5 min","512m，留空 = 不限":"512m; empty = unlimited","512m，留空不限":"512m; empty = unlimited","5分":"5 min","6 小时":"6 hours","8.8.8.8 或 baidu.com":"8.8.8.8 or baidu.com","<名字>":"<名字>","AI 有 20 个工具，能读、能建、能改名、能提交镜像，但确认按钮只在人手里。":"AI has 20 tools: it can read, create, rename, and commit images, but only you can confirm.","AI 权限":"AI permissions","AI 现在是":"AI is now","CPU 上限":"CPU limit","CPU 权重":"CPU weight","CPU 核心数":"CPU core count","CPU 核数":"CPU cores","CPU 绑核":"CPU pinning","CPU 配额（核）":"CPU quota (cores)","DHCPv6 不在 LXC 配置里写死地址，靠容器内的客户端去拿 —— 宿主那边得有 RA 或 DHCPv6 服务，否则拿不到。":"DHCPv6 does not hard-code an address in the LXC config; the client inside the container obtains one. The host must provide RA or a DHCPv6 service, or no address is assigned.","DHCPv6 靠容器内的客户端与宿主的 RA / DHCPv6 服务拿地址，插件不写死配置。":"DHCPv6 gets its address through the client in the container and the host's RA / DHCPv6 service; the plugin does not hard-code the config.","DNS（空格或逗号分隔）":"DNS (space- or comma-separated)","Docker Hub 上没搜到「":"No results on Docker Hub for “","Esc 退出全屏":"Esc to exit fullscreen","IO 权重":"I/O weight","IPv4 地址":"IPv4 address","IPv4 方式":"IPv4 method","IPv4 网关":"IPv4 gateway","IPv6 地址":"IPv6 address","IPv6 网关":"IPv6 gateway","JSON 得是一个非空数组，第一项是网卡对象。":"JSON must be a non-empty array whose first item is a network interface object.","JSON 解析失败。":"Failed to parse JSON.","JSON 解析失败，先改好再收起来：":"Fix the JSON errors before collapsing:","JSON 里的 hwaddr 格式不对：":"Invalid hwaddr format in JSON:","LXC 模板给每份缓存标了过期时间，到期后建容器会重新下载。":"LXC templates mark each cache with an expiry time; creating a container after expiry downloads it again.","LXC 的默认网络":"Default LXC network","LXC 网卡":"LXC network interface","LXC 能用的存储后端：":"Available LXC storage backends:","LXC 要联网从 images.linuxcontainers.org 拉 rootfs，慢的话几分钟；rootless/权限问题会原样报错，不会假装成功。":"LXC needs to download rootfs from images.linuxcontainers.org; slow downloads can take a few minutes. Rootless and permission errors are shown as-is, never reported as success.","LXC 默认存储配置已保存":"Default LXC storage settings saved","LXC 默认走 NAT（lxcbr0，10.0.3.0/24）：容器拿内网地址，出网由宿主转发，跟宿主网段隔离。":"LXC uses NAT by default (lxcbr0, 10.0.3.0/24): containers get private addresses, outbound traffic is forwarded by the host, and they are isolated from the host subnet.","MAC 地址":"MAC address","MAC 撞车已自动避让：":"MAC collision avoided automatically:","MAC 格式不对：要 6 组两位十六进制，例如 00:16:3e:8a:1c:44。":"Invalid MAC format: use 6 pairs of two hexadecimal digits, e.g. 00:16:3e:8a:1c:44.","MTU（留空 = 自动）":"MTU (empty = automatic)","NetworkManager 连接":"NetworkManager connection","PID 上限":"PID limit","Pod 名":"Pod name","Pod 已创建":"Pod created","Pod 让一组容器共享网络、PID 等 namespace。当前 compose 路径仍固定 --in-pod=false。":"A Pod lets a group of containers share network, PID, and other namespaces. The compose path still uses --in-pod=false.","Podman 删除会先停容器并改名进这里；恢复会保留原运行状态，彻底删除才真的删。":"Podman deletion stops the container and moves it here under a new name. Restoring preserves its original running state; only permanent deletion actually removes it.","Podman 容器配置":"Podman container configuration","Podman 的容器配置用「概览 → 展开原始数据」看。要改端口/网络归属，目前只能重建容器（第一版不提供一键重建）。":"View Podman container configuration under Overview → Expand raw data. Changing ports or network membership currently requires rebuilding the container (no one-click rebuild in v1).","Quadlet 文件长这样（Podman 4.4+ 才有生成器）":"A Quadlet file looks like this (the generator requires Podman 4.4+)","TOKEN_EXPIRY / AUTH_MODE 这类明显不是口令的键不打码。要看哪条单独点「显示」。":"Keys such as TOKEN_EXPIRY / AUTH_MODE that are clearly not passwords are not masked. Click Show to reveal a specific value.","WebSocket 连不上（可能被反代挡了，或者会话过期）":"WebSocket connection failed (possibly blocked by a reverse proxy, or the session expired)","\\r\\n[进程已退出":"\\r\\n[Process exited","active-backup（主备）":"active-backup (active/standby)","addon-fit 加载了但没挂上 FitAddon":"addon-fit loaded, but FitAddon was not attached","always —— 总是重启":"always — always restart","balance-rr（轮询）":"balance-rr (round robin)","capabilities、init 命令、启动顺序是启动那一刻才读的，改完要重启容器。":"Capabilities, the init command, and startup order are read at startup; restart the container after changing them.","cgroup 实时值：cpuset=":"Live cgroup value: cpuset=","compose 文件有问题":"Invalid compose file","compose 项目里的「命名卷」会出现在这里；bind mount 用的是宿主目录，不在这。":"Named volumes from compose projects appear here; bind mounts use host directories and do not.","dir 后端没有磁盘大小，rootfs 直接长在宿主文件系统上":"The dir backend has no disk size; rootfs grows directly on the host filesystem","dir 后端直接使用宿主目录，磁盘大小设置不生效；空间由所在分区决定。":"The dir backend uses a host directory directly, so disk size settings have no effect. Available space depends on the partition.","dir（宿主上的目录，不占 loop 设备）":"dir (directory on the host; no loop device)","dsh 建的 LXC 容器都从这里取系统镜像。第一次建某个发行版会下载一份存下来，之后就是秒级。":"LXC containers created by dsh get their system images from here. The first container for a distro downloads and caches an image; later creations take seconds.","dsh-container-manager: 面板样式":"dsh-container-manager: panel styles","entrypoint（空格分隔，留空 = 用镜像的）":"entrypoint (space-separated; empty = use the image's)","ext4 上每个快照都是整份 rootfs 复制，占盘也慢；只清理本策略创建的快照，不动手工快照。":"On ext4, every snapshot is a full copy of rootfs, using disk space and taking time. Only snapshots created by this policy are cleaned up; manual snapshots are left untouched.","fe80::1，可留空":"fe80::1; optional","https://ntfy.sh/你的主题 或 https://api.day.app/你的key":"https://ntfy.sh/你的主题 or https://api.day.app/你的key","init 命令":"init command","internal（无出站）":"internal (no outbound access)","json（POST 结构化体）":"json (structured POST body)","loop 大小":"loop size","loop（一块虚拟磁盘，可限大小）":"loop (a virtual disk with a configurable size)","lxcbr0 在":"lxcbr0 exists","lxcbr0 没起":"lxcbr0 is not running","macvlan 已加载":"macvlan loaded","macvlan 未加载":"macvlan not loaded","miimon（毫秒）":"miimon (ms)","nft 需要 root。本机 sudo -n 可用时才能读；读不到不代表没有规则。":"nft requires root. It can be read only when sudo -n is available on this host; a read failure does not mean there are no rules.","no —— 不自动重启":"no — do not restart automatically","on-failure —— 非零退出才重启":"on-failure — restart only on non-zero exit","ping 中…":"Pinging…","podman run · 需重建生效":"podman run · rebuild required","podman update · 立即生效":"podman update · applies immediately","podman-compose 还没就绪":"podman-compose is not ready","podman（默认）":"podman (default)","registry 登录成功":"Registry login successful","rootfs 后端":"rootfs backend","rootfs 是":"rootfs is","rootfs 是宿主上的目录 /var/lib/lxc/":"rootfs is the host directory /var/lib/lxc/","rootless Podman 建 macvlan/ipvlan 网络需要 CAP_NET_ADMIN（宿主上要有 root 通道）；驱动一般已在内核里。失败时错误会原样显示。":"Rootless Podman requires CAP_NET_ADMIN to create macvlan/ipvlan networks (root access on the host is required); the drivers are usually already in the kernel. Errors are shown as-is.","rootless Podman 绑不了 1024 以下的宿主端口；镜像名写全一点（docker.io/library/...）拉取更稳。":"Rootless Podman cannot bind host ports below 1024. Use fully qualified image names (docker.io/library/...) for more reliable pulls.","swap 上限":"Swap limit","systemd 管的容器定义。改完文件要「重新生成」才生效。":"Container definitions managed by systemd. After editing the file, regenerate the unit for changes to take effect.","unit 已重新生成":"Unit regenerated","unless-stopped —— 除非手动停掉":"unless-stopped — unless stopped manually","xterm 挂不到容器上：":"Failed to attach xterm to the container:","· 15 分":"· 15 min","· 丢包":"· packet loss","· 二进制":"· binary","· 任务":"· tasks","· 允许":"· allowed","· 容器内 shell":"· container shell","· 已启用":"· enabled","· 收":"· received","· 未启用":"· disabled","· 还没握过手":"· no handshake yet","← 全部容器":"← All containers","← 全部项目":"← All projects","★官方":"★ Official","一个目录一个项目：compose.yaml / compose.yml / docker-compose.yaml / docker-compose.yml 都认，优先取第一个匹配。":"One directory per project: compose.yaml / compose.yml / docker-compose.yaml / docker-compose.yml are supported; the first match is used.","一行一个：宿主:容器，例如 8080:80；只写容器端口就表示随机映射；末尾加 /udp 走 UDP。":"One per line: host:container, e.g. 8080:80. A container port alone means a random mapping; append /udp for UDP.","一行一个：宿主路径 容器路径。写进 lxc.mount.entry，容器下次启动时生效。":"One per line: host path container path. Written to lxc.mount.entry and applied the next time the container starts.","一键安装":"One-click install","上。改这两项要删了重建。":". Changing these two requires deleting and rebuilding.","上传":"Upload","上传文件到当前目录":"Upload a file to the current directory","上限":"Limit","上面这套 NAT 归插件管，能替你建、替你修。想跟宿主同网段，得你先在「宿主网络 → 网卡 → ＋ 新建连接」":"The NAT setup above is managed by the plugin, which can create and repair it. To use the host's subnet, first create a connection under Host Network → Interface → + New Connection","下载 rootfs 并创建…（可能要几分钟）":"Download rootfs and create… (may take a few minutes)","下载于":"Downloaded on","不可撤销，数据卷不会自动清。":"This cannot be undone; data volumes are not removed automatically.","不可用":"Unavailable","不可用：":"Unavailable:","不开":"Off","不接网络":"No network","不管":"Ignore","不管 IPv4":"Ignore IPv4","不管 IPv6":"Ignore IPv6","不要把这条当默认路由":"Do not use this as the default route","不通":"Unreachable","不限":"Unlimited","且不超过":"and no more than","丢弃 capabilities":"Drop capabilities","丢弃 capabilities（空格分隔）":"Drop capabilities (space-separated)","丢弃的 capabilities":"Dropped capabilities","个 —":" —","个任务在跑":" tasks running","个任务排队":" tasks queued","个包":" packets","个容器":" containers","个容器 /":" containers /","个容器 ·":" containers ·","个容器不属于任何项目（手工 podman run 的）。":" containers are not part of any project (created manually with podman run).","个有新版":" with newer versions","个服务在跑":" services running","个比不了":" could not be compared","个网络":" networks","个这轮没查（一次最多 12 个）":" not checked this round (up to 12 at a time)","个镜像，":" images,","主机名":"Hostname","也不会把物理网卡插进去（那会断你自己的网）。桥建好之后，新建容器时的网桥下拉里就能选到它。":"It also does not attach the physical network interface (that would disconnect your network). Once the bridge is created, it appears in the bridge dropdown when creating a container.","人点的":"User-initiated","从左边选一个项目，看它的服务、端口和 YAML。":"Select a project on the left to view its services, ports, and YAML.","从归档导入":"Import from archive","从这台机往外 ping。填 IP 或域名，不带参数。":"Ping from this host. Enter an IP address or hostname without options.","以太网":"Ethernet","任一步失败都会把旧容器放回去，不会先删后建。":"If any step fails, the old container is restored; it is not deleted before the new one is created.","任务（":"Tasks (","份 /":" /","份旧归档":" old archives","份）":")","优先级":"Priority","优先级（越小越优先）":"Priority (lower runs first)","会建":"Will create","会挡住：":"Will block:","传…":"Uploading…","传上去了":"Uploaded","传不上去：":"Upload failed:","例如 /app":"e.g. /app","例如 0-1 或 0,2":"e.g. 0-1 or 0,2","例如 1.5，留空不改":"e.g. 1.5; empty = no change","例如 1000:1000":"e.g. 1000:1000","例如 4，留空不绑核":"e.g. 4; empty = no pinning","例如 512m / 1g":"e.g. 512m / 1g","例如 512，留空 = 不限":"e.g. 512; empty = unlimited","例如 NET_ADMIN":"e.g. NET_ADMIN","例如 SYS_ADMIN":"e.g. SYS_ADMIN","例如 br-lab":"e.g. br-lab","例如 host / bridge / 网络名":"e.g. host / bridge / 网络名","例如 no-new-privileges":"e.g. no-new-privileges","例如 public":"e.g. public","例如 web-01":"e.g. web-01","保存中…":"Saving…","保存后先挂起，确认时写进 /var/lib/lxc/<名字>/config（自动备份）并重启容器生效。":"Saving queues the change for confirmation; on confirmation, writes /var/lib/lxc/<名字>/config (with an automatic backup) and restarts the container to apply it.","保存失败：":"Save failed:","保存时会先解析一遍：写坏了会报第几行第几列，文件不动。注释和别的服务都保留。":"Saving parses the file first: syntax errors report the line and column, and the file is left unchanged. Comments and other services are preserved.","保存默认值":"Save defaults","保存（会挂起）":"Save (requires confirmation)","信息":"Info","修改":"Edit","候选":"Candidates","值写完就再也读不回来（podman 本身不给回读），所以这里只列名字。挂到容器上用 --secret 名字。":"Once written, a value cannot be read back (podman itself does not support this), so only names are listed here. Mount it in a container with --secret 名字.","值（只在这台浏览器里待一会）":"Value (kept in this browser temporarily)","停止中":"Stopping","停用":"Disable","健康检查":"Health check","健康检查中":"Health check in progress","健康检查失败":"Health check failed","先 pull 这个服务的镜像，再只重建它（别的服务不动）":"Run pull for this service's image first, then rebuild only this service (other services are untouched)","先勾几个容器。":"Select a few containers first.","先在「概览」里启动它，再回来开终端。":"Start it under Overview first, then return to open the terminal.","先在左边选一个容器。":"Select a container on the left first.","先填 Pod 名。":"Enter a Pod name first.","先填个关键词，比如 nginx。":"Enter a keyword first, e.g. nginx.","先看「概览」里节点不可用的原因；LXC 需要先装 helper（sudo bash helper/install-helper.sh）。":"Check Overview for why the node is unavailable; LXC requires the helper first (sudo bash helper/install-helper.sh).","先选一个容器。":"Select a container first.","克隆 MAC":"Clone MAC","克隆中…":"Cloning…","全屏":"Fullscreen","全部":"All","全部服务":"All services","建好了":"Created","建完会立刻激活。team 需要 teamd，这台机没有，所以不在列表里。":"It activates immediately after creation. team requires teamd, which is not installed on this host, so it is not listed.","建容器时的限制":"Container creation limits","建快照":"Create snapshot","建目录":"Create directory","开启 STP":"Enable STP","开始":"Start","开机自动连接":"Auto-connect at boot","开机自启":"Start at boot","开着但一个容器都没选，等于没开。":"Enabled with no containers selected has no effect.","开着但一个容器都没选，等于没开。上面点容器名加进来。":"Enabled with no containers selected has no effect. Select container names above to add them.","异常":"Error","异常退出":"Exited unexpectedly","张表）":"tables)","归档":"Archive","归档必须是 lxc export 产出的 .tar / .tar.gz / .tar.xz；导入后的容器是停止状态，名字不能和现有的重。":"Archives must be .tar / .tar.gz / .tar.xz files created by lxc export. Imported containers are stopped, and their names must not conflict with existing ones.","归档目录（留空 = 默认 /var/lib/dsh-container-manager/exports）":"Archive directory (blank = default /var/lib/dsh-container-manager/exports)","归档绝对路径，例如 /var/lib/dsh-container-manager/exports/xxx.tar.gz":"Absolute archive path, e.g. /var/lib/dsh-container-manager/exports/xxx.tar.gz","归档落在宿主的备份目录里，容器本身不动。":"Archives are stored in the host backup directory; containers are left unchanged.","归档路径与新容器名都要给。":"Both an archive path and a new container name are required.","归档（":"Archive (","当前 helper 支持 loop 虚拟磁盘与 dir 目录后端；btrfs/zfs/lvm 要装对应工具后才会有秒级快照能力。":"The current helper supports loop virtual disks and the dir storage backend. btrfs/zfs/lvm require their respective tools for instant snapshots.","当前以原始 JSON 为准，上面的字段不参与保存。":"The raw JSON is authoritative; the fields above are not saved.","当前是快照模式；点「跟随」查看增量日志。":"Snapshot mode is active. Click Follow to view incremental logs.","当前没有改动。动哪一项，下面的按钮才会亮。":"No changes yet. The buttons below light up when you edit a field.","当前终端通道只支持本机 Podman 与 LXC，避免误连本机同名容器。":"The current terminal channel supports only local Podman and LXC to avoid accidentally connecting to same-named containers on this host.","快照备注（可选）":"Snapshot note (optional)","快照（":"Snapshot (","总上限，-1 = 不限":"Total limit, -1 = unlimited","恢复中":"Resuming","恢复失败：":"Restore failed:","恢复已挂起，去待确认里点确认":"Restore is pending. Confirm it in Pending confirmation.","意味着容器直接进这个网段，和宿主同级；要 DHCP 才拿得到地址。":"This places the container directly on the subnet at the same level as the host; DHCP is required to obtain an address.","手动":"Manual","打开这个文件":"Open this file","批量":"Batch","把上面这几行发给汐，就能直接定位。":"Send the lines above to Xi to pinpoint the issue.","拉取失败：":"Pull failed:","拉新重建":"Pull and recreate","拉镜像并创建…":"Pull image and create…","挂在哪块网卡上":"Parent interface","挂载点已写入 config":"Mount points written to config","挂载要写成 /宿主:/容器[:ro]：":"Mounts must use /宿主:/容器[:ro]:","挂载（一行一条）":"Mounts (one per line)","排队":"Queue","排队中":"Queuing","探…":"Probing…","探测中…":"Probing…","接口":"Interface","接口名（留空 = 用连接名）":"Interface name (blank = connection name)","接口调的":"API","接管现有容器":"Adopt existing container","提交中…":"Submitting…","提交已在「待确认」里挂起 —— 去页面底部点一下才真的做。":"Commit is pending in Pending confirmation. Click it at the bottom of the page to proceed.","提交（会先挂起）":"Commit (confirmation required)","搜…":"Searching…","搜不了：":"Search failed:","搜索域":"Search domain","操作":"Actions","收起":"Collapse","收起原始 JSON":"Collapse raw JSON","收起输出":"Collapse output","改 DNS":"Change DNS","改 DNS 已挂起，去待确认里点一下":"DNS change is pending. Confirm it in Pending confirmation.","改不了：":"Could not change:","改动已挂起，去待确认里点一下":"Changes are pending. Confirm them in Pending confirmation.","改名":"Rename","改名了：":"Renamed:","改某条连接的 DNS":"Change DNS for a connection","改端口":"Change ports","改过，没保存":"Changed, not saved","放哪":"Location","放大字号":"Increase font size","数据已过期：":"Stale data:","整份复制 rootfs 成一个新容器（停止状态）。源容器得先停掉；ext4 上很占磁盘。":"Copies the entire rootfs into a new stopped container. The source container must be stopped first; this uses a lot of disk space on ext4.","整组一起终止（oom.group）":"Kill the entire group (oom.group)","文件比容器新":"File is newer than the container","文件：":"File:","新名字":"New name","新名字不能空。":"New name cannot be blank.","新增":"Add","新增 capabilities":"Add capabilities","新增 capabilities（空格分隔）":"Add capabilities (space-separated)","新容器名":"New container name","新容器后端":"New container backend","新建 LXC 容器":"Create LXC container","新建 Podman 容器":"Create Podman container","新建只从面板走：AI 那边（container_secret）会被明确拒绝，密钥不该经过模型。":"Secrets must be created from the panel. container_secret explicitly rejects AI requests because secrets should not pass through the model.","新建已挂起，去待确认里点一下":"Creation is pending. Confirm it in Pending confirmation.","新建网络":"Create network","新建连接":"Create connection","新旧名字一样，不用改。":"The new and old names are the same; no change needed.","新目录名":"New directory name","方式":"Method","无 endpoint":"No endpoint","无参数变更":"No parameter changes","无变化":"No changes","日常":"Common","时间":"Time","显示":"Show","暂停":"Pause","暂停中":"Pausing","更多":"More","更新":"Update","最新":"Up to date","最近":"Recent","最近 300 行。":"Last 300 lines.","最近发过：":"Last sent:","最近：":"Recent:","有效到":"Valid until","有新版":"Update available","有未保存的改动":"Unsaved changes","服务":"Service","未分组容器":"Ungrouped containers","未启动":"Not started","未知原因":"Unknown reason","未知错误":"Unknown error","未设上限":"No limit set","本机没装 skopeo，远端 digest 问不到 —— 装上才能真的比。":"skopeo is not installed on this host, so remote digests cannot be checked. Install it to compare versions.","权限":"Permissions","条 · 谁点过危险操作、AI 发起过什么，都记在 audit.jsonl 里":"entries · Dangerous-operation confirmations and AI-initiated actions are recorded in audit.jsonl","条发出，":"sent,","条失败：":"failed:","条待确认":"pending confirmation","条链":"chains","来源":"Source","架构":"Architecture","查了":"Checked","查更新":"Check for updates","标签":"Tag","核心数，例如 4，留空 = 不绑核":"Number of CPU cores, e.g. 4; blank = no CPU pinning","根目录":"Root directory","根目录已保存：":"Root directory saved:","根目录没配或不可用时先在上面填一个。":"If the root directory is not configured or unavailable, enter one above first.","格式不对：要 6 组两位十六进制，例如 00:16:3e:8a:1c:44。":"Invalid format: enter six pairs of hexadecimal digits, e.g. 00:16:3e:8a:1c:44.","检查中":"Checking","模式":"Mode","次要":"More","次采样":"samples","次采样，峰值":"samples, peak","正在打开容器内的 shell…":"Opening a shell inside the container…","正常":"Healthy","段错误 SIGSEGV":"Segmentation fault SIGSEGV","每 2 秒拉取增量日志；切到后台时暂停。":"Fetches incremental logs every 2 seconds; pauses when in the background.","每个容器的虚拟磁盘":"Virtual disk for each container","比不了":"Cannot compare","没成功":"Failed","没有 IPv4":"No IPv4","没有可判定的项":"No items to report","没有可用的 LXC 节点。":"No LXC node available.","没有可用的 LXC 节点（要装 root helper）。":"No LXC node available (install the root helper).","没有可用的 Podman 节点。":"No Podman node available.","没有可用的节点。":"No node available.","没有可用的节点，建不了容器。":"No node available; cannot create a container.","没有可用节点。":"No node available.","没有填任何限制项。":"No limits specified.","没有改任何参数，不需要重建。":"No parameters changed; no rebuild needed.","没有改动":"No changes","没有网络信息。":"No network information.","没有配置 nameserver。":"No nameserver configured.","测试告警发出":"Test alert sent","浏览器不给剪贴板权限，手动选一下":"Clipboard access was denied by the browser. Select manually.","清屏":"Clear screen","清屏（只清显示，不动 shell 的历史）":"Clear screen (display only; shell history is preserved)","清空":"Clear","渲染出错，已经拦在这里（页面其它部分还能用）":"A rendering error was contained here; the rest of the page still works","渲染失败":"Rendering failed","点「立即生效」就写进 cgroup，容器在跑也不用重启；同一份值会写回 config，下次开机照旧。留空 = 不限（权重留空 = 内核默认 100）。":"Click Apply now to write to cgroup without restarting a running container. The same values are written back to config for the next boot. Blank = unlimited (blank weight = kernel default 100).","点「编辑」改配置。启停、删除、新建都会先挂起，等你在待确认里点。":"Click Edit to change settings. Start, stop, delete, and create actions must be confirmed in Pending confirmation.","点一个填进上面的框：":"Click one to fill the field above:","点一行展开邻居表。速率与驱动来自 /sys。":"Click a row to expand the neighbor table. Rates and drivers come from /sys.","版本":"Version","特权模式":"Privileged mode","特权模式（--privileged，容器内等于宿主 root）":"Privileged mode (--privileged; equivalent to host root inside the container)","状态问不到":"Status unavailable","环境变量要写成 KEY=VALUE：":"Environment variables must use KEY=VALUE:","环境变量（一行一条）":"Environment variables (one per line)","现在到期的：":"Expiring now:","现在没有到期的。":"Nothing is expiring now.","现在没有在跑的任务":"No running tasks","现在跑一轮":"Run now","留空 = 不设":"Blank = unset","留空 = 发行版默认 init（例如 /sbin/init；填 /bin/sh 就是直接进 shell）":"Blank = distro default init (e.g. /sbin/init; /bin/sh starts a shell directly)","留空 = 用容器名":"Blank = use the container name","留空 = 用真 MAC":"Blank = use the real MAC","留空 = 随机":"Blank = random","留空用镜像自带的":"Blank = use the image default","留空用随机名":"Blank = use a random name","登录失败：":"Login failed:","登录私有 registry":"Log in to private registry","的端口":"port","的能力":"capabilities","监听端口":"Listen port","目录":"Directory","目录建不了：":"Could not create directory:","目录：":"Directory:","目标":"Target","直接编辑原始 JSON":"Edit raw JSON directly","真删":"Delete permanently","确认删":"Confirm deletion","确认删除":"Confirm deletion","确认挂起删除":"Confirm pending deletion","确认重建":"Confirm rebuild","磁盘大小":"Disk size","私钥":"Private key","空格分隔，例如 sys_module mac_admin mac_override；留空 = 不丢弃":"Space-separated, e.g. sys_module mac_admin mac_override; blank = drop none","立即生效":"Apply now","端口与挂载":"Ports & Mounts","端口协议只支持 tcp/udp：":"Port protocol must be tcp/udp:","端口映射":"Port mapping","端口行看不懂：":"Invalid port entry:","端口（一行一条）":"Ports (one per line)","等几秒再起，留空 = 0":"Seconds to wait before starting; blank = 0","筛选容器 / 镜像 / 状态":"Filter containers / images / status","算了":"Cancel","管，别手改":"Managed; don't edit manually","类型":"Type","类型的连接 —— 插件不会替你在宿主上建桥，":"connection — the plugin won't create the bridge on the host for you,","系统 DNS（/etc/resolv.conf）":"System DNS (/etc/resolv.conf)","系统镜像缓存":"System image cache","累计":"Total","终端写入失败：":"Terminal write failed:","终端出错":"Terminal error","绑核":"CPU pinning","结果":"Result","缓存已过期，下次建会重新下载":"Cache expired; the next creation will download it again","编辑":"Edit","缩小字号":"Decrease font size","网关":"Gateway","网关（可选）":"Gateway (optional)","网卡与资源":"Interfaces & Resources","网卡数组（JSON）":"Interface array (JSON)","网桥":"Bridge","网络与地址":"Network & Addresses","网络操作已挂起":"Network operation pending","网络模式":"Network mode","自动":"Automatic","自动（DHCP）":"Automatic (DHCP)","至少要有一块网卡。":"At least one interface is required.","节点":"Node","虚拟接口（dummy）":"Virtual interface (dummy)","被 SIGKILL（常见于内存超限）":"Killed by SIGKILL (often due to memory limits)","被 SIGTERM 终止":"Terminated by SIGTERM","被中断":"Interrupted","装好了":"Installed","要备份的容器：":"Containers to back up:","要快照的容器：":"Containers to snapshot:","要恢复的归档绝对路径":"Absolute path of the archive to restore","要桥接得自己建桥。":"To use bridging, create the bridge yourself.","要给个镜像名，比如 local/名字:日期。":"Provide an image name, e.g. local/名字:日期.","要重启容器才生效":"Restart the container for changes to take effect","说明":"Description","读 nft 规则中…":"Reading nft rules…","读 quadlet 目录…":"Reading quadlet directories…","读…":"Reading…","读不了":"Could not read","读不到":"Not available","读不到实时占用：":"Could not read live resource usage:","读不到容器台数据：":"Could not read container manager data:","读不到宿主网络：":"Could not read host network:","读不到活动日志：":"Could not read activity logs:","读不到磁盘":"Disk unavailable","读不到配置":"Configuration unavailable","读不到防火墙。":"Could not read the firewall.","读不到项目：":"Could not read project:","读取失败：":"Read failed:","读取容器配置…":"Reading container configuration…","读本地文件失败。":"Could not read the local file.","读目录…":"Reading directory…","读详情失败：":"Could not read details:","读连接配置中…":"Reading connection configuration…","读项目详情失败：":"Could not read project details:","负载":"Load","资源限制":"Resource limits","资源（CPU / 内存 / 进程 / IO）":"Resources (CPU / memory / processes / IO)","走 podman update，保存后会读回来核对是否真的生效 —— rootless podman 4.3.1 常常只写配置、不写 cgroup，那种情况会直接报错而不是假装成功。重启策略 / 端口 / 挂载改不了，要换就「以此配置新建」再删旧的。":"Uses podman update and verifies the saved values afterward — rootless podman 4.3.1 often writes the config but not the cgroup, so that case reports an error instead of pretending it worked. Restart policy / ports / mounts are fixed; choose “Create with this config” and delete the old container to replace them.","超过先回收":"Reclaim excess memory","超过先回收、不直接 OOM，留空 = 不限":"Reclaim excess memory instead of OOM; blank = unlimited","越大越后启动，留空 = 默认":"Higher values start later; blank = default","跑…":"Running…","跑一遍":"Run once","跑不了：":"Could not run:","跑着":"Running","路由表（":"Routes (","跳过了：":"Skipped:","身份信息":"Identity","转发延迟（秒）":"Forwarding delay (seconds)","输出":"Output","过期":"Expired","运行中的主机名没改成功（容器里可能没有 hostname 命令），重启后按 config 生效":"Could not change the hostname of the running container (the container may not have the hostname command); restart for the config to take effect","运行时限制":"Runtime limits","运行用户":"Run as user","返回":"Back","返回格式不对。":"Unexpected response format.","还原":"Reset","还没启用":"Not enabled yet","还没有 Pod。":"No Pods yet.","还没有 lxcbr0（在下面点一次「启用 lxcbr0」）。":"lxcbr0 does not exist yet (click “Enable lxcbr0” below).","还没有 secret。":"No secret entries yet.","还没有任务。克隆、快照、导出、提交镜像这类会跑几分钟的操作都会落到这里。":"No jobs yet. Operations such as cloning, snapshots, exports, and image commits that take several minutes appear here.","还没有出口 —— 告警只会留在面板里，没人会收到通知。":"No endpoint yet — alerts stay in the panel, and no notifications are sent.","还没有卷。":"No volumes yet.","还没有容器。":"No containers yet.","还没有快照。":"No snapshots yet.","还没有数据。":"No data yet.","还没有检查记录（容器刚起来时正常）。":"No health check records yet (normal right after a container starts).","还没有结果。":"No results yet.","还没有缓存。建一个 LXC 容器就会在这里落一份。":"No cache yet. Creating an LXC container will add one here.","还没有网络。":"No networks yet.","还没有规则，先添加一条。":"No rules yet. Add one first.","还没有邻居记录":"No neighbor records yet","还没有镜像。":"No images yet.","还没有项目。基础目录下的每个一级子目录，只要里面有 compose 文件，就会成为一个项目。":"No projects yet. Each first-level subdirectory under the base directory with a compose file becomes a project.","这个 compose 文件里没有服务。":"This compose file has no services.","这个文件":"This file","这个目录下还没有 compose 项目。建一个子目录，把 docker-compose.yml 放进去就会出现在这里。":"No compose projects in this directory yet. Create a subdirectory and place docker-compose.yml inside to see it here.","这个目录是空的。":"This directory is empty.","这个目录里还没有归档。":"No archives in this directory yet.","这个筛选下还没有记录。":"No records match this filter.","这个节点不可用":"This node is unavailable","这些参数在 podman run 那一刻就定死了，改只能重建容器：会换一个新的容器 ID，":"These parameters are fixed by podman run; changing them requires rebuilding the container with a new container ID,","这些目录里还没有 quadlet 文件。":"No quadlet files in these directories yet.","这些键本插件还不支持：":"Keys not supported by this plugin:","这台建的时候没写 hwaddr，MAC 由内核随机生成 —— 容器每重启一次就可能变。填上并保存就固定了。":"No hwaddr was set when this was created, so the kernel generated a random MAC — it may change on every container restart. Enter one and save to keep it fixed.","这台机":"This host","这台机还用不了 Quadlet。":"Quadlet is not available on this host yet.","这块内容":"This content","这是二进制文件，面板里只给下载，不在文本框里改。":"This is a binary file. Download it from the panel; text editing is disabled.","这条连接是只读的，改不动。":"This connection is read-only.","这轮没有到期的东西":"Nothing is due this run","这道闸门管的是 AI 能「发起」什么，不是替人省确认：危险操作永远还要你在待确认里点一下。":"This gate controls what the AI can initiate, not whether you confirm it. Dangerous operations still require a click in Pending confirmation.","这里只读骨架。改防火墙能一下把自己关在外面，所以本面板不做写；要看全文用下面的「复制规则」。":"This is a read-only skeleton. A firewall change can lock you out immediately, so this panel does not write rules. Use “Copy rules” below to get the full configuration.","这里还没攒够历史":"Not enough history yet","进容器跑诊断…":"Running diagnostics inside the container…","进这个目录":"Open this directory","远端 SSH 节点的终端暂未开放。":"Terminal access is not yet available for remote SSH nodes.","连不上":"Connection failed","连接中…":"Connecting…","连接名":"Connection name","连接已断开":"Disconnected","连续失败":"Consecutive failures","连通性诊断":"Connectivity check","退出全屏（Esc）":"Exit full screen (Esc)","退出后自动删除":"Remove automatically on exit","退出后自动删除容器（--rm）":"Remove the container automatically on exit (--rm)","退出码":"Exit code","选一个容器…":"Select a container…","选了":"Selected","通用":"General","那是 podman 4.3.1 的老毛病——要看真实上限得读容器内的 cgroup，别拿 inspect 当没生效的证据。":"That's a known podman 4.3.1 issue — read the cgroup inside the container to see the actual limit. inspect does not prove the limit was not applied.","邻居":"Neighbors","配置里还有 deny 名单挡着这些工具：":"The configuration deny-list also blocks these tools:","里建一块":"and create a","重启中":"Restarting","重启策略":"Restart policy","重建 lxcbr0":"Rebuild lxcbr0","重新探测":"Probe again","重新生成 unit":"Regenerate unit","重新读取":"Reload","重新连接":"Reconnect","重连":"Reconnect","链路聚合":"Link aggregation","键名里带 SECRET / KEY / PASS / TOKEN / PWD / AUTH / CREDENTIAL 的默认打码；":"Keys containing SECRET / KEY / PASS / TOKEN / PWD / AUTH / CREDENTIAL are masked by default;","镜像名要带 registry 或本地能解析到；拉取会走网络，慢的话多等一会。「搜一下」是去 Docker Hub 按关键词找，不通也不挡你直接填名字。":"The image name must include a registry or resolve locally. Pulling uses the network, so allow extra time if it is slow. “Search” looks for keywords on Docker Hub; if it is unavailable, you can still enter a name directly.","镜像名，比如 local/名字:日期":"Image name, e.g. local/名字:日期","镜像缓存":"Image cache","镜像（":"Images (","长操作在地板上排队，刷新页面不会打断它":"Long-running operations are queued in the background; refreshing the page will not interrupt them","长操作（克隆 / 快照 / 导出 / 提交）在队列里跑，关掉页面也继续":"Long-running operations (clone / snapshot / export / commit) continue in the queue even after the page is closed","问仓库…":"Checking registry…","阈值":"Threshold","防火墙 zone":"Firewall zone","随机":"Random","随机换一个":"Randomize","隐藏":"Hide","需要在本机建一个 venv 并装上 podman-compose。":"Create a venv on this host and install podman-compose.","静态":"Static","静态 IPv4 要给地址（带前缀，例如 10.0.3.230/24）。":"Static IPv4 requires an address with a prefix, e.g. 10.0.3.230/24.","静态 IPv6 要给地址（带前缀，例如 2408:8207::5/64）。":"Static IPv6 requires an address with a prefix, e.g. 2408:8207::5/64.","静态路由（每行：目的 网关 metric）":"Static routes (one per line: destination gateway metric)","面板":"Panel","项受限":"restricted","项可用":"available","项太多，只列了前 2000 个。":"Too many items to show; only the first 2000 are listed.","项没探出来":"unknown","项缺失":"missing","项）":"items)","额外数据盘":"Extra data disks","驱动":"Driver","高级":"Advanced","（podman/ 与 lxc/ 会在下面自动出现）":"(podman/ and lxc/ appear automatically below)","（上次":"(last ","（写成 8080:80 或 8080:80/udp）":"(use 8080:80 or 8080:80/udp)","（备份":"(backups ","（已用":"(used ","（未固定，每次启动可能变）":"(not fixed; may change on every start)","（未配置）":"(not configured)","（比容器新，改完记得重建）":"(newer than the container; rebuild after editing)","（没有 LXC 容器）":"(no LXC containers)","（没有输出）":"(no output)","（空）":"(empty)","（运行中）":"(running)","（还没导过）":"(never exported)","（还没有输出）":"(no output yet)","（这个节点上没有容器）":"(no containers on this node)","＋ 加一块数据盘":"+ Add a data disk","＋ 加一条挂载":"+ Add a mount","＋ 加一条环境变量":"+ Add an environment variable","＋ 加一条端口":"+ Add a port","＋ 新建连接":"+ New connection","，失败":", failed","，挂载在":", attached to","，换成":", replaced by","，要联网，可能几分钟。":", requires network access and may take a few minutes.","，超过 8MB，不在面板里打开。用「终端」看它。":", over 8MB, so it will not open in the panel. Use “Terminal” to view it.","，超过 8MB，传不上去。用「终端」里的工具传大文件。":", over 8MB, so the panel will not upload it. Use the tools in “Terminal” for large files.","，还有":", plus","：成了":": succeeded","？当前 rootfs 会被覆盖，容器会被停掉。":"? The current rootfs will be overwritten and the container will be stopped.","？还有容器在用它时会失败。确认后还要在下面「待确认」点一次。":"? It will fail while any container still uses it. After confirming, click once more in “Pending confirmation” below.","？里面的数据会一起没，找不回来。":"? All data inside will be permanently lost.","DHCPv6 靠容器里的客户端与宿主的 RA / DHCPv6 服务拿地址，插件不写死配置。":"DHCPv6 gets its address through the client inside the container and the host's RA / DHCPv6 service; the plugin does not hard-code the config."};
+    const t = value => {
+      if (!isEnglish || typeof value !== 'string') return value
+      return Object.hasOwn(MESSAGES, value) ? MESSAGES[value] : value
+    }
+    const translateChild = value => {
+      if (Array.isArray(value)) return value.map(translateChild)
+      return t(value)
+    }
+    const h = (type, props, ...children) => {
+      let nextProps = props
+      if (props && typeof props === 'object') {
+        nextProps = { ...props }
+        for (const key of ['placeholder', 'title', 'aria-label', 'alt', 'label']) {
+          if (typeof nextProps[key] === 'string') nextProps[key] = t(nextProps[key])
+        }
+      }
+      return rawH(type, nextProps, ...children.map(translateChild))
+    }
 
     const API = '/api/container-manager'
     const PANEL_ID = 'containers'
     const REFRESH_MS = 4000
 
-    const CSS = `
-/* ══════════════════════════════════════════════════════════
-   设计令牌层
-   所有组件只从这一层取值：改一处，全局跟着变。
-   色彩全部映射 DSH 的 --dsw-alias-*，亮/暗主题自动切换。
-   ══════════════════════════════════════════════════════════ */
-[data-cm-page]{display:flex;flex-direction:column;height:100%;min-height:0;overflow:hidden;box-sizing:border-box;
-  padding-top:var(--dsh-frame-top-clearance,0px);color:var(--cm-text);
-  background:var(--cm-canvas-glow),var(--cm-base);
-  font-size:var(--cm-f-md);line-height:1.5;-webkit-font-smoothing:antialiased;
-  /* ── 颜色全部派生自 DSH 主题令牌 ──
-     这里写的是**亮色基线**；暗色只覆盖 9 个会发光的令牌，见下面 body[data-ds-dark-theme] 那一块。
-     宿主换主题 = 换这套 alias 令牌，面板自动跟上，不需要再改一次。
-     色值只允许写在这一批 --cm-* 定义行里（test/theme.test.mjs 会过滤这些行）。 */
-  --cm-text:var(--dsw-alias-label-primary,currentColor);
-  --cm-text-2:var(--dsw-alias-label-secondary,currentColor);
-  --cm-text-dim:var(--dsw-alias-label-tertiary,#6b7280);
-  --cm-base:var(--dsw-alias-bg-base,transparent);
-  --cm-surface:var(--dsw-alias-card-fill,rgba(128,128,128,.08));
-  --cm-surface-hover:var(--dsw-alias-card-fill-hover,rgba(128,128,128,.12));
-  /* 凹槽 / 子卡 / 左栏：在底色与卡面之间取一档，亮暗两边都能分层 */
-  --cm-layer-2:color-mix(in srgb,var(--cm-surface) 55%,var(--cm-base));
-  --cm-active:var(--dsw-alias-button-elevated-fill,#e6e7ea);
-  --cm-hover:var(--dsw-alias-interactive-bg-hover,rgba(128,128,128,.1));
-  --cm-selected:var(--dsw-alias-border-selected,#adb2b8);
-  /* 强调色用 DSH 自己的静态蓝（和终端 readTermTheme() 同一套），不用 brand-primary ——
-     那是反色令牌（亮色近黑、暗色近白），拿它当强调色会得到黑药丸 / 白药丸。 */
-  --cm-accent:var(--dsw-static-blue-600,#2563eb);
-  --cm-accent-hover:color-mix(in srgb,var(--cm-accent) 82%,var(--cm-text));
-  --cm-on-accent:var(--dsw-static-neutral-bluish-00,#ffffff);
-  --cm-ok:var(--dsw-alias-state-success-primary,#22c55e);
-  --cm-warn:var(--dsw-alias-state-warn-primary,#f59e0b);
-  --cm-warn-text:var(--dsw-alias-state-warn-label,#dd8629);
-  --cm-danger:var(--dsw-alias-state-error-primary,#ef4444);
-  --cm-idle:var(--dsw-alias-label-tertiary,#6b7280);
-  /* 线条由文字色派生：亮色得「黑 8%」、暗色得「白 8%」，一条公式两套成立 */
-  --cm-line-soft:color-mix(in srgb,var(--cm-text) 8%,transparent);
-  --cm-line:color-mix(in srgb,var(--cm-text) 12%,transparent);
-  --cm-line-strong:color-mix(in srgb,var(--cm-text) 20%,transparent);
-  --cm-hairline:1px solid var(--cm-line-soft);
-  /* 亮色不发光：用一圈强调色细描边代替光晕，同一个令牌名，两套视觉 */
-  --cm-edge-light:color-mix(in srgb,var(--cm-text) 10%,transparent);
-  --cm-toplight:linear-gradient(90deg,transparent,var(--cm-edge-light),transparent);
-  --cm-glass:color-mix(in srgb,var(--cm-base) 84%,transparent);
-  --cm-canvas-glow:linear-gradient(transparent,transparent);
-  --cm-glow-accent:0 0 0 1px var(--cm-accent-line);
-  --cm-glow-ok:0 0 0 1px var(--cm-ok-line);
-  --cm-glow-warn:0 0 0 1px var(--cm-warn-line);
-  --cm-glow-top:inset 0 1px 0 color-mix(in srgb,var(--cm-text) 4%,transparent);
-  --cm-inset-groove:inset 0 1px 2px color-mix(in srgb,var(--cm-text) 6%,transparent);
-  --cm-blur:blur(12px);
-  /* ── 派生柔色：徽标、选中底、hover 都用它，避免满屏实心色块 ── */
-  --cm-accent-soft:color-mix(in srgb,var(--cm-accent) 14%,transparent);
-  --cm-accent-line:color-mix(in srgb,var(--cm-accent) 42%,transparent);
-  --cm-danger-soft:color-mix(in srgb,var(--cm-danger) 14%,transparent);
-  --cm-danger-line:color-mix(in srgb,var(--cm-danger) 42%,transparent);
-  --cm-ok-soft:color-mix(in srgb,var(--cm-ok) 14%,transparent);
-  --cm-ok-line:color-mix(in srgb,var(--cm-ok) 42%,transparent);
-  --cm-warn-soft:color-mix(in srgb,var(--cm-warn) 16%,transparent);
-  --cm-warn-line:color-mix(in srgb,var(--cm-warn) 42%,transparent);
-  /* ── 间距刻度：8px 基准（4 / 8 / 12 / 16 / 20 / 24 / 32），卡片内边距 20、外边距 16 ── */
-  --cm-s1:4px;--cm-s2:8px;--cm-s3:12px;--cm-s4:16px;--cm-s5:20px;--cm-s6:24px;--cm-s7:32px;
-  /* ── 圆角刻度：大卡片 14、分区 12、列表项与输入框 10、标签胶囊 6（四档拉开不重复） ── */
-  --cm-r-xs:6px;--cm-r-sm:10px;--cm-r-md:12px;--cm-r-lg:14px;--cm-r-full:999px;
-  /* ── 字号刻度：封死 6 档（12 / 13 / 14 / 16 / 22 / 28）。下限 12：中文 11px 笔画发糊 ── */
-  --cm-f-xs:12px;--cm-f-sm:13px;--cm-f-md:14px;--cm-f-lg:16px;--cm-f-xl:22px;--cm-f-2xl:28px;
-  /* ── 动效：一条曲线走到底，时长克制 ── */
-  --cm-ease:cubic-bezier(.2,.7,.3,1);
-  --cm-fast:.14s;--cm-slow:.24s;
-  /* ── 阴影：亮色是轻灰影，暗色靠分层暗影托起来（见分支） ── */
-  --cm-shadow-sm:0 1px 2px rgba(0,0,0,.06);
-  --cm-shadow-md:0 4px 14px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
-  --cm-shadow-lg:0 12px 32px rgba(0,0,0,.12),0 2px 6px rgba(0,0,0,.06);
-  --cm-ring:0 0 0 3px var(--cm-accent-soft);
-  /* 等宽字体栈只有一个出处，13 处引用全走这个令牌 */
-  --cm-mono:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;}
-
-/* ── 暗色分支：只换这 9 个令牌，其余全部由上面派生 ──
-   DSH 用 body[data-ds-dark-theme] 表示暗色（client.js 的 MutationObserver 已经在盯它给终端用），
-   面板 CSS 注入在 document.head，所以这个后代选择器能命中面板根节点。 */
-body[data-ds-dark-theme] [data-cm-page]{
-  --cm-accent:var(--dsw-static-blue-400,#60a5fa);
-  --cm-on-accent:#08131F;
-  --cm-edge-light:rgba(255,255,255,.14);
-  --cm-canvas-glow:radial-gradient(1100px 520px at 88% -12%,color-mix(in srgb,var(--cm-accent) 7%,transparent),transparent 68%),radial-gradient(900px 480px at 6% 108%,color-mix(in srgb,var(--cm-ok) 5%,transparent),transparent 70%);
-  --cm-glow-accent:0 0 12px color-mix(in srgb,var(--cm-accent) 35%,transparent);
-  --cm-glow-ok:0 0 8px color-mix(in srgb,var(--cm-ok) 50%,transparent);
-  --cm-glow-warn:0 0 10px color-mix(in srgb,var(--cm-warn) 40%,transparent);
-  --cm-glow-top:inset 0 1px 0 rgba(255,255,255,.06);
-  --cm-inset-groove:inset 0 1px 3px rgba(0,0,0,.35);
-  --cm-shadow-sm:0 1px 2px rgba(0,0,0,.35);
-  --cm-shadow-md:0 6px 20px rgba(0,0,0,.45),0 1px 2px rgba(0,0,0,.4);
-  --cm-shadow-lg:0 18px 48px rgba(0,0,0,.55),0 2px 8px rgba(0,0,0,.4);
-}
-
-/* ── 顶栏 ── */
-[data-cm-top]{display:flex;align-items:center;gap:var(--cm-s3);padding:var(--cm-s4) var(--cm-s6);
-  border-bottom:1px solid var(--cm-line-soft);flex:none;position:relative;z-index:2;
-  background:var(--cm-glass);backdrop-filter:var(--cm-blur);-webkit-backdrop-filter:var(--cm-blur);}
-/* 顶栏底缘一道渐隐高光，把标题区和内容区切开，而不是靠一条实线 */
-[data-cm-top]::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:1px;
-  background:var(--cm-toplight);pointer-events:none;}
-[data-cm-title]{font-size:var(--cm-f-lg);font-weight:650;letter-spacing:-.01em;line-height:1.3;}
-[data-cm-sub]{font-size:var(--cm-f-xs);color:var(--cm-text-dim);letter-spacing:.01em;}
-[data-cm-grow]{flex:1;min-width:0;}
-
-/* ── 按钮：软底 + 细描边 + focus ring，按下有 0.5px 位移 ── */
-[data-cm-btn]{display:inline-flex;align-items:center;justify-content:center;gap:var(--cm-s2);
-  border:1px solid var(--cm-line-strong);background:var(--cm-base);color:inherit;
-  border-radius:var(--cm-r-sm);padding:5px 11px;font-size:var(--cm-f-sm);line-height:1.4;
-  cursor:pointer;font-family:inherit;white-space:nowrap;
-  transition:background-color var(--cm-fast) var(--cm-ease),border-color var(--cm-fast) var(--cm-ease),
-    color var(--cm-fast) var(--cm-ease),box-shadow var(--cm-fast) var(--cm-ease),
-    transform var(--cm-fast) var(--cm-ease);}
-[data-cm-btn]:hover{background:var(--cm-hover);}
-[data-cm-btn]:active{transform:translateY(.5px);background:var(--cm-active);}
-[data-cm-btn]:focus-visible{outline:none;border-color:var(--cm-accent);box-shadow:var(--cm-ring);}
-/* 主按钮：电光青渐变 + 发光。整个界面只有它和选中态发光，亮度才有意义。
-   亮暗各自成立：亮色 glow 是 1px 细描边、暗色是真光晕，令牌层已分好。 */
-[data-cm-btn][data-primary]{background:linear-gradient(180deg,var(--cm-accent-hover),var(--cm-accent));
-  border-color:transparent;color:var(--cm-on-accent);font-weight:600;
-  box-shadow:var(--cm-glow-accent),var(--cm-glow-top);}
-[data-cm-btn][data-primary]:hover{background:linear-gradient(180deg,var(--cm-accent),var(--cm-accent-hover));
-  box-shadow:var(--cm-glow-accent),var(--cm-shadow-md);}
-[data-cm-btn][data-danger]{border-color:var(--cm-danger-line);color:var(--cm-danger);background:transparent;}
-[data-cm-btn][data-danger]:hover{background:var(--cm-danger-soft);border-color:var(--cm-danger);}
-[data-cm-btn][disabled]{opacity:.42;cursor:not-allowed;box-shadow:none;transform:none;}
-/* 键盘焦点兜底：tab / segitem / rangeitem / 可点击行没有各自的 ring，这条统一给 */
-[data-cm-page] button:focus-visible,[data-cm-page] a:focus-visible,
-[data-cm-page] [tabindex]:focus-visible{outline:none;box-shadow:var(--cm-ring);}
-
-/* ── 两栏骨架 ── */
-[data-cm-body]{display:flex;flex:1;min-height:0;}
-[data-cm-stack]{display:flex;flex-direction:column;flex:1;min-height:0;}
-/* 子 tab 条横跨整页，下面再接正文（容器页是左列表+右详情，其余是单页）。 */
-[data-cm-subbar]{flex:none;min-width:0;}
-[data-cm-subbar]:empty{display:none;}
-[data-cm-subbar] [data-cm-tabs]{margin-bottom:0;}
-[data-cm-list]{width:300px;flex:none;border-right:1px solid var(--cm-line-soft);
-  background:var(--cm-layer-2);display:flex;flex-direction:column;min-height:0;}
-[data-cm-search]{padding:var(--cm-s3) var(--cm-s3);border-bottom:1px solid var(--cm-line-soft);flex:none;}
-/* 放大镜是装饰，不抢焦点：绝对定位压在输入框左侧，input 自己加左内边距让位 */
-[data-cm-searchwrap]{position:relative;display:flex;align-items:center;}
-[data-cm-sicon]{position:absolute;left:9px;top:50%;transform:translateY(-50%);
-  display:flex;color:var(--cm-text-dim);pointer-events:none;}
-[data-cm-search] input{width:100%;box-sizing:border-box;background:var(--cm-base);
-  border:1px solid var(--cm-line-strong);border-radius:var(--cm-r-sm);color:inherit;
-  padding:7px 10px 7px 30px;font-size:var(--cm-f-sm);font-family:inherit;outline:none;
-  transition:border-color var(--cm-fast) var(--cm-ease),box-shadow var(--cm-fast) var(--cm-ease),
-    background-color var(--cm-fast) var(--cm-ease);}
-[data-cm-search] input::placeholder{color:var(--cm-text-dim);}
-[data-cm-search] input:focus{border-color:var(--cm-accent);box-shadow:var(--cm-ring),var(--cm-glow-accent);
-  background:var(--cm-layer-2);}
-[data-cm-scroll]{overflow:auto;min-height:0;flex:1;padding:var(--cm-s2) var(--cm-s3) var(--cm-s6);}
-
-/* ── 滚动条：细、半透明、hover 才显形 ── */
-[data-cm-scroll],[data-cm-dbody],[data-cm-logbox],[data-cm-pre],[data-cm-pending],
-[data-cm-editor],[data-cm-term] .xterm-viewport{scrollbar-width:thin;
-  scrollbar-color:var(--cm-line-strong) transparent;}
-[data-cm-scroll]::-webkit-scrollbar,[data-cm-dbody]::-webkit-scrollbar,
-[data-cm-logbox]::-webkit-scrollbar,[data-cm-pre]::-webkit-scrollbar,
-[data-cm-pending]::-webkit-scrollbar,[data-cm-editor]::-webkit-scrollbar,
-[data-cm-term] .xterm-viewport::-webkit-scrollbar{width:9px;height:9px;}
-[data-cm-scroll]::-webkit-scrollbar-track,[data-cm-dbody]::-webkit-scrollbar-track,
-[data-cm-logbox]::-webkit-scrollbar-track,[data-cm-pre]::-webkit-scrollbar-track,
-[data-cm-pending]::-webkit-scrollbar-track,[data-cm-editor]::-webkit-scrollbar-track,
-[data-cm-term] .xterm-viewport::-webkit-scrollbar-track{background:transparent;}
-[data-cm-scroll]::-webkit-scrollbar-thumb,[data-cm-dbody]::-webkit-scrollbar-thumb,
-[data-cm-logbox]::-webkit-scrollbar-thumb,[data-cm-pre]::-webkit-scrollbar-thumb,
-[data-cm-pending]::-webkit-scrollbar-thumb,[data-cm-editor]::-webkit-scrollbar-thumb,
-[data-cm-term] .xterm-viewport::-webkit-scrollbar-thumb{
-  background:var(--cm-line-strong);border-radius:var(--cm-r-full);
-  border:2px solid transparent;background-clip:content-box;}
-[data-cm-scroll]::-webkit-scrollbar-thumb:hover,[data-cm-dbody]::-webkit-scrollbar-thumb:hover,
-[data-cm-logbox]::-webkit-scrollbar-thumb:hover,[data-cm-pre]::-webkit-scrollbar-thumb:hover,
-[data-cm-term] .xterm-viewport::-webkit-scrollbar-thumb:hover{
-  background:var(--cm-text-dim);background-clip:content-box;}
-
-/* ── 分组标题 ── */
-[data-cm-group]{margin-top:var(--cm-s3);}
-[data-cm-ghead]{display:flex;align-items:center;gap:var(--cm-s2);padding:var(--cm-s1) var(--cm-s2);
-  font-size:var(--cm-f-xs);font-weight:650;color:var(--cm-text-dim);letter-spacing:.06em;}
-
-
-
-/* ── 分段控件：同一页里几组性质相近、量级不同的配置 ── */
-[data-cm-seg]{display:inline-flex;gap:2px;padding:2px;margin-bottom:var(--cm-s4);
-  background:var(--cm-base);border:1px solid var(--cm-line-soft);border-radius:var(--cm-r-md);}
-[data-cm-segitem]{appearance:none;border:0;background:transparent;cursor:pointer;
-  font-family:inherit;font-size:var(--cm-f-sm);font-weight:500;color:var(--cm-text-dim);
-  padding:5px 12px;border-radius:var(--cm-r-sm);
-  transition:background-color var(--cm-fast) var(--cm-ease),color var(--cm-fast) var(--cm-ease);}
-[data-cm-segitem]:hover{color:var(--cm-text-2);}
-[data-cm-segitem][data-active]{background:var(--cm-surface);color:var(--cm-text);
-  box-shadow:inset 0 0 0 1px var(--cm-line);}
-
-/* ── 概览页：状态头 / 数字块 / 折叠 / 危险区 ── */
-[data-cm-hero]{display:flex;flex-direction:column;gap:var(--cm-s2);}
-[data-cm-heroline]{display:flex;gap:var(--cm-s3);align-items:center;flex-wrap:wrap;}
-[data-cm-heroname]{font-size:var(--cm-f-lg);font-weight:600;color:var(--cm-text);letter-spacing:-.01em;}
-[data-cm-herosub]{font-size:var(--cm-f-md);color:var(--cm-text-2);font-variant-numeric:tabular-nums;}
-
-/* 状态词本身带色 —— 色只在「状态 / 可交互 / 危险」三个语义上出现。 */
-[data-cm-statelabel]{font-size:var(--cm-f-sm);font-weight:600;letter-spacing:.02em;}
-[data-cm-statelabel][data-tone="on"]{color:var(--cm-ok);}
-[data-cm-statelabel][data-tone="warn"]{color:var(--cm-warn-text);}
-[data-cm-statelabel][data-tone="off"]{color:var(--cm-text-dim);}
-[data-cm-statelabel][data-tone="bad"]{color:var(--cm-danger);}
-
-/* CPU / 内存 / 进程 三块并排：这是首屏最该被看见的数字。
-   2026-11-23 起它们不再自带一套样式，直接复用 Bento 的 [data-cm-tile]，
-   免得同一屏上出现两种材质、两种字号。 */
-[data-cm-numbers]{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
-  gap:var(--cm-s3);margin:var(--cm-s3) 0;}
-/* 趋势符号：三次轮询的走向。代替 sparkline —— 4 秒采一个点画折线，
-   线条的抖动来自轮询间隔而不是负载，那是撒谎。 */
-[data-cm-trend]{font-size:var(--cm-f-md);font-weight:600;margin-left:var(--cm-s1);
-  vertical-align:2px;}
-[data-cm-trend][data-dir="up"]{color:var(--cm-warn-text);}
-[data-cm-trend][data-dir="down"]{color:var(--cm-ok);}
-[data-cm-trend][data-dir="flat"]{color:var(--cm-text-dim);}
-/* 退出码徽标：只在对得上退出码非 0 时出现，红色但不铺满。 */
-[data-cm-exitbad]{display:inline-flex;align-items:center;gap:4px;padding:1px 7px;
-  border-radius:var(--cm-r-xs);font-size:var(--cm-f-xs);font-weight:600;
-  color:var(--cm-danger);background:var(--cm-danger-soft);border:1px solid var(--cm-danger-line);
-  font-variant-numeric:tabular-nums;}
-/* 端口胶囊：把 0.0.0.0:8080->80/tcp 拆成能一眼扫的几段，而不是一整行字符串。 */
-[data-cm-ports]{display:flex;flex-direction:column;gap:var(--cm-s2);margin-top:var(--cm-s3);}
-[data-cm-portrow]{display:flex;align-items:center;gap:var(--cm-s2);flex-wrap:wrap;
-  padding:var(--cm-s2) var(--cm-s3);border:1px solid var(--cm-line-soft);
-  border-radius:var(--cm-r-sm);background:var(--cm-base);}
-[data-cm-portpill]{display:inline-flex;align-items:center;padding:1px 7px;
-  border-radius:var(--cm-r-xs);background:var(--cm-accent-soft);color:var(--cm-accent);
-  border:1px solid var(--cm-accent-line);
-  font-family:var(--cm-mono);font-size:var(--cm-f-xs);
-  font-variant-numeric:tabular-nums;}
-[data-cm-portpill][data-muted]{background:transparent;color:var(--cm-text-2);
-  border-color:var(--cm-line);}
-[data-cm-portarrow]{color:var(--cm-text-dim);font-size:var(--cm-f-xs);}
-
-/* 身份信息折叠：原生 details，零 JS。 */
-[data-cm-details]{border:1px solid var(--cm-line-soft);border-radius:var(--cm-r-md);
-  padding:var(--cm-s3) var(--cm-s4);margin-bottom:var(--cm-s4);}
-[data-cm-details] summary{cursor:pointer;font-size:var(--cm-f-sm);font-weight:600;
-  color:var(--cm-text-dim);letter-spacing:.04em;list-style:none;}
-[data-cm-details] summary::-webkit-details-marker{display:none;}
-[data-cm-details] summary::before{content:"\\25B8 ";display:inline-block;
-  transition:transform var(--cm-fast) var(--cm-ease);}
-[data-cm-details][open] summary::before{content:"\\25BE ";}
-[data-cm-details] summary:hover{color:var(--cm-text-2);}
-[data-cm-details] [data-cm-kv]{margin-top:var(--cm-s3);}
-
-/* 危险操作视觉后退：一条警示边框把它们圈住，不靠大红色块抢注意力。 */
-[data-cm-dangerzone]{display:flex;gap:var(--cm-s2);align-items:center;flex-wrap:wrap;
-  margin-top:var(--cm-s3);padding-top:var(--cm-s3);
-  border-top:1px dashed var(--cm-danger-line);}
-
-/* ── 状态点：带一圈同色光晕，比纯色点更有辨识度 ── */
-[data-cm-dot]{width:8px;height:8px;border-radius:var(--cm-r-full);flex:none;
-  background:var(--cm-text-dim);color:var(--cm-text-dim);
-  box-shadow:0 0 0 3px color-mix(in srgb,currentColor 16%,transparent);
-  transition:background-color var(--cm-fast) var(--cm-ease),box-shadow var(--cm-fast) var(--cm-ease);}
-[data-cm-dot][data-on]{background:var(--cm-ok);color:var(--cm-ok);}
-[data-cm-dot][data-off]{background:var(--cm-text-dim);color:var(--cm-text-dim);}
-[data-cm-dot][data-warn]{background:var(--cm-warn);color:var(--cm-warn);}
-/* 异常退出以前和「已停止」长得一模一样（都是灰点），这两个人必须分得开。 */
-[data-cm-dot][data-bad]{background:var(--cm-danger);color:var(--cm-danger);}
-
-
-/* ── 列表行：一张微遥测卡（左指示条 + 双色 2px 进度） ── */
-[data-cm-row]{position:relative;display:flex;align-items:center;gap:var(--cm-s2);padding:9px 10px;
-  margin-bottom:var(--cm-s1);border-radius:var(--cm-r-sm);cursor:pointer;
-  border:var(--cm-hairline);background:var(--cm-surface);overflow:hidden;
-  transition:background-color var(--cm-fast) var(--cm-ease),border-color var(--cm-fast) var(--cm-ease);}
-[data-cm-row]:hover{background:var(--cm-surface-hover);border-color:var(--cm-line-strong);}
-[data-cm-row][data-active]{border-color:var(--cm-accent-line);
-  background:linear-gradient(90deg,var(--cm-accent-soft),transparent 68%),var(--cm-surface);}
-/* 选中态：左侧 2px 电光青竖条，比整行变色更安静也更准 */
-[data-cm-row][data-active]::before{content:'';position:absolute;left:0;top:9px;bottom:9px;width:2px;
-  border-radius:0 2px 2px 0;background:var(--cm-accent);box-shadow:var(--cm-glow-accent);}
-/* 双色微进度：CPU 青、内存绿；内存那条只在有上限时才渲染 */
-[data-cm-bars]{display:flex;gap:4px;margin-top:6px;height:2px;}
-/* 轨道用 line-strong：空轨也要能看出「这是一根条」，而不是一道卡片分隔线 */
-[data-cm-bars]>i{display:block;flex:1;height:2px;border-radius:2px;
-  background:var(--cm-line-strong);overflow:hidden;}
-/* min-width 是关键：CPU 0.77% 在 98px 轨道上只有 0.75px，纯按比例画等于没有。
-   给一个 3px 下限，「有一点负载」和「真的 0」才能靠眼睛分开，比例仍由 width 决定。 */
-[data-cm-bars]>i>b{display:block;height:100%;border-radius:2px;min-width:3px;}
-[data-cm-bars]>i[data-kind='cpu']>b{background:var(--cm-accent);}
-[data-cm-bars]>i[data-kind='mem']>b{background:var(--cm-ok);}
-[data-cm-rmain]{flex:1;min-width:0;}
-[data-cm-rname]{font-size:var(--cm-f-md);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.45;}
-[data-cm-rmeta]{font-size:var(--cm-f-xs);color:var(--cm-text-dim);overflow:hidden;
-  text-overflow:ellipsis;white-space:nowrap;line-height:1.45;}
-[data-cm-live]{font-family:var(--cm-mono);font-size:var(--cm-f-xs);
-  color:var(--cm-text-2);font-variant-numeric:tabular-nums;}
-
-/* ── 重建差量表：点之前得看清改了哪几项、原来是什么 ── */
-[data-cm-diff]{margin-top:var(--cm-s4);padding-top:var(--cm-s3);
-  border-top:1px dashed var(--cm-warn-line);display:flex;flex-direction:column;
-  gap:var(--cm-s2);}
-[data-cm-diff] [data-cm-portrow]{background:transparent;border-color:var(--cm-line);}
-/* ── 占用条 ── */
-/* 数据类元素只给「位移」一点过渡（0.22s，远小于 4 秒轮询，不会蠕动）；
-   数字本身一律不加 transition —— 轮询重绘时数字滑动比瞬变更难读。 */
-[data-cm-meter]{position:relative;height:3px;border-radius:var(--cm-r-full);
-  background:var(--cm-line);margin-top:var(--cm-s1);}
-[data-cm-meter][data-tall]{height:6px;}
-[data-cm-meter] i{display:block;height:100%;background:var(--cm-ok);border-radius:inherit;
-  transition:width .22s var(--cm-ease),background-color var(--cm-fast) var(--cm-ease);}
-[data-cm-meter][data-warn] i{background:var(--cm-warn);}
-[data-cm-meter][data-bad] i{background:var(--cm-danger);}
-/* 第二阈值刻度：只在真有第二个上限（如 memory-reservation < memory）时才画。 */
-[data-cm-meter] u{position:absolute;top:-2px;bottom:-2px;width:0;
-  border-left:1px solid var(--cm-text-dim);pointer-events:none;}
-[data-cm-host]{display:grid;grid-template-columns:1fr 1fr;gap:var(--cm-s4);margin-top:var(--cm-s2);}
-[data-cm-formrow]{display:flex;gap:var(--cm-s2);align-items:center;margin:var(--cm-s3) 0;flex-wrap:wrap;}
-[data-cm-check]{accent-color:var(--cm-accent);margin:0 2px 0 0;flex:none;width:13px;height:13px;cursor:pointer;}
-[data-cm-bulk]{display:flex;gap:var(--cm-s2);align-items:center;padding:var(--cm-s2) var(--cm-s4);
-  border-bottom:1px solid var(--cm-line);background:var(--cm-surface-hover);flex:none;font-size:var(--cm-f-xs);}
-[data-cm-bulk] [data-cm-btn]{padding:2px 8px;font-size:var(--cm-f-xs);}
-[data-cm-formrow] [data-cm-input]{flex:1;min-width:160px;}
-[data-cm-nodehint]{font-size:var(--cm-f-xs);color:var(--cm-warn-text);padding:2px var(--cm-s2) var(--cm-s2);
-  line-height:1.5;word-break:break-all;}
-
-/* ── 详情区 ── */
-/* min-height:0 不能少：flex 子项的 min-height 默认 auto，意思是「不许比内容矮」，
-   于是 data-cm-detail 会被内容撑高，里面 data-cm-dbody 的 overflow:auto 就拿不到可滚的高度，
-   整页被顶出屏幕、被宿主裁掉 —— 看着就是「没有滚轮」。 */
-[data-cm-detail]{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;}
-[data-cm-tabs]{display:flex;gap:var(--cm-s1);padding:var(--cm-s3) var(--cm-s5) 0;
-  border-bottom:1px solid var(--cm-line-soft);flex:none;}
-/* 二级 tab：不堆边框，只留一条发光下划线 —— 描边越少，界面越整齐 */
-[data-cm-tab]{position:relative;padding:8px 14px;font-size:var(--cm-f-sm);border-radius:0;cursor:pointer;
-  border:0;background:transparent;color:var(--cm-text-dim);
-  font-family:inherit;line-height:1.4;
-  transition:color var(--cm-fast) var(--cm-ease);}
-[data-cm-tab]:hover{color:var(--cm-text);}
-[data-cm-tab][data-on]{color:var(--cm-text);}
-[data-cm-tab][data-on]::after{content:'';position:absolute;left:10px;right:10px;bottom:-1px;
-  height:2px;border-radius:2px;background:var(--cm-accent);box-shadow:var(--cm-glow-accent);}
-[data-cm-dbody]{overflow:auto;min-height:0;flex:1;padding:var(--cm-s4) var(--cm-s6) var(--cm-s7);}
-
-/* ── 卡片：深色微透玻璃 + 1px 切面高光（悬浮只换边色，不抬升、不缩放） ── */
-[data-cm-card]{position:relative;border:var(--cm-hairline);border-radius:var(--cm-r-lg);
-  background:var(--cm-surface);padding:var(--cm-s5);margin-bottom:var(--cm-s4);
-  backdrop-filter:var(--cm-blur);-webkit-backdrop-filter:var(--cm-blur);
-  box-shadow:var(--cm-shadow-md),var(--cm-glow-top);
-  transition:border-color var(--cm-slow) var(--cm-ease);}
-/* 顶缘中间亮、两头透明的细线：整块卡片的精致感就来自这一道 */
-[data-cm-card]::before{content:'';position:absolute;top:0;left:12%;right:12%;height:1px;
-  background:var(--cm-toplight);pointer-events:none;}
-[data-cm-card]:hover{border-color:var(--cm-line-strong);}
-[data-cm-kv]{display:grid;grid-template-columns:96px 1fr;gap:var(--cm-s2) var(--cm-s4);font-size:var(--cm-f-sm);}
-[data-cm-kv] b{font-weight:500;color:var(--cm-text-dim);}
-[data-cm-mono]{font-family:var(--cm-mono);font-size:var(--cm-f-sm);word-break:break-all;}
-[data-cm-pre]{background:var(--cm-base);border-radius:var(--cm-r-md);border:1px solid var(--cm-line-soft);
-  padding:var(--cm-s3) var(--cm-s4);overflow:auto;max-height:60vh;
-  font-family:var(--cm-mono);font-size:var(--cm-f-sm);white-space:pre-wrap;
-  word-break:break-word;margin:0;line-height:1.55;}
-[data-cm-actions]{display:flex;flex-wrap:wrap;row-gap:var(--cm-s2);gap:var(--cm-s2);margin-top:var(--cm-s4);}
-
-/* ── 表单控件：focus 用光晕而不是只换边框色 ── */
-[data-cm-input],[data-cm-select]{background:var(--cm-base);border:1px solid var(--cm-line-strong);
-  border-radius:var(--cm-r-sm);color:inherit;padding:5px 9px;font-size:var(--cm-f-sm);font-family:inherit;
-  outline:none;box-sizing:border-box;
-  transition:border-color var(--cm-fast) var(--cm-ease),box-shadow var(--cm-fast) var(--cm-ease);}
-[data-cm-input]:focus,[data-cm-select]:focus{border-color:var(--cm-accent);box-shadow:var(--cm-ring);}
-[data-cm-form]{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
-  gap:var(--cm-s3) var(--cm-s4);align-items:end;max-width:1000px;}
-[data-cm-sec]{grid-column:1 / -1;margin:var(--cm-s5) 0 var(--cm-s1);font-size:var(--cm-f-xs);font-weight:650;
-  color:var(--cm-text-dim);letter-spacing:.04em;text-transform:uppercase;}
-[data-cm-field]{display:flex;flex-direction:column;gap:var(--cm-s1);min-width:0;}
-[data-cm-field] label{font-size:var(--cm-f-xs);color:var(--cm-text-dim);}
-[data-cm-checkline]{display:inline-flex;align-items:center;gap:var(--cm-s2);
-  font-size:var(--cm-f-xs);color:var(--cm-text-2);cursor:pointer;margin-top:var(--cm-s2);}
-
-/* ── 待确认区 ── */
-[data-cm-pending]{flex:none;border-top:1px solid var(--cm-line);background:var(--cm-layer-2);
-  max-height:34vh;overflow:auto;}
-[data-cm-phead]{display:flex;align-items:center;gap:var(--cm-s3);padding:var(--cm-s3) var(--cm-s6);
-  font-size:var(--cm-f-sm);font-weight:650;}
-[data-cm-prow]{display:flex;align-items:center;gap:var(--cm-s4);padding:var(--cm-s2) var(--cm-s6);
-  border-top:1px solid var(--cm-line-soft);
-  transition:background-color var(--cm-fast) var(--cm-ease);}
-[data-cm-prow]:hover{background:var(--cm-hover);}
-[data-cm-psummary]{flex:1;min-width:0;font-size:var(--cm-f-sm);}
-[data-cm-pexpiry]{font-size:var(--cm-f-xs);color:var(--cm-text-dim);font-variant-numeric:tabular-nums;}
-
-/* 预演清单：确认之前把「会发生什么」摊开，危险项与保险项用不同色调区分 */
-[data-cm-plan]{margin-top:var(--cm-s2);display:flex;flex-direction:column;gap:2px;
-  font-size:var(--cm-f-xs);line-height:1.6;}
-[data-cm-planitem]{color:var(--cm-text-2);}
-[data-cm-planitem][data-tone='danger']{color:var(--cm-danger);}
-[data-cm-planitem][data-tone='warn']{color:var(--cm-warn-text);}
-[data-cm-planitem][data-tone='ok']{color:var(--cm-ok);}
-[data-cm-planblock]{margin-top:var(--cm-s1);padding:2px 8px;border-radius:var(--cm-r-xs);
-  color:var(--cm-warn-text);background:var(--cm-warn-soft);
-  box-shadow:inset 0 0 0 1px var(--cm-warn-line);}
-
-/* ── 任务抽屉：长操作在地板上排队，进度与尾部输出都在这里 ── */
-[data-cm-jobs]{flex:none;border-top:1px solid var(--cm-line);background:var(--cm-layer-2);
-  max-height:32vh;overflow:auto;}
-[data-cm-jhead]{display:flex;align-items:center;gap:var(--cm-s3);padding:var(--cm-s3) var(--cm-s6);
-  font-size:var(--cm-f-sm);font-weight:650;}
-[data-cm-jrow]{display:flex;align-items:center;gap:var(--cm-s3);padding:var(--cm-s2) var(--cm-s6);
-  border-top:1px solid var(--cm-line-soft);}
-[data-cm-jmain]{flex:1;min-width:0;font-size:var(--cm-f-sm);}
-[data-cm-jlabel]{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-[data-cm-jmeta]{font-size:var(--cm-f-xs);color:var(--cm-text-dim);font-variant-numeric:tabular-nums;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-[data-cm-jstate]{flex:none;font-size:var(--cm-f-xs);padding:1px 7px;border-radius:var(--cm-r-xs);
-  color:var(--cm-text-2);background:var(--cm-surface);box-shadow:inset 0 0 0 1px var(--cm-line);}
-[data-cm-jstate][data-tone='running']{color:var(--cm-accent);box-shadow:inset 0 0 0 1px var(--cm-accent-line);}
-[data-cm-jstate][data-tone='failed']{color:var(--cm-danger);box-shadow:inset 0 0 0 1px var(--cm-danger-line);}
-[data-cm-jstate][data-tone='done']{color:var(--cm-ok);box-shadow:inset 0 0 0 1px var(--cm-ok-line);}
-[data-cm-jtail]{margin:0 var(--cm-s6) var(--cm-s3);max-height:22vh;}
-
-/* ── 时间窗切换（1h / 6h / 24h）：只在负载卡上用 ── */
-[data-cm-range]{display:inline-flex;gap:2px;flex:none;}
-[data-cm-rangeitem]{border:0;background:none;padding:0 4px;font:inherit;font-size:var(--cm-f-xs);
-  color:var(--cm-text-dim);cursor:pointer;border-radius:var(--cm-r-xs);}
-[data-cm-rangeitem][data-on]{color:var(--cm-accent);background:var(--cm-accent-soft);
-  box-shadow:inset 0 0 0 1px var(--cm-accent-line);}
-
-/* ── 健康检查：状态徽章 + 最近几次输出 ── */
-[data-cm-health]{margin-left:var(--cm-s2);padding:1px 7px;border-radius:var(--cm-r-xs);
-  font-size:var(--cm-f-xs);font-weight:600;color:var(--cm-text-2);
-  background:var(--cm-surface);box-shadow:inset 0 0 0 1px var(--cm-line);}
-[data-cm-health][data-tone='healthy']{color:var(--cm-ok);background:var(--cm-ok-soft);
-  box-shadow:inset 0 0 0 1px var(--cm-ok-line);}
-[data-cm-health][data-tone='unhealthy']{color:var(--cm-danger);background:var(--cm-danger-soft);
-  box-shadow:inset 0 0 0 1px var(--cm-danger-line);}
-[data-cm-health][data-tone='starting']{color:var(--cm-warn-text);background:var(--cm-warn-soft);
-  box-shadow:inset 0 0 0 1px var(--cm-warn-line);}
-[data-cm-healthlog]{display:flex;flex-direction:column;gap:3px;font-size:var(--cm-f-xs);}
-[data-cm-healthrow]{display:flex;gap:var(--cm-s2);align-items:baseline;min-width:0;
-  color:var(--cm-text-2);}
-[data-cm-healthrow][data-tone='bad']{color:var(--cm-danger);}
-[data-cm-healthout]{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-  font-family:var(--cm-mono);}
-
-/* ── 空态 / 提示条 ── */
-[data-cm-empty]{padding:var(--cm-s7) var(--cm-s5);text-align:center;color:var(--cm-text-dim);
-  font-size:var(--cm-f-sm);line-height:1.7;}
-[data-cm-toast]{position:sticky;bottom:var(--cm-s4);margin:0 var(--cm-s6) var(--cm-s4);
-  padding:var(--cm-s3) var(--cm-s4);border-radius:var(--cm-r-md);font-size:var(--cm-f-sm);line-height:1.5;
-  background:var(--cm-layer-2);border:1px solid var(--cm-line-strong);
-  box-shadow:var(--cm-shadow-lg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
-[data-cm-toast][data-bad]{border-color:var(--cm-danger-line);color:var(--cm-danger);}
-[data-cm-warn]{color:var(--cm-warn-text);}
-[data-cm-dim]{color:var(--cm-text-dim);}
-
-/* ── 胶囊标签 ── */
-[data-cm-chips]{display:flex;gap:var(--cm-s2);flex-wrap:wrap;}
-[data-cm-chip]{border:1px solid var(--cm-line-strong);border-radius:var(--cm-r-full);
-  padding:3px 11px;font-size:var(--cm-f-xs);cursor:pointer;background:transparent;color:var(--cm-text-2);
-  font-family:inherit;line-height:1.4;
-  transition:background-color var(--cm-fast) var(--cm-ease),border-color var(--cm-fast) var(--cm-ease),
-    color var(--cm-fast) var(--cm-ease);}
-[data-cm-chip]:hover{background:var(--cm-hover);color:var(--cm-text);}
-[data-cm-chip]:focus-visible{outline:none;box-shadow:var(--cm-ring);}
-[data-cm-chip][data-on]{background:var(--cm-accent);border-color:transparent;color:var(--cm-on-accent);}
-
-/* ── 顶部导航：分段控件质感 ── */
-[data-cm-nav]{display:flex;gap:2px;align-items:center;padding:3px;
-  border-radius:var(--cm-r-md);background:var(--cm-layer-2);
-  border:1px solid var(--cm-line-soft);box-shadow:var(--cm-inset-groove);}
-[data-cm-nav] button{border:1px solid transparent;background:transparent;color:var(--cm-text-dim);
-  font-family:inherit;font-size:var(--cm-f-sm);border-radius:var(--cm-r-sm);padding:5px 12px;cursor:pointer;
-  line-height:1.4;
-  transition:background-color var(--cm-fast) var(--cm-ease),color var(--cm-fast) var(--cm-ease),
-    box-shadow var(--cm-fast) var(--cm-ease);}
-[data-cm-nav] button:hover{background:var(--cm-hover);color:var(--cm-text);}
-[data-cm-nav] button[data-on]{background:var(--cm-active);color:var(--cm-text);
-  border-color:var(--cm-accent-line);box-shadow:var(--cm-glow-top),var(--cm-glow-accent);}
-
-/* ── compose 项目卡片 ── */
-[data-cm-projgrid]{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:var(--cm-s3);}
-[data-cm-projcard]{border:1px solid var(--cm-line-soft);border-radius:var(--cm-r-md);
-  padding:var(--cm-s3) var(--cm-s4);cursor:pointer;background:var(--cm-surface);text-align:left;
-  color:inherit;font-family:inherit;width:100%;box-shadow:var(--cm-shadow-sm);
-  transition:background-color var(--cm-fast) var(--cm-ease),border-color var(--cm-fast) var(--cm-ease),
-    box-shadow var(--cm-fast) var(--cm-ease),transform var(--cm-fast) var(--cm-ease);}
-[data-cm-projcard]:hover{background:var(--cm-surface-hover);border-color:var(--cm-line-strong);
-  box-shadow:var(--cm-shadow-md);transform:translateY(-1px);}
-[data-cm-projcard][data-on]{border-color:var(--cm-accent-line);background:var(--cm-accent-soft);}
-
-/* ── 表格：独立边框 + 行 hover ── */
-[data-cm-table]{width:100%;border-collapse:separate;border-spacing:0;font-size:var(--cm-f-sm);}
-[data-cm-table] th{text-align:left;font-weight:650;font-size:var(--cm-f-xs);color:var(--cm-text-dim);
-  padding:var(--cm-s2) var(--cm-s3);border-bottom:1px solid var(--cm-line-soft);
-  white-space:nowrap;letter-spacing:.02em;}
-[data-cm-table] td{padding:7px var(--cm-s3);border-bottom:1px solid var(--cm-line-soft);vertical-align:top;}
-[data-cm-table] tbody tr{transition:background-color var(--cm-fast) var(--cm-ease);}
-[data-cm-table] tbody tr:hover{background:var(--cm-hover);}
-[data-cm-table] tbody tr:last-child td{border-bottom:0;}
-
-
-[data-cm-netrow]{padding:var(--cm-s3) 0;border-top:1px solid var(--cm-line-soft);}
-[data-cm-netrow]:first-of-type{border-top:0;}
-[data-cm-editor]{width:100%;box-sizing:border-box;min-height:320px;resize:vertical;outline:none;
-  background:var(--cm-base);color:inherit;border:1px solid var(--cm-line-strong);
-  border-radius:var(--cm-r-md);padding:var(--cm-s3);
-  font-family:var(--cm-mono);font-size:var(--cm-f-sm);line-height:1.6;
-  transition:border-color var(--cm-fast) var(--cm-ease),box-shadow var(--cm-fast) var(--cm-ease);}
-[data-cm-editor]:focus{border-color:var(--cm-accent);box-shadow:var(--cm-ring);}
-[data-cm-logbox]{font-family:var(--cm-mono);font-size:var(--cm-f-sm);
-  line-height:1.6;white-space:pre-wrap;word-break:break-all;max-height:360px;overflow:auto;
-  background:var(--cm-base);border:1px solid var(--cm-line-soft);border-radius:var(--cm-r-md);
-  padding:var(--cm-s3);margin:0;}
-[data-cm-line]{display:flex;gap:var(--cm-s3);align-items:center;flex-wrap:wrap;}
-
-/* ── 状态标签：柔色底 + 同色描边 ── */
-/* 容器视图的返回入口：跟普通 tab 同形，但更暗一档，读起来像「往回」 */
-[data-cm-back]{margin-right:var(--cm-s3);color:var(--cm-text-dim);}
-[data-cm-back]:hover{color:var(--cm-accent);}
-[data-cm-tag]{font-size:var(--cm-f-xs);border-radius:var(--cm-r-full);padding:2px 8px;line-height:1.5;
-  border:1px solid var(--cm-line-strong);white-space:nowrap;
-  transition:border-color var(--cm-fast) var(--cm-ease),color var(--cm-fast) var(--cm-ease),
-    background-color var(--cm-fast) var(--cm-ease);}
-[data-cm-tag][data-ok]{border-color:var(--cm-ok-line);color:var(--cm-ok);background:var(--cm-ok-soft);}
-[data-cm-tag][data-bad]{border-color:var(--cm-danger-line);color:var(--cm-danger);background:var(--cm-danger-soft);}
-[data-cm-tag][data-warn]{border-color:var(--cm-warn-line);color:var(--cm-warn-text);background:var(--cm-warn-soft);}
-[data-cm-hintbox]{font-size:var(--cm-f-sm);color:var(--cm-text-dim);margin-top:var(--cm-s2);line-height:1.6;}
-/* ── Podman secret：名字一行，值永不回显 ── */
-[data-cm-secrets]{display:flex;flex-direction:column;gap:var(--cm-s3);min-height:0;flex:1;}
-[data-cm-srow]{display:flex;align-items:flex-start;gap:var(--cm-s2);padding:6px 0;
-  border-top:1px solid var(--cm-line-soft);}
-[data-cm-srow]:first-child{border-top:0;}
-[data-cm-srow] [data-cm-btn]{flex:none;}
-
-/* ── Quadlet：一行一个 unit，状态点 + 文件 + 镜像 ── */
-[data-cm-quadlet]{display:flex;flex-direction:column;gap:var(--cm-s3);min-height:0;flex:1;}
-[data-cm-qrow]{display:flex;align-items:flex-start;gap:var(--cm-s2);padding:6px 0;
-  border-top:1px solid var(--cm-line-soft);}
-[data-cm-qrow]:first-child{border-top:0;}
-[data-cm-qname]{font-size:var(--cm-f-sm);line-height:1.45;
-  font-family:var(--cm-mono);word-break:break-all;}
-[data-cm-qmeta]{font-size:var(--cm-f-xs);line-height:1.5;margin-top:1px;word-break:break-word;}
-
-/* ── 能力体检：一条一条列，状态点用 Dot，修复命令可复制 ── */
-[data-cm-cap]{display:flex;flex-direction:column;gap:var(--cm-s3);min-height:0;flex:1;}
-[data-cm-chipwrap]{display:flex;align-items:center;gap:var(--cm-s2);flex-wrap:wrap;}
-[data-cm-capsum]{margin-bottom:var(--cm-s2);}
-[data-cm-caplist]{display:flex;flex-direction:column;min-height:0;}
-[data-cm-caprow]{display:flex;align-items:flex-start;gap:var(--cm-s2);
-  padding:6px 0;border-top:1px solid var(--cm-line-soft);}
-[data-cm-caprow]:first-child{border-top:0;}
-[data-cm-capname]{font-size:var(--cm-f-sm);line-height:1.45;color:var(--cm-text);}
-[data-cm-capdetail]{font-size:var(--cm-f-xs);line-height:1.5;margin-top:1px;word-break:break-word;}
-[data-cm-caprow] [data-cm-btn]{flex:none;}
-
-/* ── 容器内网络排障：判读在上，原始输出折在下面 ── */
-[data-cm-diag]{display:flex;flex-direction:column;gap:var(--cm-s3);min-height:0;flex:1;}
-[data-cm-diaghost]{width:150px;flex:none;padding:4px 8px;font-size:var(--cm-f-sm);box-sizing:border-box;}
-[data-cm-diagport]{width:72px;flex:none;padding:4px 8px;font-size:var(--cm-f-sm);box-sizing:border-box;}
-[data-cm-dnotes]{display:flex;flex-direction:column;gap:var(--cm-s1);}
-[data-cm-dnote]{font-size:var(--cm-f-sm);line-height:1.5;padding:5px var(--cm-s2);
-  border-left:2px solid var(--cm-line-strong);color:var(--cm-text);}
-[data-cm-dnote][data-level='warn']{border-left-color:var(--cm-danger);color:var(--cm-danger);}
-[data-cm-dnote][data-level='ok']{border-left-color:var(--cm-accent);}
-[data-cm-dnote][data-level='unknown']{border-left-color:var(--cm-line-strong);color:var(--cm-text-dim);}
-[data-cm-dsecs]{display:flex;flex-direction:column;gap:var(--cm-s1);min-height:0;}
-[data-cm-dsec]{border:1px solid var(--cm-line-soft);border-radius:var(--cm-r-sm);
-  background:var(--cm-layer-2);overflow:hidden;}
-[data-cm-dsec] summary{cursor:pointer;padding:5px var(--cm-s2);font-size:var(--cm-f-sm);
-  color:var(--cm-text);list-style:none;}
-[data-cm-dsec] summary::-webkit-details-marker{display:none;}
-[data-cm-dsec] summary::before{content:'▸';display:inline-block;width:12px;
-  color:var(--cm-text-dim);transition:transform var(--cm-fast) var(--cm-ease);}
-[data-cm-dsec][open] summary::before{transform:rotate(90deg);}
-[data-cm-dout]{margin:0;padding:var(--cm-s2);border-top:1px solid var(--cm-line-soft);
-  font-family:var(--cm-mono);font-size:var(--cm-f-xs);
-  line-height:1.55;white-space:pre-wrap;word-break:break-word;color:var(--cm-text);
-  max-height:280px;overflow:auto;}
-
-/* ── 容器内文件：左边目录树，右边编辑器（窄屏上下堆） ── */
-[data-cm-files]{display:flex;flex-direction:column;gap:var(--cm-s3);min-height:0;flex:1;}
-[data-cm-fhead]{display:flex;align-items:center;gap:var(--cm-s2);flex-wrap:wrap;}
-[data-cm-crumbs]{display:flex;align-items:center;gap:2px;flex:1;min-width:0;flex-wrap:wrap;
-  font-family:var(--cm-mono);font-size:var(--cm-f-sm);}
-[data-cm-crumb]{border:0;background:none;color:var(--cm-text-dim);cursor:pointer;
-  padding:2px 5px;border-radius:var(--cm-r-xs);font:inherit;
-  transition:background-color var(--cm-fast) var(--cm-ease),color var(--cm-fast) var(--cm-ease);}
-[data-cm-crumb]:hover{background:var(--cm-hover);color:var(--cm-text);}
-[data-cm-crumb]:focus-visible{outline:none;box-shadow:var(--cm-ring);}
-[data-cm-crumbsep]{color:var(--cm-text-dim);opacity:.6;}
-[data-cm-facts]{display:flex;align-items:center;gap:var(--cm-s2);flex-wrap:wrap;justify-content:flex-end;}
-[data-cm-btn][data-cm-compact]{padding:3px 8px;font-size:var(--cm-f-xs);}
-[data-cm-input][data-cm-fnew]{width:132px;flex:none;padding:4px 8px;font-size:var(--cm-f-sm);box-sizing:border-box;}
-[data-cm-fgrid]{display:flex;gap:var(--cm-s4);min-height:0;flex:1;align-items:flex-start;}
-[data-cm-fcol]{flex:0 0 300px;min-width:0;display:flex;flex-direction:column;
-  border:1px solid var(--cm-line-soft);border-radius:var(--cm-r-md);background:var(--cm-layer-2);
-  overflow:hidden;max-height:520px;}
-[data-cm-flist]{overflow:auto;min-height:0;}
-[data-cm-frow]{display:flex;align-items:center;gap:var(--cm-s2);padding:4px var(--cm-s2);
-  border-bottom:1px solid var(--cm-line-soft);
-  transition:background-color var(--cm-fast) var(--cm-ease);}
-[data-cm-frow]:last-child{border-bottom:0;}
-[data-cm-frow]:hover{background:var(--cm-surface-hover);}
-[data-cm-frow][data-on]{background:var(--cm-accent-soft);}
-[data-cm-fopen]{display:flex;align-items:center;gap:var(--cm-s2);border:0;background:none;
-  color:inherit;font:inherit;cursor:pointer;flex:1;min-width:0;text-align:left;padding:0;}
-[data-cm-fopen]:focus-visible{outline:none;box-shadow:var(--cm-ring);border-radius:var(--cm-r-xs);}
-[data-cm-ficon]{flex:none;width:12px;color:var(--cm-text-dim);font-size:var(--cm-f-xs);}
-[data-cm-ficon][data-kind='dir']{color:var(--cm-accent);}
-[data-cm-fname]{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--cm-f-sm);}
-[data-cm-fsize]{flex:none;color:var(--cm-text-dim);font-size:var(--cm-f-xs);
-  font-variant-numeric:tabular-nums;}
-[data-cm-feditor]{flex:1;min-width:0;display:flex;flex-direction:column;gap:var(--cm-s2);
-  border:1px solid var(--cm-line-soft);border-radius:var(--cm-r-md);background:var(--cm-layer-2);
-  padding:var(--cm-s3);min-height:0;}
-[data-cm-feh]{display:flex;align-items:center;gap:var(--cm-s2);flex-wrap:wrap;}
-[data-cm-fename]{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-  font-family:var(--cm-mono);font-size:var(--cm-f-sm);}
-[data-cm-ftext]{flex:1;min-height:240px;resize:vertical;width:100%;box-sizing:border-box;
-  background:var(--cm-base);border:1px solid var(--cm-line-strong);border-radius:var(--cm-r-sm);
-  color:inherit;font-family:var(--cm-mono);font-size:var(--cm-f-sm);
-  line-height:1.55;padding:var(--cm-s2);outline:none;
-  transition:border-color var(--cm-fast) var(--cm-ease),box-shadow var(--cm-fast) var(--cm-ease);}
-[data-cm-ftext]:focus{border-color:var(--cm-accent);box-shadow:var(--cm-ring);}
-@media (max-width:900px){
-  [data-cm-fgrid]{flex-direction:column;}
-  [data-cm-fcol]{flex:none;width:100%;max-height:340px;}
-}
-
-/* ── 终端 ── */
-[data-cm-term-wrap]{display:flex;flex-direction:column;min-height:0;gap:var(--cm-s2);}
-[data-cm-term-bar]{display:flex;align-items:center;gap:var(--cm-s2);flex-wrap:wrap;}
-[data-cm-term-bar-group]{display:inline-flex;align-items:center;gap:1px;
-  border:1px solid var(--cm-line-strong);border-radius:var(--cm-r-sm);
-  background:var(--cm-surface);overflow:hidden;}
-[data-cm-term-bar-group]>button{border:0;background:transparent;color:var(--cm-text-dim);
-  font:inherit;font-size:var(--cm-f-sm);line-height:1;padding:5px 8px;cursor:pointer;
-  transition:background-color var(--cm-fast) var(--cm-ease),color var(--cm-fast) var(--cm-ease);}
-[data-cm-term-bar-group]>button+button{border-left:1px solid var(--cm-line-soft);}
-[data-cm-term-bar-group]>button:hover:not([disabled]){background:var(--cm-hover);color:var(--cm-text);}
-[data-cm-term-bar-group]>button[disabled]{opacity:.4;cursor:not-allowed;}
-[data-cm-term-bar-group]>[data-cm-term-size]{min-width:34px;text-align:center;
-  font-variant-numeric:tabular-nums;color:var(--cm-text);cursor:default;font-size:var(--cm-f-sm);padding:5px 2px;}
-[data-cm-term]{position:relative;height:clamp(260px,60vh,560px);min-height:0;
-  border:1px solid var(--cm-line-strong);border-radius:var(--cm-r-md);
-  padding:6px 4px 6px 8px;background:var(--cm-base);overflow:hidden;
-  box-shadow:var(--cm-shadow-sm);
-  transition:border-color var(--cm-fast) var(--cm-ease),box-shadow var(--cm-fast) var(--cm-ease);}
-[data-cm-term]:focus-within{border-color:var(--cm-accent-line);
-  box-shadow:var(--cm-shadow-md),0 0 0 1px var(--cm-accent-line);}
-[data-cm-term] .xterm{height:100%;}
-[data-cm-term] .xterm-viewport{background:transparent!important;}
-[data-cm-term] .xterm-screen{cursor:text;}
-/* 连接中 / 断线时浮一层，不用滚回顶部找按钮 */
-[data-cm-term-overlay]{position:absolute;inset:0;z-index:10;display:flex;
-  flex-direction:column;align-items:center;justify-content:center;gap:var(--cm-s3);
-  padding:var(--cm-s4);text-align:center;
-  background:color-mix(in srgb,var(--cm-base) 86%,transparent);
-  backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);}
-[data-cm-term-overlay][data-bad]{background:color-mix(in srgb,var(--cm-danger-soft) 45%,var(--cm-base));}
-[data-cm-term-overlay] [data-cm-overlay-title]{font-size:var(--cm-f-md);font-weight:650;color:var(--cm-text);}
-[data-cm-term-overlay] [data-cm-overlay-msg]{font-size:var(--cm-f-sm);color:var(--cm-text-dim);
-  max-width:46ch;line-height:1.6;word-break:break-word;}
-/* 全屏：铺到视口上，Esc 退出 */
-[data-cm-term-wrap][data-cm-full]{position:fixed;inset:0;z-index:9000;
-  background:var(--cm-base);padding:var(--cm-s4);gap:var(--cm-s3);}
-[data-cm-term-wrap][data-cm-full] [data-cm-term]{flex:1;height:auto;}
-[data-cm-term-wrap][data-cm-full]::after{content:'Esc 退出全屏';position:absolute;
-  right:var(--cm-s5);bottom:var(--cm-s3);font-size:var(--cm-f-xs);color:var(--cm-text-dim);
-  pointer-events:none;}
-
-/* ── 活动日志 ── */
-[data-cm-audit]{display:flex;flex-direction:column;gap:1px;}
-[data-cm-audit-row]{display:grid;grid-template-columns:88px 54px minmax(80px,0.9fr) minmax(90px,1fr) minmax(140px,1.6fr) 70px;
-  gap:var(--cm-s3);padding:6px var(--cm-s3);border-radius:var(--cm-r-sm);font-size:var(--cm-f-sm);
-  align-items:center;min-width:0;transition:background-color var(--cm-fast) var(--cm-ease);}
-[data-cm-audit-row]>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-[data-cm-audit-row]:hover{background:var(--cm-hover);}
-[data-cm-audit-row][data-head]{font-weight:650;color:var(--cm-text-dim);
-  border-bottom:1px solid var(--cm-line);border-radius:0;position:sticky;top:0;
-  background:var(--cm-base);z-index:1;}
-[data-cm-audit-row][data-bad]{color:var(--cm-danger);}
-[data-cm-audit-row][data-bad] span:last-child{font-weight:600;}
-[data-cm-audit-tag]{font-family:var(--cm-mono);font-size:var(--cm-f-xs);
-  padding:1px 6px;border:1px solid var(--cm-line);border-radius:var(--cm-r-sm);
-  color:var(--cm-text-dim);}
-[data-cm-audit-tag][data-panel]{border-color:var(--cm-ok-line);color:var(--cm-ok);background:var(--cm-ok-soft);}
-
-/* ── 端口胶囊：能点开的那种 ── */
-a[data-cm-portpill]{text-decoration:none;}
-a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);}
-[data-cm-portext]{margin-left:3px;font-size:var(--cm-f-xs);opacity:.85;}
-
-/* 退出码后面跟一个短标签（SIGKILL / SIGSEGV），完整解释留在 title 里 */
-[data-cm-exitshort]{font-style:normal;margin-left:5px;font-size:var(--cm-f-xs);
-  opacity:.85;letter-spacing:.02em;}
-
-/* ── 窄屏（≤600px）：只修会溢出、会被裁的地方，不动信息密度 ── */
-@media (max-width:600px){
-  /* tab 栏：不换行、可横滚，别把四个标签竖着堆起来 */
-  [data-cm-tabs]{overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
-  [data-cm-tabs]::-webkit-scrollbar{display:none;}
-  /* 容器行：允许折行，长镜像名不撑破 */
-  [data-cm-row]{flex-wrap:wrap;row-gap:3px;}
-  [data-cm-row]>*{min-width:0;}
-  /* 宿主信息两块并排 → 单列 */
-  [data-cm-host]{grid-template-columns:1fr;}
-  /* 活动日志六列挤不下：只留 时间/动作/说明 三列，其余藏掉，表头同规则对齐 */
-  [data-cm-audit-row]{grid-template-columns:64px 1fr auto;}
-  [data-cm-audit-row]>span:nth-child(2),
-  [data-cm-audit-row]>span:nth-child(4),
-  [data-cm-audit-row]>span:nth-child(6){display:none;}
-  /* 窄屏触控目标放大：可点元素统一过 24px 底线 */
-  [data-cm-btn]{min-height:32px;}
-  [data-cm-chip]{min-height:30px;}
-  [data-cm-tab]{min-height:36px;}
-}
-/* 中间断点（≤700px）：双栏 body 转单栏，列表占上半、详情占下半 ——
-   600-900px 区间的 detail 不再被 300px 左栏挤到只剩几百像素 */
-@media (max-width:700px){
-  [data-cm-body]{flex-direction:column;}
-  [data-cm-list]{width:100%;max-height:42%;border-right:0;
-    border-bottom:1px solid var(--cm-line-soft);}
-  [data-cm-dbody]{padding:var(--cm-s3) var(--cm-s4) var(--cm-s5);}
-}
-
-/* ═══ Obsidian Glass HUD：新增部件的材质与刻度 ═══ */
-
-/* 主按钮样式已并入基线段 data-primary（原来这里有一份后置覆盖，维护会漂移）。 */
-
-/* 刷新按钮的 4 秒脉冲环：和数据刷新同一个节拍，不是装饰动画 */
-[data-cm-pulsedot]{position:relative;width:6px;height:6px;flex:none;border-radius:var(--cm-r-full);
-  background:var(--cm-ok);box-shadow:var(--cm-glow-ok);}
-[data-cm-pulsedot]::after{content:'';position:absolute;inset:-2px;border-radius:inherit;
-  border:1px solid var(--cm-ok);opacity:0;animation:cm-pulse 4s var(--cm-ease) infinite;}
-@keyframes cm-pulse{
-  0%{opacity:.5;transform:scale(.72);}
-  45%{opacity:0;transform:scale(1.55);}
-  100%{opacity:0;transform:scale(1.55);}}
-
-/* 待确认计数：0 条时是灰字，有货才点亮成琥珀胶囊 —— 别用常亮的红点逼人习惯警报 */
-[data-cm-pendingbadge]{color:var(--cm-text-dim);}
-[data-cm-pendingbadge][data-on]{margin-left:6px;padding:0 7px;border-radius:var(--cm-r-xs);
-  color:var(--cm-warn);font-weight:600;background:var(--cm-warn-soft);
-  box-shadow:inset 0 0 0 1px var(--cm-warn-line);}
-
-/* 任务计数：跟待确认同一个规矩 —— 没活儿的时候是一句话，有活儿才点亮 */
-[data-cm-jobbadge]{color:var(--cm-text-dim);border:0;background:none;font:inherit;
-  padding:0;cursor:pointer;}
-[data-cm-jobbadge][data-on]{margin-left:6px;padding:0 7px;border-radius:var(--cm-r-xs);
-  color:var(--cm-accent);font-weight:600;background:var(--cm-accent-soft);
-  box-shadow:inset 0 0 0 1px var(--cm-accent-line);}
-
-/* ── Bento：宿主三格遥测（负载 / 内存 / 主盘） ── */
-[data-cm-bento]{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--cm-s3);
-  margin-top:var(--cm-s1);}
-[data-cm-tile]{position:relative;border:var(--cm-hairline);border-radius:var(--cm-r-sm);
-  background:var(--cm-layer-2);padding:var(--cm-s3);min-width:0;overflow:hidden;}
-[data-cm-tilehead]{display:flex;align-items:center;gap:6px;font-size:var(--cm-f-xs);
-  color:var(--cm-text-dim);letter-spacing:.04em;}
-[data-cm-tileicon]{display:flex;color:var(--cm-accent);opacity:.85;}
-[data-cm-big]{font-size:var(--cm-f-2xl);font-weight:600;line-height:1.15;margin-top:4px;
-  font-variant-numeric:tabular-nums;letter-spacing:-.02em;}
-[data-cm-bigunit]{font-size:var(--cm-f-md);font-weight:500;color:var(--cm-text-2);margin-left:1px;}
-[data-cm-tilesub]{font-size:var(--cm-f-xs);color:var(--cm-text-2);margin-top:2px;
-  font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-[data-cm-hint]{font-size:var(--cm-f-xs);color:var(--cm-text-dim);}
-
-/* 负载折线：线细、面积淡，最后一点标一个实心圆（当前值） */
-[data-cm-spark]{display:block;width:100%;height:28px;margin-top:var(--cm-s2);}
-[data-cm-spark-area]{fill:var(--cm-accent-soft);stroke:none;}
-[data-cm-spark-line]{fill:none;stroke:var(--cm-accent);stroke-width:1.5;
-  stroke-linejoin:round;stroke-linecap:round;}
-[data-cm-spark-dot]{fill:var(--cm-accent);}
-
-/* ── 三格信息矩阵（面板 / 危险操作 / AI） ── */
-[data-cm-matrix]{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--cm-s3);}
-[data-cm-cell]{border:var(--cm-hairline);border-radius:var(--cm-r-sm);
-  background:var(--cm-layer-2);padding:var(--cm-s3);min-width:0;}
-[data-cm-cellhead]{display:flex;align-items:center;gap:6px;font-size:var(--cm-f-sm);
-  margin-bottom:var(--cm-s1);}
-[data-cm-cellhead] strong{font-weight:600;}
-[data-cm-cellbody]{font-size:var(--cm-f-xs);color:var(--cm-text-2);line-height:1.65;}
-
-/* ── 节点：两张子卡 + 等宽技术徽章 ── */
-[data-cm-nodes]{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--cm-s3);}
-[data-cm-nodecard]{border:var(--cm-hairline);border-radius:var(--cm-r-sm);
-  background:var(--cm-layer-2);padding:var(--cm-s3);min-width:0;}
-[data-cm-nodehead]{display:flex;align-items:center;gap:6px;font-size:var(--cm-f-sm);
-  margin-bottom:var(--cm-s1);}
-[data-cm-tech]{display:flex;flex-wrap:wrap;gap:4px;}
-[data-cm-tip]{font-family:var(--cm-mono);font-size:var(--cm-f-xs);
-  line-height:1.7;padding:0 6px;border-radius:var(--cm-r-xs);
-  border:1px solid var(--cm-line-soft);background:var(--cm-layer-2);
-  color:var(--cm-text-2);white-space:nowrap;}
-
-/* 配置页的分段控件：同一套凹槽 + 亮药丸语言 */
-[data-cm-seg]{display:inline-flex;gap:2px;padding:3px;margin-bottom:var(--cm-s4);
-  border-radius:var(--cm-r-md);background:var(--cm-layer-2);
-  border:1px solid var(--cm-line-soft);box-shadow:var(--cm-inset-groove);}
-[data-cm-segitem][data-active]{background:var(--cm-active);color:var(--cm-text);
-  box-shadow:var(--cm-glow-top);}
-
-/* 窄屏：三格与两格全部退成单列，别横向挤成一坨 */
-@media (max-width:600px){
-  [data-cm-bento],[data-cm-matrix],[data-cm-nodes]{grid-template-columns:1fr;}
-}
-/* ── 骨架：首屏读取时的占位，shimmer 全部用主题令牌调色 ── */
-[data-cm-skeleton]{display:flex;flex-direction:column;gap:var(--cm-s2);padding:var(--cm-s3);}
-[data-cm-skeleton]>div{height:46px;border-radius:var(--cm-r-sm);
-  background:linear-gradient(90deg,var(--cm-hover) 25%,var(--cm-surface-hover) 50%,var(--cm-hover) 75%);
-  background-size:200% 100%;animation:cm-shimmer 1.4s linear infinite;}
-[data-cm-skeleton]>div:nth-child(2){animation-delay:.12s;}
-[data-cm-skeleton]>div:nth-child(3){animation-delay:.24s;}
-@keyframes cm-shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
-
-/* ── 遥测轻闪：数字变化时 DOM 重建（key=值），动画重放一次提示「更新了」 ── */
-[data-cm-big]{animation:cm-tick .6s var(--cm-ease);}
-@keyframes cm-tick{from{opacity:.35;}to{opacity:1;}}
-
-/* ── 尊重系统的降低动效偏好 ── */
-@media (prefers-reduced-motion:reduce){
-  [data-cm-page] *,[data-cm-page] *::before,[data-cm-page] *::after{
-    transition-duration:.01ms!important;animation-duration:.01ms!important;
-    animation-iteration-count:1!important;scroll-behavior:auto!important;}
-}
-`
+    const CSS = "\n/* ══════════════════════════════════════════════════════════\n   设计令牌层\n   所有组件只从这一层取值：改一处，全局跟着变。\n   色彩全部映射 DSH 的 --dsw-alias-*，亮/暗主题自动切换。\n   ══════════════════════════════════════════════════════════ */\n[data-cm-page]{display:flex;flex-direction:column;height:100%;min-height:0;overflow:hidden;box-sizing:border-box;container-type:inline-size;\n  padding-top:var(--dsh-frame-top-clearance,0px);color:var(--cm-text);\n  background:var(--cm-canvas-glow),var(--cm-base);\n  font-size:calc(var(--cm-f-md) + var(--dsh-content-font-delta,0px));line-height:1.5;-webkit-font-smoothing:antialiased;\n  /* ── 颜色全部派生自 DSH 主题令牌 ──\n     这里写的是**亮色基线**；暗色只覆盖 9 个会发光的令牌，见下面 body[data-ds-dark-theme] 那一块。\n     宿主换主题 = 换这套 alias 令牌，面板自动跟上，不需要再改一次。\n     色值只允许写在这一批 --cm-* 定义行里（test/theme.test.mjs 会过滤这些行）。 */\n  --cm-text:var(--dsw-alias-label-primary,currentColor);\n  --cm-text-2:var(--dsw-alias-label-secondary,currentColor);\n  --cm-text-dim:var(--dsw-alias-label-secondary,#6b7280);\n  --cm-base:var(--dsw-alias-bg-base,transparent);\n  --cm-surface:var(--dsw-alias-card-fill,rgba(128,128,128,.08));\n  --cm-surface-hover:var(--dsw-alias-card-fill-hover,rgba(128,128,128,.12));\n  /* 凹槽 / 子卡 / 左栏：在底色与卡面之间取一档，亮暗两边都能分层 */\n  --cm-layer-2:color-mix(in srgb,var(--cm-surface) 55%,var(--cm-base));\n  --cm-active:var(--dsw-alias-button-elevated-fill,#e6e7ea);\n  --cm-hover:var(--dsw-alias-interactive-bg-hover,rgba(128,128,128,.1));\n  --cm-selected:var(--dsw-alias-border-selected,#adb2b8);\n  /* 强调色用 DSH 自己的静态蓝（和终端 readTermTheme() 同一套），不用 brand-primary ——\n     那是反色令牌（亮色近黑、暗色近白），拿它当强调色会得到黑药丸 / 白药丸。 */\n  --cm-accent:var(--dsw-static-blue-600,#2563eb);\n  --cm-accent-hover:color-mix(in srgb,var(--cm-accent) 82%,var(--cm-text));\n  --cm-on-accent:var(--dsw-static-neutral-bluish-00,#ffffff);\n  --cm-ok:var(--dsw-alias-state-success-primary,#22c55e);\n  --cm-warn:var(--dsw-alias-state-warn-primary,#f59e0b);\n  --cm-warn-text:var(--dsw-alias-state-warn-label,#dd8629);\n  --cm-danger:var(--dsw-alias-state-error-primary,#ef4444);\n  --cm-idle:var(--dsw-alias-label-tertiary,#6b7280);\n  /* 线条由文字色派生：亮色得「黑 8%」、暗色得「白 8%」，一条公式两套成立 */\n  --cm-line-soft:color-mix(in srgb,var(--cm-text) 8%,transparent);\n  --cm-line:color-mix(in srgb,var(--cm-text) 12%,transparent);\n  --cm-line-strong:color-mix(in srgb,var(--cm-text) 20%,transparent);\n  --cm-hairline:1px solid var(--cm-line-soft);\n  /* 亮色不发光：用一圈强调色细描边代替光晕，同一个令牌名，两套视觉 */\n  --cm-edge-light:color-mix(in srgb,var(--cm-text) 10%,transparent);\n  --cm-toplight:linear-gradient(90deg,transparent,var(--cm-edge-light),transparent);\n  --cm-glass:color-mix(in srgb,var(--cm-base) 84%,transparent);\n  --cm-canvas-glow:linear-gradient(transparent,transparent);\n  --cm-glow-accent:0 0 0 1px var(--cm-accent-line);\n  --cm-glow-ok:0 0 0 1px var(--cm-ok-line);\n  --cm-glow-warn:0 0 0 1px var(--cm-warn-line);\n  --cm-glow-top:inset 0 1px 0 color-mix(in srgb,var(--cm-text) 4%,transparent);\n  --cm-inset-groove:inset 0 1px 2px color-mix(in srgb,var(--cm-text) 6%,transparent);\n  --cm-blur:blur(12px);\n  /* ── 派生柔色：徽标、选中底、hover 都用它，避免满屏实心色块 ── */\n  --cm-accent-soft:color-mix(in srgb,var(--cm-accent) 14%,transparent);\n  --cm-accent-line:color-mix(in srgb,var(--cm-accent) 42%,transparent);\n  --cm-danger-soft:color-mix(in srgb,var(--cm-danger) 14%,transparent);\n  --cm-danger-line:color-mix(in srgb,var(--cm-danger) 42%,transparent);\n  --cm-ok-soft:color-mix(in srgb,var(--cm-ok) 14%,transparent);\n  --cm-ok-line:color-mix(in srgb,var(--cm-ok) 42%,transparent);\n  --cm-warn-soft:color-mix(in srgb,var(--cm-warn) 16%,transparent);\n  --cm-warn-line:color-mix(in srgb,var(--cm-warn) 42%,transparent);\n  /* ── 间距刻度：8px 基准（4 / 8 / 12 / 16 / 20 / 24 / 32），卡片内边距 20、外边距 16 ── */\n  --cm-s1:4px;--cm-s2:8px;--cm-s3:12px;--cm-s4:16px;--cm-s5:20px;--cm-s6:24px;--cm-s7:32px;\n  /* ── 圆角刻度：大卡片 14、分区 12、列表项与输入框 10、标签胶囊 6（四档拉开不重复） ── */\n  --cm-r-xs:6px;--cm-r-sm:10px;--cm-r-md:12px;--cm-r-lg:14px;--cm-r-full:999px;\n  /* ── 字号刻度：封死 6 档（12 / 13 / 14 / 16 / 22 / 28）。下限 12：中文 11px 笔画发糊 ── */\n  --cm-f-xs:12px;--cm-f-sm:13px;--cm-f-md:14px;--cm-f-lg:16px;--cm-f-xl:22px;--cm-f-2xl:28px;\n  /* ── 动效：一条曲线走到底，时长克制 ── */\n  --cm-ease:cubic-bezier(.2,.7,.3,1);\n  --cm-fast:.14s;--cm-slow:.24s;\n  /* ── 阴影：亮色是轻灰影，暗色靠分层暗影托起来（见分支） ── */\n  --cm-shadow-sm:0 1px 2px rgba(0,0,0,.06);\n  --cm-shadow-md:0 4px 14px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);\n  --cm-shadow-lg:0 12px 32px rgba(0,0,0,.12),0 2px 6px rgba(0,0,0,.06);\n  --cm-ring:0 0 0 2px var(--dsw-focus-ring-color,var(--cm-accent));\n  /* 等宽字体栈只有一个出处，13 处引用全走这个令牌 */\n  --cm-mono:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;}\n\n/* ── 暗色分支：只换这 9 个令牌，其余全部由上面派生 ──\n   DSH 用 body[data-ds-dark-theme] 表示暗色（client.js 的 MutationObserver 已经在盯它给终端用），\n   面板 CSS 注入在 document.head，所以这个后代选择器能命中面板根节点。 */\nbody[data-ds-dark-theme] [data-cm-page]{\n  --cm-accent:var(--dsw-static-blue-400,#60a5fa);\n  --cm-on-accent:#08131F;\n  --cm-edge-light:rgba(255,255,255,.14);\n  --cm-canvas-glow:radial-gradient(1100px 520px at 88% -12%,color-mix(in srgb,var(--cm-accent) 7%,transparent),transparent 68%),radial-gradient(900px 480px at 6% 108%,color-mix(in srgb,var(--cm-ok) 5%,transparent),transparent 70%);\n  --cm-glow-accent:0 0 12px color-mix(in srgb,var(--cm-accent) 35%,transparent);\n  --cm-glow-ok:0 0 8px color-mix(in srgb,var(--cm-ok) 50%,transparent);\n  --cm-glow-warn:0 0 10px color-mix(in srgb,var(--cm-warn) 40%,transparent);\n  --cm-glow-top:inset 0 1px 0 rgba(255,255,255,.06);\n  --cm-inset-groove:inset 0 1px 3px rgba(0,0,0,.35);\n  --cm-shadow-sm:0 1px 2px rgba(0,0,0,.35);\n  --cm-shadow-md:0 6px 20px rgba(0,0,0,.45),0 1px 2px rgba(0,0,0,.4);\n  --cm-shadow-lg:0 18px 48px rgba(0,0,0,.55),0 2px 8px rgba(0,0,0,.4);\n}\n\n/* ── 顶栏 ── */\n[data-cm-top]{display:flex;align-items:center;gap:var(--cm-s3);padding:var(--cm-s4) var(--cm-s6);\n  border-bottom:1px solid var(--cm-line-soft);flex:none;position:relative;z-index:2;\n  background:var(--cm-glass);backdrop-filter:var(--cm-blur);-webkit-backdrop-filter:var(--cm-blur);}\n/* 顶栏底缘一道渐隐高光，把标题区和内容区切开，而不是靠一条实线 */\n[data-cm-top]::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:1px;\n  background:var(--cm-toplight);pointer-events:none;}\n[data-cm-title]{font-size:var(--cm-f-lg);font-weight:650;letter-spacing:-.01em;line-height:1.3;}\n[data-cm-sub]{font-size:var(--cm-f-xs);color:var(--cm-text-dim);letter-spacing:.01em;}\n[data-cm-grow]{flex:1;min-width:0;}\n\n/* ── 按钮：软底 + 细描边 + focus ring，按下有 0.5px 位移 ── */\n[data-cm-btn]{display:inline-flex;align-items:center;justify-content:center;gap:var(--cm-s2);\n  border:1px solid var(--cm-line-strong);background:var(--cm-base);color:inherit;\n  border-radius:var(--cm-r-sm);padding:5px 11px;font-size:var(--cm-f-sm);line-height:1.4;\n  cursor:pointer;font-family:inherit;white-space:nowrap;\n  transition:background-color var(--cm-fast) var(--cm-ease),border-color var(--cm-fast) var(--cm-ease),\n    color var(--cm-fast) var(--cm-ease),box-shadow var(--cm-fast) var(--cm-ease),\n    transform var(--cm-fast) var(--cm-ease);}\n[data-cm-btn]:hover{background:var(--cm-hover);}\n[data-cm-btn]:active{transform:translateY(.5px);background:var(--cm-active);}\n[data-cm-btn]:focus-visible{outline:none;border-color:var(--cm-accent);box-shadow:var(--cm-ring);}\n/* 主按钮：电光青渐变 + 发光。整个界面只有它和选中态发光，亮度才有意义。\n   亮暗各自成立：亮色 glow 是 1px 细描边、暗色是真光晕，令牌层已分好。 */\n[data-cm-btn][data-primary]{background:linear-gradient(180deg,var(--cm-accent-hover),var(--cm-accent));\n  border-color:transparent;color:var(--cm-on-accent);font-weight:600;\n  box-shadow:var(--cm-glow-accent),var(--cm-glow-top);}\n[data-cm-btn][data-primary]:hover{background:linear-gradient(180deg,var(--cm-accent),var(--cm-accent-hover));\n  box-shadow:var(--cm-glow-accent),var(--cm-shadow-md);}\n[data-cm-btn][data-danger]{border-color:var(--cm-danger-line);color:var(--cm-danger);background:transparent;}\n[data-cm-btn][data-danger]:hover{background:var(--cm-danger-soft);border-color:var(--cm-danger);}\n[data-cm-btn][disabled]{opacity:.42;cursor:not-allowed;box-shadow:none;transform:none;}\n/* 键盘焦点兜底：tab / segitem / rangeitem / 可点击行没有各自的 ring，这条统一给 */\n[data-cm-page] button:focus-visible,[data-cm-page] a:focus-visible,\n[data-cm-page] [tabindex]:focus-visible{outline:none;box-shadow:var(--cm-ring);}\n\n/* ── 两栏骨架 ── */\n[data-cm-body]{display:flex;flex:1;min-height:0;}\n[data-cm-stack]{display:flex;flex-direction:column;flex:1;min-height:0;}\n/* 子 tab 条横跨整页，下面再接正文（容器页是左列表+右详情，其余是单页）。 */\n[data-cm-subbar]{flex:none;min-width:0;}\n[data-cm-subbar]:empty{display:none;}\n[data-cm-subbar] [data-cm-tabs]{margin-bottom:0;}\n[data-cm-list]{width:300px;flex:none;border-right:1px solid var(--cm-line-soft);\n  background:var(--cm-layer-2);display:flex;flex-direction:column;min-height:0;}\n[data-cm-search]{padding:var(--cm-s3) var(--cm-s3);border-bottom:1px solid var(--cm-line-soft);flex:none;}\n/* 放大镜是装饰，不抢焦点：绝对定位压在输入框左侧，input 自己加左内边距让位 */\n[data-cm-searchwrap]{position:relative;display:flex;align-items:center;}\n[data-cm-sicon]{position:absolute;left:9px;top:50%;transform:translateY(-50%);\n  display:flex;color:var(--cm-text-dim);pointer-events:none;}\n[data-cm-search] input{width:100%;box-sizing:border-box;background:var(--cm-base);\n  border:1px solid var(--cm-line-strong);border-radius:var(--cm-r-sm);color:inherit;\n  padding:7px 10px 7px 30px;font-size:var(--cm-f-sm);font-family:inherit;outline:none;\n  transition:border-color var(--cm-fast) var(--cm-ease),box-shadow var(--cm-fast) var(--cm-ease),\n    background-color var(--cm-fast) var(--cm-ease);}\n[data-cm-search] input::placeholder{color:var(--cm-text-dim);}\n[data-cm-search] input:focus{border-color:var(--cm-accent);box-shadow:var(--cm-ring),var(--cm-glow-accent);\n  background:var(--cm-layer-2);}\n[data-cm-scroll]{overflow:auto;min-height:0;flex:1;padding:var(--cm-s2) var(--cm-s3) var(--cm-s6);}\n\n/* ── 滚动条：细、半透明、hover 才显形 ── */\n[data-cm-scroll],[data-cm-dbody],[data-cm-logbox],[data-cm-pre],[data-cm-pending],\n[data-cm-editor],[data-cm-term] .xterm-viewport{scrollbar-width:thin;\n  scrollbar-color:var(--cm-line-strong) transparent;}\n[data-cm-scroll]::-webkit-scrollbar,[data-cm-dbody]::-webkit-scrollbar,\n[data-cm-logbox]::-webkit-scrollbar,[data-cm-pre]::-webkit-scrollbar,\n[data-cm-pending]::-webkit-scrollbar,[data-cm-editor]::-webkit-scrollbar,\n[data-cm-term] .xterm-viewport::-webkit-scrollbar{width:9px;height:9px;}\n[data-cm-scroll]::-webkit-scrollbar-track,[data-cm-dbody]::-webkit-scrollbar-track,\n[data-cm-logbox]::-webkit-scrollbar-track,[data-cm-pre]::-webkit-scrollbar-track,\n[data-cm-pending]::-webkit-scrollbar-track,[data-cm-editor]::-webkit-scrollbar-track,\n[data-cm-term] .xterm-viewport::-webkit-scrollbar-track{background:transparent;}\n[data-cm-scroll]::-webkit-scrollbar-thumb,[data-cm-dbody]::-webkit-scrollbar-thumb,\n[data-cm-logbox]::-webkit-scrollbar-thumb,[data-cm-pre]::-webkit-scrollbar-thumb,\n[data-cm-pending]::-webkit-scrollbar-thumb,[data-cm-editor]::-webkit-scrollbar-thumb,\n[data-cm-term] .xterm-viewport::-webkit-scrollbar-thumb{\n  background:var(--cm-line-strong);border-radius:var(--cm-r-full);\n  border:2px solid transparent;background-clip:content-box;}\n[data-cm-scroll]::-webkit-scrollbar-thumb:hover,[data-cm-dbody]::-webkit-scrollbar-thumb:hover,\n[data-cm-logbox]::-webkit-scrollbar-thumb:hover,[data-cm-pre]::-webkit-scrollbar-thumb:hover,\n[data-cm-term] .xterm-viewport::-webkit-scrollbar-thumb:hover{\n  background:var(--cm-text-dim);background-clip:content-box;}\n\n/* ── 分组标题 ── */\n[data-cm-group]{margin-top:var(--cm-s3);}\n[data-cm-ghead]{display:flex;align-items:center;gap:var(--cm-s2);padding:var(--cm-s1) var(--cm-s2);\n  font-size:var(--cm-f-xs);font-weight:650;color:var(--cm-text-dim);letter-spacing:.06em;}\n\n\n\n/* ── 分段控件：同一页里几组性质相近、量级不同的配置 ── */\n[data-cm-seg]{display:inline-flex;gap:2px;padding:2px;margin-bottom:var(--cm-s4);\n  background:var(--cm-base);border:1px solid var(--cm-line-soft);border-radius:var(--cm-r-md);}\n[data-cm-segitem]{appearance:none;border:0;background:transparent;cursor:pointer;\n  font-family:inherit;font-size:var(--cm-f-sm);font-weight:500;color:var(--cm-text-dim);\n  padding:5px 12px;border-radius:var(--cm-r-sm);\n  transition:background-color var(--cm-fast) var(--cm-ease),color var(--cm-fast) var(--cm-ease);}\n[data-cm-segitem]:hover{color:var(--cm-text-2);}\n[data-cm-segitem][data-active]{background:var(--cm-surface);color:var(--cm-text);\n  box-shadow:inset 0 0 0 1px var(--cm-line);}\n\n/* ── 概览页：状态头 / 数字块 / 折叠 / 危险区 ── */\n[data-cm-hero]{display:flex;flex-direction:column;gap:var(--cm-s2);}\n[data-cm-heroline]{display:flex;gap:var(--cm-s3);align-items:center;flex-wrap:wrap;}\n[data-cm-heroname]{font-size:var(--cm-f-lg);font-weight:600;color:var(--cm-text);letter-spacing:-.01em;}\n[data-cm-herosub]{font-size:var(--cm-f-md);color:var(--cm-text-2);font-variant-numeric:tabular-nums;}\n\n/* 状态词本身带色 —— 色只在「状态 / 可交互 / 危险」三个语义上出现。 */\n[data-cm-statelabel]{font-size:var(--cm-f-sm);font-weight:600;letter-spacing:.02em;}\n[data-cm-statelabel][data-tone=\"on\"]{color:var(--cm-ok);}\n[data-cm-statelabel][data-tone=\"warn\"]{color:var(--cm-warn-text);}\n[data-cm-statelabel][data-tone=\"off\"]{color:var(--cm-text-dim);}\n[data-cm-statelabel][data-tone=\"bad\"]{color:var(--cm-danger);}\n\n/* CPU / 内存 / 进程 三块并排：这是首屏最该被看见的数字。\n   2026-11-23 起它们不再自带一套样式，直接复用 Bento 的 [data-cm-tile]，\n   免得同一屏上出现两种材质、两种字号。 */\n[data-cm-numbers]{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));\n  gap:var(--cm-s3);margin:var(--cm-s3) 0;}\n/* 趋势符号：三次轮询的走向。代替 sparkline —— 4 秒采一个点画折线，\n   线条的抖动来自轮询间隔而不是负载，那是撒谎。 */\n[data-cm-trend]{font-size:var(--cm-f-md);font-weight:600;margin-left:var(--cm-s1);\n  vertical-align:2px;}\n[data-cm-trend][data-dir=\"up\"]{color:var(--cm-warn-text);}\n[data-cm-trend][data-dir=\"down\"]{color:var(--cm-ok);}\n[data-cm-trend][data-dir=\"flat\"]{color:var(--cm-text-dim);}\n/* 退出码徽标：只在对得上退出码非 0 时出现，红色但不铺满。 */\n[data-cm-exitbad]{display:inline-flex;align-items:center;gap:4px;padding:1px 7px;\n  border-radius:var(--cm-r-xs);font-size:var(--cm-f-xs);font-weight:600;\n  color:var(--cm-danger);background:var(--cm-danger-soft);border:1px solid var(--cm-danger-line);\n  font-variant-numeric:tabular-nums;}\n/* 端口胶囊：把 0.0.0.0:8080->80/tcp 拆成能一眼扫的几段，而不是一整行字符串。 */\n[data-cm-ports]{display:flex;flex-direction:column;gap:var(--cm-s2);margin-top:var(--cm-s3);}\n[data-cm-portrow]{display:flex;align-items:center;gap:var(--cm-s2);flex-wrap:wrap;\n  padding:var(--cm-s2) var(--cm-s3);border:1px solid var(--cm-line-soft);\n  border-radius:var(--cm-r-sm);background:var(--cm-base);}\n[data-cm-portpill]{display:inline-flex;align-items:center;padding:1px 7px;\n  border-radius:var(--cm-r-xs);background:var(--cm-accent-soft);color:var(--cm-accent);\n  border:1px solid var(--cm-accent-line);\n  font-family:var(--cm-mono);font-size:var(--cm-f-xs);\n  font-variant-numeric:tabular-nums;}\n[data-cm-portpill][data-muted]{background:transparent;color:var(--cm-text-2);\n  border-color:var(--cm-line);}\n[data-cm-portarrow]{color:var(--cm-text-dim);font-size:var(--cm-f-xs);}\n\n/* 身份信息折叠：原生 details，零 JS。 */\n[data-cm-details]{border:1px solid var(--cm-line-soft);border-radius:var(--cm-r-md);\n  padding:var(--cm-s3) var(--cm-s4);margin-bottom:var(--cm-s4);}\n[data-cm-details] summary{cursor:pointer;font-size:var(--cm-f-sm);font-weight:600;\n  color:var(--cm-text-dim);letter-spacing:.04em;list-style:none;}\n[data-cm-details] summary::-webkit-details-marker{display:none;}\n[data-cm-details] summary::before{content:\"\\25B8 \";display:inline-block;\n  transition:transform var(--cm-fast) var(--cm-ease);}\n[data-cm-details][open] summary::before{content:\"\\25BE \";}\n[data-cm-details] summary:hover{color:var(--cm-text-2);}\n[data-cm-details] [data-cm-kv]{margin-top:var(--cm-s3);}\n\n/* 危险操作视觉后退：一条警示边框把它们圈住，不靠大红色块抢注意力。 */\n[data-cm-dangerzone]{display:flex;gap:var(--cm-s2);align-items:center;flex-wrap:wrap;\n  margin-top:var(--cm-s3);padding-top:var(--cm-s3);\n  border-top:1px dashed var(--cm-danger-line);}\n\n/* ── 状态点：带一圈同色光晕，比纯色点更有辨识度 ── */\n[data-cm-dot]{width:8px;height:8px;border-radius:var(--cm-r-full);flex:none;\n  background:var(--cm-text-dim);color:var(--cm-text-dim);\n  box-shadow:0 0 0 3px color-mix(in srgb,currentColor 16%,transparent);\n  transition:background-color var(--cm-fast) var(--cm-ease),box-shadow var(--cm-fast) var(--cm-ease);}\n[data-cm-dot][data-on]{background:var(--cm-ok);color:var(--cm-ok);}\n[data-cm-dot][data-off]{background:var(--cm-text-dim);color:var(--cm-text-dim);}\n[data-cm-dot][data-warn]{background:var(--cm-warn);color:var(--cm-warn);}\n/* 异常退出以前和「已停止」长得一模一样（都是灰点），这两个人必须分得开。 */\n[data-cm-dot][data-bad]{background:var(--cm-danger);color:var(--cm-danger);}\n\n\n/* ── 列表行：一张微遥测卡（左指示条 + 双色 2px 进度） ── */\n[data-cm-row]{position:relative;display:flex;align-items:center;gap:var(--cm-s2);padding:9px 10px;\n  margin-bottom:var(--cm-s1);border-radius:var(--cm-r-sm);cursor:pointer;\n  border:var(--cm-hairline);background:var(--cm-surface);overflow:hidden;\n  transition:background-color var(--cm-fast) var(--cm-ease),border-color var(--cm-fast) var(--cm-ease);}\n[data-cm-row]:hover{background:var(--cm-surface-hover);border-color:var(--cm-line-strong);}\n[data-cm-row][data-active]{border-color:var(--cm-accent-line);\n  background:linear-gradient(90deg,var(--cm-accent-soft),transparent 68%),var(--cm-surface);}\n/* 选中态：左侧 2px 电光青竖条，比整行变色更安静也更准 */\n[data-cm-row][data-active]::before{content:'';position:absolute;left:0;top:9px;bottom:9px;width:2px;\n  border-radius:0 2px 2px 0;background:var(--cm-accent);box-shadow:var(--cm-glow-accent);}\n/* 双色微进度：CPU 青、内存绿；内存那条只在有上限时才渲染 */\n[data-cm-bars]{display:flex;gap:4px;margin-top:6px;height:2px;}\n/* 轨道用 line-strong：空轨也要能看出「这是一根条」，而不是一道卡片分隔线 */\n[data-cm-bars]>i{display:block;flex:1;height:2px;border-radius:2px;\n  background:var(--cm-line-strong);overflow:hidden;}\n/* min-width 是关键：CPU 0.77% 在 98px 轨道上只有 0.75px，纯按比例画等于没有。\n   给一个 3px 下限，「有一点负载」和「真的 0」才能靠眼睛分开，比例仍由 width 决定。 */\n[data-cm-bars]>i>b{display:block;height:100%;border-radius:2px;min-width:3px;}\n[data-cm-bars]>i[data-kind='cpu']>b{background:var(--cm-accent);}\n[data-cm-bars]>i[data-kind='mem']>b{background:var(--cm-ok);}\n[data-cm-rmain]{flex:1;min-width:0;}\n[data-cm-rname]{font-size:var(--cm-f-md);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.45;}\n[data-cm-rmeta]{font-size:var(--cm-f-xs);color:var(--cm-text-dim);overflow:hidden;\n  text-overflow:ellipsis;white-space:nowrap;line-height:1.45;}\n[data-cm-live]{font-family:var(--cm-mono);font-size:var(--cm-f-xs);\n  color:var(--cm-text-2);font-variant-numeric:tabular-nums;}\n\n/* ── 重建差量表：点之前得看清改了哪几项、原来是什么 ── */\n[data-cm-diff]{margin-top:var(--cm-s4);padding-top:var(--cm-s3);\n  border-top:1px dashed var(--cm-warn-line);display:flex;flex-direction:column;\n  gap:var(--cm-s2);}\n[data-cm-diff] [data-cm-portrow]{background:transparent;border-color:var(--cm-line);}\n/* ── 占用条 ── */\n/* 数据类元素只给「位移」一点过渡（0.22s，远小于 4 秒轮询，不会蠕动）；\n   数字本身一律不加 transition —— 轮询重绘时数字滑动比瞬变更难读。 */\n[data-cm-meter]{position:relative;height:3px;border-radius:var(--cm-r-full);\n  background:var(--cm-line);margin-top:var(--cm-s1);}\n[data-cm-meter][data-tall]{height:6px;}\n[data-cm-meter] i{display:block;height:100%;background:var(--cm-ok);border-radius:inherit;\n  transition:width .22s var(--cm-ease),background-color var(--cm-fast) var(--cm-ease);}\n[data-cm-meter][data-warn] i{background:var(--cm-warn);}\n[data-cm-meter][data-bad] i{background:var(--cm-danger);}\n/* 第二阈值刻度：只在真有第二个上限（如 memory-reservation < memory）时才画。 */\n[data-cm-meter] u{position:absolute;top:-2px;bottom:-2px;width:0;\n  border-left:1px solid var(--cm-text-dim);pointer-events:none;}\n[data-cm-host]{display:grid;grid-template-columns:1fr 1fr;gap:var(--cm-s4);margin-top:var(--cm-s2);}\n[data-cm-formrow]{display:flex;gap:var(--cm-s2);align-items:center;margin:var(--cm-s3) 0;flex-wrap:wrap;}\n[data-cm-check]{accent-color:var(--cm-accent);margin:0 2px 0 0;flex:none;width:13px;height:13px;cursor:pointer;}\n[data-cm-bulk]{display:flex;gap:var(--cm-s2);align-items:center;padding:var(--cm-s2) var(--cm-s4);\n  border-bottom:1px solid var(--cm-line);background:var(--cm-surface-hover);flex:none;font-size:var(--cm-f-xs);}\n[data-cm-bulk] [data-cm-btn]{padding:2px 8px;font-size:var(--cm-f-xs);}\n[data-cm-formrow] [data-cm-input]{flex:1;min-width:160px;}\n[data-cm-nodehint]{font-size:var(--cm-f-xs);color:var(--cm-warn-text);padding:2px var(--cm-s2) var(--cm-s2);\n  line-height:1.5;word-break:break-all;}\n\n/* ── 详情区 ── */\n/* min-height:0 不能少：flex 子项的 min-height 默认 auto，意思是「不许比内容矮」，\n   于是 data-cm-detail 会被内容撑高，里面 data-cm-dbody 的 overflow:auto 就拿不到可滚的高度，\n   整页被顶出屏幕、被宿主裁掉 —— 看着就是「没有滚轮」。 */\n[data-cm-detail]{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;}\n[data-cm-tabs]{display:flex;gap:var(--cm-s1);padding:var(--cm-s3) var(--cm-s5) 0;\n  border-bottom:1px solid var(--cm-line-soft);flex:none;}\n/* 二级 tab：不堆边框，只留一条发光下划线 —— 描边越少，界面越整齐 */\n[data-cm-tab]{position:relative;padding:8px 14px;font-size:var(--cm-f-sm);border-radius:0;cursor:pointer;\n  border:0;background:transparent;color:var(--cm-text-dim);\n  font-family:inherit;line-height:1.4;\n  transition:color var(--cm-fast) var(--cm-ease);}\n[data-cm-tab]:hover{color:var(--cm-text);}\n[data-cm-tab][data-on]{color:var(--cm-text);}\n[data-cm-tab][data-on]::after{content:'';position:absolute;left:10px;right:10px;bottom:-1px;\n  height:2px;border-radius:2px;background:var(--cm-accent);box-shadow:var(--cm-glow-accent);}\n[data-cm-dbody]{overflow:auto;min-height:0;flex:1;padding:var(--cm-s4) var(--cm-s6) var(--cm-s7);}\n\n/* ── 卡片：深色微透玻璃 + 1px 切面高光（悬浮只换边色，不抬升、不缩放） ── */\n[data-cm-card]{position:relative;border:var(--cm-hairline);border-radius:var(--cm-r-lg);\n  background:var(--cm-surface);padding:var(--cm-s5);margin-bottom:var(--cm-s4);\n  backdrop-filter:var(--cm-blur);-webkit-backdrop-filter:var(--cm-blur);\n  box-shadow:var(--cm-shadow-md),var(--cm-glow-top);\n  transition:border-color var(--cm-slow) var(--cm-ease);}\n/* 顶缘中间亮、两头透明的细线：整块卡片的精致感就来自这一道 */\n[data-cm-card]::before{content:'';position:absolute;top:0;left:12%;right:12%;height:1px;\n  background:var(--cm-toplight);pointer-events:none;}\n[data-cm-card]:hover{border-color:var(--cm-line-strong);}\n[data-cm-kv]{display:grid;grid-template-columns:96px 1fr;gap:var(--cm-s2) var(--cm-s4);font-size:var(--cm-f-sm);}\n[data-cm-kv] b{font-weight:500;color:var(--cm-text-dim);}\n[data-cm-mono]{font-family:var(--cm-mono);font-size:var(--cm-f-sm);word-break:break-all;}\n[data-cm-pre]{background:var(--cm-base);border-radius:var(--cm-r-md);border:1px solid var(--cm-line-soft);\n  padding:var(--cm-s3) var(--cm-s4);overflow:auto;max-height:60vh;\n  font-family:var(--cm-mono);font-size:var(--cm-f-sm);white-space:pre-wrap;\n  word-break:break-word;margin:0;line-height:1.55;}\n[data-cm-actions]{display:flex;flex-wrap:wrap;row-gap:var(--cm-s2);gap:var(--cm-s2);margin-top:var(--cm-s4);}\n\n/* ── 表单控件：focus 用光晕而不是只换边框色 ── */\n[data-cm-input],[data-cm-select]{background:var(--cm-base);border:1px solid var(--cm-line-strong);\n  border-radius:var(--cm-r-sm);color:inherit;padding:5px 9px;font-size:var(--cm-f-sm);font-family:inherit;\n  outline:none;box-sizing:border-box;\n  transition:border-color var(--cm-fast) var(--cm-ease),box-shadow var(--cm-fast) var(--cm-ease);}\n[data-cm-input]:focus,[data-cm-select]:focus{border-color:var(--cm-accent);box-shadow:var(--cm-ring);}\n[data-cm-form]{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));\n  gap:var(--cm-s3) var(--cm-s4);align-items:end;max-width:1000px;}\n[data-cm-sec]{grid-column:1 / -1;margin:var(--cm-s5) 0 var(--cm-s1);font-size:var(--cm-f-xs);font-weight:650;\n  color:var(--cm-text-dim);letter-spacing:.04em;text-transform:uppercase;}\n[data-cm-field]{display:flex;flex-direction:column;gap:var(--cm-s1);min-width:0;}\n[data-cm-field] label{font-size:var(--cm-f-xs);color:var(--cm-text-dim);}\n[data-cm-checkline]{display:inline-flex;align-items:center;gap:var(--cm-s2);\n  font-size:var(--cm-f-xs);color:var(--cm-text-2);cursor:pointer;margin-top:var(--cm-s2);}\n\n/* ── 待确认区 ── */\n[data-cm-pending]{flex:none;border-top:1px solid var(--cm-line);background:var(--cm-layer-2);\n  max-height:34vh;overflow:auto;}\n[data-cm-phead]{display:flex;align-items:center;gap:var(--cm-s3);padding:var(--cm-s3) var(--cm-s6);\n  font-size:var(--cm-f-sm);font-weight:650;}\n[data-cm-prow]{display:flex;align-items:center;gap:var(--cm-s4);padding:var(--cm-s2) var(--cm-s6);\n  border-top:1px solid var(--cm-line-soft);\n  transition:background-color var(--cm-fast) var(--cm-ease);}\n[data-cm-prow]:hover{background:var(--cm-hover);}\n[data-cm-psummary]{flex:1;min-width:0;font-size:var(--cm-f-sm);}\n[data-cm-pexpiry]{font-size:var(--cm-f-xs);color:var(--cm-text-dim);font-variant-numeric:tabular-nums;}\n\n/* 预演清单：确认之前把「会发生什么」摊开，危险项与保险项用不同色调区分 */\n[data-cm-plan]{margin-top:var(--cm-s2);display:flex;flex-direction:column;gap:2px;\n  font-size:var(--cm-f-xs);line-height:1.6;}\n[data-cm-planitem]{color:var(--cm-text-2);}\n[data-cm-planitem][data-tone='danger']{color:var(--cm-danger);}\n[data-cm-planitem][data-tone='warn']{color:var(--cm-warn-text);}\n[data-cm-planitem][data-tone='ok']{color:var(--cm-ok);}\n[data-cm-planblock]{margin-top:var(--cm-s1);padding:2px 8px;border-radius:var(--cm-r-xs);\n  color:var(--cm-warn-text);background:var(--cm-warn-soft);\n  box-shadow:inset 0 0 0 1px var(--cm-warn-line);}\n\n/* ── 任务抽屉：长操作在地板上排队，进度与尾部输出都在这里 ── */\n[data-cm-jobs]{flex:none;border-top:1px solid var(--cm-line);background:var(--cm-layer-2);\n  max-height:32vh;overflow:auto;}\n[data-cm-jhead]{display:flex;align-items:center;gap:var(--cm-s3);padding:var(--cm-s3) var(--cm-s6);\n  font-size:var(--cm-f-sm);font-weight:650;}\n[data-cm-jrow]{display:flex;align-items:center;gap:var(--cm-s3);padding:var(--cm-s2) var(--cm-s6);\n  border-top:1px solid var(--cm-line-soft);}\n[data-cm-jmain]{flex:1;min-width:0;font-size:var(--cm-f-sm);}\n[data-cm-jlabel]{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}\n[data-cm-jmeta]{font-size:var(--cm-f-xs);color:var(--cm-text-dim);font-variant-numeric:tabular-nums;\n  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}\n[data-cm-jstate]{flex:none;font-size:var(--cm-f-xs);padding:1px 7px;border-radius:var(--cm-r-xs);\n  color:var(--cm-text-2);background:var(--cm-surface);box-shadow:inset 0 0 0 1px var(--cm-line);}\n[data-cm-jstate][data-tone='running']{color:var(--cm-accent);box-shadow:inset 0 0 0 1px var(--cm-accent-line);}\n[data-cm-jstate][data-tone='failed']{color:var(--cm-danger);box-shadow:inset 0 0 0 1px var(--cm-danger-line);}\n[data-cm-jstate][data-tone='done']{color:var(--cm-ok);box-shadow:inset 0 0 0 1px var(--cm-ok-line);}\n[data-cm-jtail]{margin:0 var(--cm-s6) var(--cm-s3);max-height:22vh;}\n\n/* ── 时间窗切换（1h / 6h / 24h）：只在负载卡上用 ── */\n[data-cm-range]{display:inline-flex;gap:2px;flex:none;}\n[data-cm-rangeitem]{border:0;background:none;padding:0 4px;font:inherit;font-size:var(--cm-f-xs);\n  color:var(--cm-text-dim);cursor:pointer;border-radius:var(--cm-r-xs);}\n[data-cm-rangeitem][data-on]{color:var(--cm-accent);background:var(--cm-accent-soft);\n  box-shadow:inset 0 0 0 1px var(--cm-accent-line);}\n\n/* ── 健康检查：状态徽章 + 最近几次输出 ── */\n[data-cm-health]{margin-left:var(--cm-s2);padding:1px 7px;border-radius:var(--cm-r-xs);\n  font-size:var(--cm-f-xs);font-weight:600;color:var(--cm-text-2);\n  background:var(--cm-surface);box-shadow:inset 0 0 0 1px var(--cm-line);}\n[data-cm-health][data-tone='healthy']{color:var(--cm-ok);background:var(--cm-ok-soft);\n  box-shadow:inset 0 0 0 1px var(--cm-ok-line);}\n[data-cm-health][data-tone='unhealthy']{color:var(--cm-danger);background:var(--cm-danger-soft);\n  box-shadow:inset 0 0 0 1px var(--cm-danger-line);}\n[data-cm-health][data-tone='starting']{color:var(--cm-warn-text);background:var(--cm-warn-soft);\n  box-shadow:inset 0 0 0 1px var(--cm-warn-line);}\n[data-cm-healthlog]{display:flex;flex-direction:column;gap:3px;font-size:var(--cm-f-xs);}\n[data-cm-healthrow]{display:flex;gap:var(--cm-s2);align-items:baseline;min-width:0;\n  color:var(--cm-text-2);}\n[data-cm-healthrow][data-tone='bad']{color:var(--cm-danger);}\n[data-cm-healthout]{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;\n  font-family:var(--cm-mono);}\n\n/* ── 空态 / 提示条 ── */\n[data-cm-empty]{padding:var(--cm-s7) var(--cm-s5);text-align:center;color:var(--cm-text-dim);\n  font-size:var(--cm-f-sm);line-height:1.7;}\n[data-cm-toast]{position:sticky;bottom:var(--cm-s4);margin:0 var(--cm-s6) var(--cm-s4);\n  padding:var(--cm-s3) var(--cm-s4);border-radius:var(--cm-r-md);font-size:var(--cm-f-sm);line-height:1.5;\n  background:var(--cm-layer-2);border:1px solid var(--cm-line-strong);\n  box-shadow:var(--cm-shadow-lg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}\n[data-cm-toast][data-bad]{border-color:var(--cm-danger-line);color:var(--cm-danger);}\n[data-cm-warn]{color:var(--cm-warn-text);}\n[data-cm-dim]{color:var(--cm-text-dim);}\n\n/* ── 胶囊标签 ── */\n[data-cm-chips]{display:flex;gap:var(--cm-s2);flex-wrap:wrap;}\n[data-cm-chip]{border:1px solid var(--cm-line-strong);border-radius:var(--cm-r-full);\n  padding:3px 11px;font-size:var(--cm-f-xs);cursor:pointer;background:transparent;color:var(--cm-text-2);\n  font-family:inherit;line-height:1.4;\n  transition:background-color var(--cm-fast) var(--cm-ease),border-color var(--cm-fast) var(--cm-ease),\n    color var(--cm-fast) var(--cm-ease);}\n[data-cm-chip]:hover{background:var(--cm-hover);color:var(--cm-text);}\n[data-cm-chip]:focus-visible{outline:none;box-shadow:var(--cm-ring);}\n[data-cm-chip][data-on]{background:var(--cm-accent);border-color:transparent;color:var(--cm-on-accent);}\n\n/* ── 顶部导航：分段控件质感 ── */\n[data-cm-nav]{display:flex;gap:2px;align-items:center;padding:3px;\n  border-radius:var(--cm-r-md);background:var(--cm-layer-2);\n  border:1px solid var(--cm-line-soft);box-shadow:var(--cm-inset-groove);}\n[data-cm-nav] button{border:1px solid transparent;background:transparent;color:var(--cm-text-dim);\n  font-family:inherit;font-size:var(--cm-f-sm);border-radius:var(--cm-r-sm);padding:5px 12px;cursor:pointer;\n  line-height:1.4;\n  transition:background-color var(--cm-fast) var(--cm-ease),color var(--cm-fast) var(--cm-ease),\n    box-shadow var(--cm-fast) var(--cm-ease);}\n[data-cm-nav] button:hover{background:var(--cm-hover);color:var(--cm-text);}\n[data-cm-nav] button[data-on]{background:var(--cm-active);color:var(--cm-text);\n  border-color:var(--cm-accent-line);box-shadow:var(--cm-glow-top),var(--cm-glow-accent);}\n\n/* ── compose 项目卡片 ── */\n[data-cm-projgrid]{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:var(--cm-s3);}\n[data-cm-projcard]{border:1px solid var(--cm-line-soft);border-radius:var(--cm-r-md);\n  padding:var(--cm-s3) var(--cm-s4);cursor:pointer;background:var(--cm-surface);text-align:left;\n  color:inherit;font-family:inherit;width:100%;box-shadow:var(--cm-shadow-sm);\n  transition:background-color var(--cm-fast) var(--cm-ease),border-color var(--cm-fast) var(--cm-ease),\n    box-shadow var(--cm-fast) var(--cm-ease),transform var(--cm-fast) var(--cm-ease);}\n[data-cm-projcard]:hover{background:var(--cm-surface-hover);border-color:var(--cm-line-strong);\n  box-shadow:var(--cm-shadow-md);transform:translateY(-1px);}\n[data-cm-projcard][data-on]{border-color:var(--cm-accent-line);background:var(--cm-accent-soft);}\n\n/* ── 表格：独立边框 + 行 hover ── */\n[data-cm-table]{width:100%;border-collapse:separate;border-spacing:0;font-size:var(--cm-f-sm);}\n[data-cm-table] th{text-align:left;font-weight:650;font-size:var(--cm-f-xs);color:var(--cm-text-dim);\n  padding:var(--cm-s2) var(--cm-s3);border-bottom:1px solid var(--cm-line-soft);\n  white-space:nowrap;letter-spacing:.02em;}\n[data-cm-table] td{padding:7px var(--cm-s3);border-bottom:1px solid var(--cm-line-soft);vertical-align:top;}\n[data-cm-table] tbody tr{transition:background-color var(--cm-fast) var(--cm-ease);}\n[data-cm-table] tbody tr:hover{background:var(--cm-hover);}\n[data-cm-table] tbody tr:last-child td{border-bottom:0;}\n\n\n[data-cm-netrow]{padding:var(--cm-s3) 0;border-top:1px solid var(--cm-line-soft);}\n[data-cm-netrow]:first-of-type{border-top:0;}\n[data-cm-editor]{width:100%;box-sizing:border-box;min-height:320px;resize:vertical;outline:none;\n  background:var(--cm-base);color:inherit;border:1px solid var(--cm-line-strong);\n  border-radius:var(--cm-r-md);padding:var(--cm-s3);\n  font-family:var(--cm-mono);font-size:var(--cm-f-sm);line-height:1.6;\n  transition:border-color var(--cm-fast) var(--cm-ease),box-shadow var(--cm-fast) var(--cm-ease);}\n[data-cm-editor]:focus{border-color:var(--cm-accent);box-shadow:var(--cm-ring);}\n[data-cm-logbox]{font-family:var(--cm-mono);font-size:var(--cm-f-sm);\n  line-height:1.6;white-space:pre-wrap;word-break:break-all;max-height:360px;overflow:auto;\n  background:var(--cm-base);border:1px solid var(--cm-line-soft);border-radius:var(--cm-r-md);\n  padding:var(--cm-s3);margin:0;}\n[data-cm-line]{display:flex;gap:var(--cm-s3);align-items:center;flex-wrap:wrap;}\n\n/* ── 状态标签：柔色底 + 同色描边 ── */\n/* 容器视图的返回入口：跟普通 tab 同形，但更暗一档，读起来像「往回」 */\n[data-cm-back]{margin-right:var(--cm-s3);color:var(--cm-text-dim);}\n[data-cm-back]:hover{color:var(--cm-accent);}\n[data-cm-tag]{font-size:var(--cm-f-xs);border-radius:var(--cm-r-full);padding:2px 8px;line-height:1.5;\n  border:1px solid var(--cm-line-strong);white-space:nowrap;\n  transition:border-color var(--cm-fast) var(--cm-ease),color var(--cm-fast) var(--cm-ease),\n    background-color var(--cm-fast) var(--cm-ease);}\n[data-cm-tag][data-ok]{border-color:var(--cm-ok-line);color:var(--cm-ok);background:var(--cm-ok-soft);}\n[data-cm-tag][data-bad]{border-color:var(--cm-danger-line);color:var(--cm-danger);background:var(--cm-danger-soft);}\n[data-cm-tag][data-warn]{border-color:var(--cm-warn-line);color:var(--cm-warn-text);background:var(--cm-warn-soft);}\n[data-cm-hintbox]{font-size:var(--cm-f-sm);color:var(--cm-text-dim);margin-top:var(--cm-s2);line-height:1.6;}\n/* ── Podman secret：名字一行，值永不回显 ── */\n[data-cm-secrets]{display:flex;flex-direction:column;gap:var(--cm-s3);min-height:0;flex:1;}\n[data-cm-srow]{display:flex;align-items:flex-start;gap:var(--cm-s2);padding:6px 0;\n  border-top:1px solid var(--cm-line-soft);}\n[data-cm-srow]:first-child{border-top:0;}\n[data-cm-srow] [data-cm-btn]{flex:none;}\n\n/* ── Quadlet：一行一个 unit，状态点 + 文件 + 镜像 ── */\n[data-cm-quadlet]{display:flex;flex-direction:column;gap:var(--cm-s3);min-height:0;flex:1;}\n[data-cm-qrow]{display:flex;align-items:flex-start;gap:var(--cm-s2);padding:6px 0;\n  border-top:1px solid var(--cm-line-soft);}\n[data-cm-qrow]:first-child{border-top:0;}\n[data-cm-qname]{font-size:var(--cm-f-sm);line-height:1.45;\n  font-family:var(--cm-mono);word-break:break-all;}\n[data-cm-qmeta]{font-size:var(--cm-f-xs);line-height:1.5;margin-top:1px;word-break:break-word;}\n\n/* ── 能力体检：一条一条列，状态点用 Dot，修复命令可复制 ── */\n[data-cm-cap]{display:flex;flex-direction:column;gap:var(--cm-s3);min-height:0;flex:1;}\n[data-cm-chipwrap]{display:flex;align-items:center;gap:var(--cm-s2);flex-wrap:wrap;}\n[data-cm-capsum]{margin-bottom:var(--cm-s2);}\n[data-cm-caplist]{display:flex;flex-direction:column;min-height:0;}\n[data-cm-caprow]{display:flex;align-items:flex-start;gap:var(--cm-s2);\n  padding:6px 0;border-top:1px solid var(--cm-line-soft);}\n[data-cm-caprow]:first-child{border-top:0;}\n[data-cm-capname]{font-size:var(--cm-f-sm);line-height:1.45;color:var(--cm-text);}\n[data-cm-capdetail]{font-size:var(--cm-f-xs);line-height:1.5;margin-top:1px;word-break:break-word;}\n[data-cm-caprow] [data-cm-btn]{flex:none;}\n\n/* ── 容器内网络排障：判读在上，原始输出折在下面 ── */\n[data-cm-diag]{display:flex;flex-direction:column;gap:var(--cm-s3);min-height:0;flex:1;}\n[data-cm-diaghost]{width:150px;flex:none;padding:4px 8px;font-size:var(--cm-f-sm);box-sizing:border-box;}\n[data-cm-diagport]{width:72px;flex:none;padding:4px 8px;font-size:var(--cm-f-sm);box-sizing:border-box;}\n[data-cm-dnotes]{display:flex;flex-direction:column;gap:var(--cm-s1);}\n[data-cm-dnote]{font-size:var(--cm-f-sm);line-height:1.5;padding:5px var(--cm-s2);\n  border-left:2px solid var(--cm-line-strong);color:var(--cm-text);}\n[data-cm-dnote][data-level='warn']{border-left-color:var(--cm-danger);color:var(--cm-danger);}\n[data-cm-dnote][data-level='ok']{border-left-color:var(--cm-accent);}\n[data-cm-dnote][data-level='unknown']{border-left-color:var(--cm-line-strong);color:var(--cm-text-dim);}\n[data-cm-dsecs]{display:flex;flex-direction:column;gap:var(--cm-s1);min-height:0;}\n[data-cm-dsec]{border:1px solid var(--cm-line-soft);border-radius:var(--cm-r-sm);\n  background:var(--cm-layer-2);overflow:hidden;}\n[data-cm-dsec] summary{cursor:pointer;padding:5px var(--cm-s2);font-size:var(--cm-f-sm);\n  color:var(--cm-text);list-style:none;}\n[data-cm-dsec] summary::-webkit-details-marker{display:none;}\n[data-cm-dsec] summary::before{content:'▸';display:inline-block;width:12px;\n  color:var(--cm-text-dim);transition:transform var(--cm-fast) var(--cm-ease);}\n[data-cm-dsec][open] summary::before{transform:rotate(90deg);}\n[data-cm-dout]{margin:0;padding:var(--cm-s2);border-top:1px solid var(--cm-line-soft);\n  font-family:var(--cm-mono);font-size:var(--cm-f-xs);\n  line-height:1.55;white-space:pre-wrap;word-break:break-word;color:var(--cm-text);\n  max-height:280px;overflow:auto;}\n\n/* ── 容器内文件：左边目录树，右边编辑器（窄屏上下堆） ── */\n[data-cm-files]{display:flex;flex-direction:column;gap:var(--cm-s3);min-height:0;flex:1;}\n[data-cm-fhead]{display:flex;align-items:center;gap:var(--cm-s2);flex-wrap:wrap;}\n[data-cm-crumbs]{display:flex;align-items:center;gap:2px;flex:1;min-width:0;flex-wrap:wrap;\n  font-family:var(--cm-mono);font-size:var(--cm-f-sm);}\n[data-cm-crumb]{border:0;background:none;color:var(--cm-text-dim);cursor:pointer;\n  padding:2px 5px;border-radius:var(--cm-r-xs);font:inherit;\n  transition:background-color var(--cm-fast) var(--cm-ease),color var(--cm-fast) var(--cm-ease);}\n[data-cm-crumb]:hover{background:var(--cm-hover);color:var(--cm-text);}\n[data-cm-crumb]:focus-visible{outline:none;box-shadow:var(--cm-ring);}\n[data-cm-crumbsep]{color:var(--cm-text-dim);opacity:.6;}\n[data-cm-facts]{display:flex;align-items:center;gap:var(--cm-s2);flex-wrap:wrap;justify-content:flex-end;}\n[data-cm-btn][data-cm-compact]{padding:3px 8px;font-size:var(--cm-f-xs);}\n[data-cm-input][data-cm-fnew]{width:132px;flex:none;padding:4px 8px;font-size:var(--cm-f-sm);box-sizing:border-box;}\n[data-cm-fgrid]{display:flex;gap:var(--cm-s4);min-height:0;flex:1;align-items:flex-start;}\n[data-cm-fcol]{flex:0 0 300px;min-width:0;display:flex;flex-direction:column;\n  border:1px solid var(--cm-line-soft);border-radius:var(--cm-r-md);background:var(--cm-layer-2);\n  overflow:hidden;max-height:520px;}\n[data-cm-flist]{overflow:auto;min-height:0;}\n[data-cm-frow]{display:flex;align-items:center;gap:var(--cm-s2);padding:4px var(--cm-s2);\n  border-bottom:1px solid var(--cm-line-soft);\n  transition:background-color var(--cm-fast) var(--cm-ease);}\n[data-cm-frow]:last-child{border-bottom:0;}\n[data-cm-frow]:hover{background:var(--cm-surface-hover);}\n[data-cm-frow][data-on]{background:var(--cm-accent-soft);}\n[data-cm-fopen]{display:flex;align-items:center;gap:var(--cm-s2);border:0;background:none;\n  color:inherit;font:inherit;cursor:pointer;flex:1;min-width:0;text-align:left;padding:0;}\n[data-cm-fopen]:focus-visible{outline:none;box-shadow:var(--cm-ring);border-radius:var(--cm-r-xs);}\n[data-cm-ficon]{flex:none;width:12px;color:var(--cm-text-dim);font-size:var(--cm-f-xs);}\n[data-cm-ficon][data-kind='dir']{color:var(--cm-accent);}\n[data-cm-fname]{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--cm-f-sm);}\n[data-cm-fsize]{flex:none;color:var(--cm-text-dim);font-size:var(--cm-f-xs);\n  font-variant-numeric:tabular-nums;}\n[data-cm-feditor]{flex:1;min-width:0;display:flex;flex-direction:column;gap:var(--cm-s2);\n  border:1px solid var(--cm-line-soft);border-radius:var(--cm-r-md);background:var(--cm-layer-2);\n  padding:var(--cm-s3);min-height:0;}\n[data-cm-feh]{display:flex;align-items:center;gap:var(--cm-s2);flex-wrap:wrap;}\n[data-cm-fename]{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;\n  font-family:var(--cm-mono);font-size:var(--cm-f-sm);}\n[data-cm-ftext]{flex:1;min-height:240px;resize:vertical;width:100%;box-sizing:border-box;\n  background:var(--cm-base);border:1px solid var(--cm-line-strong);border-radius:var(--cm-r-sm);\n  color:inherit;font-family:var(--cm-mono);font-size:var(--cm-f-sm);\n  line-height:1.55;padding:var(--cm-s2);outline:none;\n  transition:border-color var(--cm-fast) var(--cm-ease),box-shadow var(--cm-fast) var(--cm-ease);}\n[data-cm-ftext]:focus{border-color:var(--cm-accent);box-shadow:var(--cm-ring);}\n@media (max-width:900px){\n  [data-cm-fgrid]{flex-direction:column;}\n  [data-cm-fcol]{flex:none;width:100%;max-height:340px;}\n}\n\n/* ── 终端 ── */\n[data-cm-term-wrap]{display:flex;flex-direction:column;min-height:0;gap:var(--cm-s2);}\n[data-cm-term-bar]{display:flex;align-items:center;gap:var(--cm-s2);flex-wrap:wrap;}\n[data-cm-term-bar-group]{display:inline-flex;align-items:center;gap:1px;\n  border:1px solid var(--cm-line-strong);border-radius:var(--cm-r-sm);\n  background:var(--cm-surface);overflow:hidden;}\n[data-cm-term-bar-group]>button{border:0;background:transparent;color:var(--cm-text-dim);\n  font:inherit;font-size:var(--cm-f-sm);line-height:1;padding:5px 8px;cursor:pointer;\n  transition:background-color var(--cm-fast) var(--cm-ease),color var(--cm-fast) var(--cm-ease);}\n[data-cm-term-bar-group]>button+button{border-left:1px solid var(--cm-line-soft);}\n[data-cm-term-bar-group]>button:hover:not([disabled]){background:var(--cm-hover);color:var(--cm-text);}\n[data-cm-term-bar-group]>button[disabled]{opacity:.4;cursor:not-allowed;}\n[data-cm-term-bar-group]>[data-cm-term-size]{min-width:34px;text-align:center;\n  font-variant-numeric:tabular-nums;color:var(--cm-text);cursor:default;font-size:var(--cm-f-sm);padding:5px 2px;}\n[data-cm-term]{position:relative;height:clamp(260px,60vh,560px);min-height:0;\n  border:1px solid var(--cm-line-strong);border-radius:var(--cm-r-md);\n  padding:6px 4px 6px 8px;background:var(--cm-base);overflow:hidden;\n  box-shadow:var(--cm-shadow-sm);\n  transition:border-color var(--cm-fast) var(--cm-ease),box-shadow var(--cm-fast) var(--cm-ease);}\n[data-cm-term]:focus-within{border-color:var(--cm-accent-line);\n  box-shadow:var(--cm-shadow-md),0 0 0 1px var(--cm-accent-line);}\n[data-cm-term] .xterm{height:100%;}\n[data-cm-term] .xterm-viewport{background:transparent!important;}\n[data-cm-term] .xterm-screen{cursor:text;}\n/* 连接中 / 断线时浮一层，不用滚回顶部找按钮 */\n[data-cm-term-overlay]{position:absolute;inset:0;z-index:10;display:flex;\n  flex-direction:column;align-items:center;justify-content:center;gap:var(--cm-s3);\n  padding:var(--cm-s4);text-align:center;\n  background:color-mix(in srgb,var(--cm-base) 86%,transparent);\n  backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);}\n[data-cm-term-overlay][data-bad]{background:color-mix(in srgb,var(--cm-danger-soft) 45%,var(--cm-base));}\n[data-cm-term-overlay] [data-cm-overlay-title]{font-size:var(--cm-f-md);font-weight:650;color:var(--cm-text);}\n[data-cm-term-overlay] [data-cm-overlay-msg]{font-size:var(--cm-f-sm);color:var(--cm-text-dim);\n  max-width:46ch;line-height:1.6;word-break:break-word;}\n/* 全屏：铺到视口上，Esc 退出 */\n[data-cm-term-wrap][data-cm-full]{position:fixed;inset:0;z-index:9000;\n  background:var(--cm-base);padding:var(--cm-s4);gap:var(--cm-s3);}\n[data-cm-term-wrap][data-cm-full] [data-cm-term]{flex:1;height:auto;}\n[data-cm-term-wrap][data-cm-full]::after{content:'Esc 退出全屏';position:absolute;\n  right:var(--cm-s5);bottom:var(--cm-s3);font-size:var(--cm-f-xs);color:var(--cm-text-dim);\n  pointer-events:none;}\n\n/* ── 活动日志 ── */\n[data-cm-audit]{display:flex;flex-direction:column;gap:1px;}\n[data-cm-audit-row]{display:grid;grid-template-columns:88px 54px minmax(80px,0.9fr) minmax(90px,1fr) minmax(140px,1.6fr) 70px;\n  gap:var(--cm-s3);padding:6px var(--cm-s3);border-radius:var(--cm-r-sm);font-size:var(--cm-f-sm);\n  align-items:center;min-width:0;transition:background-color var(--cm-fast) var(--cm-ease);}\n[data-cm-audit-row]>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}\n[data-cm-audit-row]:hover{background:var(--cm-hover);}\n[data-cm-audit-row][data-head]{font-weight:650;color:var(--cm-text-dim);\n  border-bottom:1px solid var(--cm-line);border-radius:0;position:sticky;top:0;\n  background:var(--cm-base);z-index:1;}\n[data-cm-audit-row][data-bad]{color:var(--cm-danger);}\n[data-cm-audit-row][data-bad] span:last-child{font-weight:600;}\n[data-cm-audit-tag]{font-family:var(--cm-mono);font-size:var(--cm-f-xs);\n  padding:1px 6px;border:1px solid var(--cm-line);border-radius:var(--cm-r-sm);\n  color:var(--cm-text-dim);}\n[data-cm-audit-tag][data-panel]{border-color:var(--cm-ok-line);color:var(--cm-ok);background:var(--cm-ok-soft);}\n\n/* ── 端口胶囊：能点开的那种 ── */\na[data-cm-portpill]{text-decoration:none;}\na[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);}\n[data-cm-portext]{margin-left:3px;font-size:var(--cm-f-xs);opacity:.85;}\n\n/* 退出码后面跟一个短标签（SIGKILL / SIGSEGV），完整解释留在 title 里 */\n[data-cm-exitshort]{font-style:normal;margin-left:5px;font-size:var(--cm-f-xs);\n  opacity:.85;letter-spacing:.02em;}\n\n/* ── 窄屏（≤600px）：只修会溢出、会被裁的地方，不动信息密度 ── */\n@media (max-width:600px){\n  /* tab 栏：不换行、可横滚，别把四个标签竖着堆起来 */\n  [data-cm-tabs]{overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;}\n  [data-cm-tabs]::-webkit-scrollbar{display:none;}\n  /* 容器行：允许折行，长镜像名不撑破 */\n  [data-cm-row]{flex-wrap:wrap;row-gap:3px;}\n  [data-cm-row]>*{min-width:0;}\n  /* 宿主信息两块并排 → 单列 */\n  [data-cm-host]{grid-template-columns:1fr;}\n  /* 活动日志六列挤不下：只留 时间/动作/说明 三列，其余藏掉，表头同规则对齐 */\n  [data-cm-audit-row]{grid-template-columns:64px 1fr auto;}\n  [data-cm-audit-row]>span:nth-child(2),\n  [data-cm-audit-row]>span:nth-child(4),\n  [data-cm-audit-row]>span:nth-child(6){display:none;}\n  /* 窄屏触控目标放大：可点元素统一过 24px 底线 */\n  [data-cm-btn]{min-height:32px;}\n  [data-cm-chip]{min-height:30px;}\n  [data-cm-tab]{min-height:36px;}\n}\n/* 中间断点（≤700px）：双栏 body 转单栏，列表占上半、详情占下半 ——\n   600-900px 区间的 detail 不再被 300px 左栏挤到只剩几百像素 */\n@media (max-width:700px){\n  [data-cm-body]{flex-direction:column;}\n  [data-cm-list]{width:100%;max-height:42%;border-right:0;\n    border-bottom:1px solid var(--cm-line-soft);}\n  [data-cm-dbody]{padding:var(--cm-s3) var(--cm-s4) var(--cm-s5);}\n}\n@container (max-width:700px){\n  [data-cm-body]{flex-direction:column;}\n  [data-cm-list]{width:100%;max-height:42%;border-right:0;\n    border-bottom:1px solid var(--cm-line-soft);}\n  [data-cm-top],[data-cm-nav]{flex-wrap:wrap;}\n}\n\n/* ═══ Obsidian Glass HUD：新增部件的材质与刻度 ═══ */\n\n/* 主按钮样式已并入基线段 data-primary（原来这里有一份后置覆盖，维护会漂移）。 */\n\n/* 刷新按钮的 4 秒脉冲环：和数据刷新同一个节拍，不是装饰动画 */\n[data-cm-pulsedot]{position:relative;width:6px;height:6px;flex:none;border-radius:var(--cm-r-full);\n  background:var(--cm-ok);box-shadow:var(--cm-glow-ok);}\n[data-cm-pulsedot]::after{content:'';position:absolute;inset:-2px;border-radius:inherit;\n  border:1px solid var(--cm-ok);opacity:0;animation:cm-pulse 4s var(--cm-ease) infinite;}\n@keyframes cm-pulse{\n  0%{opacity:.5;transform:scale(.72);}\n  45%{opacity:0;transform:scale(1.55);}\n  100%{opacity:0;transform:scale(1.55);}}\n\n/* 待确认计数：0 条时是灰字，有货才点亮成琥珀胶囊 —— 别用常亮的红点逼人习惯警报 */\n[data-cm-pendingbadge]{color:var(--cm-text-dim);}\n[data-cm-pendingbadge][data-on]{margin-left:6px;padding:0 7px;border-radius:var(--cm-r-xs);\n  color:var(--cm-warn);font-weight:600;background:var(--cm-warn-soft);\n  box-shadow:inset 0 0 0 1px var(--cm-warn-line);}\n\n/* 任务计数：跟待确认同一个规矩 —— 没活儿的时候是一句话，有活儿才点亮 */\n[data-cm-jobbadge]{color:var(--cm-text-dim);border:0;background:none;font:inherit;\n  padding:0;cursor:pointer;}\n[data-cm-jobbadge][data-on]{margin-left:6px;padding:0 7px;border-radius:var(--cm-r-xs);\n  color:var(--cm-accent);font-weight:600;background:var(--cm-accent-soft);\n  box-shadow:inset 0 0 0 1px var(--cm-accent-line);}\n\n/* ── Bento：宿主三格遥测（负载 / 内存 / 主盘） ── */\n[data-cm-bento]{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--cm-s3);\n  margin-top:var(--cm-s1);}\n[data-cm-tile]{position:relative;border:var(--cm-hairline);border-radius:var(--cm-r-sm);\n  background:var(--cm-layer-2);padding:var(--cm-s3);min-width:0;overflow:hidden;}\n[data-cm-tilehead]{display:flex;align-items:center;gap:6px;font-size:var(--cm-f-xs);\n  color:var(--cm-text-dim);letter-spacing:.04em;}\n[data-cm-tileicon]{display:flex;color:var(--cm-accent);opacity:.85;}\n[data-cm-big]{font-size:var(--cm-f-2xl);font-weight:600;line-height:1.15;margin-top:4px;\n  font-variant-numeric:tabular-nums;letter-spacing:-.02em;}\n[data-cm-bigunit]{font-size:var(--cm-f-md);font-weight:500;color:var(--cm-text-2);margin-left:1px;}\n[data-cm-tilesub]{font-size:var(--cm-f-xs);color:var(--cm-text-2);margin-top:2px;\n  font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}\n[data-cm-hint]{font-size:var(--cm-f-xs);color:var(--cm-text-dim);}\n\n/* 负载折线：线细、面积淡，最后一点标一个实心圆（当前值） */\n[data-cm-spark]{display:block;width:100%;height:28px;margin-top:var(--cm-s2);}\n[data-cm-spark-area]{fill:var(--cm-accent-soft);stroke:none;}\n[data-cm-spark-line]{fill:none;stroke:var(--cm-accent);stroke-width:1.5;\n  stroke-linejoin:round;stroke-linecap:round;}\n[data-cm-spark-dot]{fill:var(--cm-accent);}\n\n/* ── 三格信息矩阵（面板 / 危险操作 / AI） ── */\n[data-cm-matrix]{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--cm-s3);}\n[data-cm-cell]{border:var(--cm-hairline);border-radius:var(--cm-r-sm);\n  background:var(--cm-layer-2);padding:var(--cm-s3);min-width:0;}\n[data-cm-cellhead]{display:flex;align-items:center;gap:6px;font-size:var(--cm-f-sm);\n  margin-bottom:var(--cm-s1);}\n[data-cm-cellhead] strong{font-weight:600;}\n[data-cm-cellbody]{font-size:var(--cm-f-xs);color:var(--cm-text-2);line-height:1.65;}\n\n/* ── 节点：两张子卡 + 等宽技术徽章 ── */\n[data-cm-nodes]{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--cm-s3);}\n[data-cm-nodecard]{border:var(--cm-hairline);border-radius:var(--cm-r-sm);\n  background:var(--cm-layer-2);padding:var(--cm-s3);min-width:0;}\n[data-cm-nodehead]{display:flex;align-items:center;gap:6px;font-size:var(--cm-f-sm);\n  margin-bottom:var(--cm-s1);}\n[data-cm-tech]{display:flex;flex-wrap:wrap;gap:4px;}\n[data-cm-tip]{font-family:var(--cm-mono);font-size:var(--cm-f-xs);\n  line-height:1.7;padding:0 6px;border-radius:var(--cm-r-xs);\n  border:1px solid var(--cm-line-soft);background:var(--cm-layer-2);\n  color:var(--cm-text-2);white-space:nowrap;}\n\n/* 配置页的分段控件：同一套凹槽 + 亮药丸语言 */\n[data-cm-seg]{display:inline-flex;gap:2px;padding:3px;margin-bottom:var(--cm-s4);\n  border-radius:var(--cm-r-md);background:var(--cm-layer-2);\n  border:1px solid var(--cm-line-soft);box-shadow:var(--cm-inset-groove);}\n[data-cm-segitem][data-active]{background:var(--cm-active);color:var(--cm-text);\n  box-shadow:var(--cm-glow-top);}\n\n/* 窄屏：三格与两格全部退成单列，别横向挤成一坨 */\n@media (max-width:600px){\n  [data-cm-bento],[data-cm-matrix],[data-cm-nodes]{grid-template-columns:1fr;}\n}\n/* ── 骨架：首屏读取时的占位，shimmer 全部用主题令牌调色 ── */\n[data-cm-skeleton]{display:flex;flex-direction:column;gap:var(--cm-s2);padding:var(--cm-s3);}\n[data-cm-skeleton]>div{height:46px;border-radius:var(--cm-r-sm);\n  background:linear-gradient(90deg,var(--cm-hover) 25%,var(--cm-surface-hover) 50%,var(--cm-hover) 75%);\n  background-size:200% 100%;animation:cm-shimmer 1.4s linear infinite;}\n[data-cm-skeleton]>div:nth-child(2){animation-delay:.12s;}\n[data-cm-skeleton]>div:nth-child(3){animation-delay:.24s;}\n@keyframes cm-shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}\n\n/* ── 遥测轻闪：数字变化时 DOM 重建（key=值），动画重放一次提示「更新了」 ── */\n[data-cm-big]{animation:cm-tick .6s var(--cm-ease);}\n@keyframes cm-tick{from{opacity:.35;}to{opacity:1;}}\n\n/* ── 尊重系统的降低动效偏好 ── */\n@media (prefers-reduced-motion:reduce){\n  [data-cm-page] *,[data-cm-page] *::before,[data-cm-page] *::after{\n    transition-duration:.01ms!important;animation-duration:.01ms!important;\n    animation-iteration-count:1!important;scroll-behavior:auto!important;}\n}\n";
 
     /* ───────────────────────── fetch ───────────────────────── */
 
@@ -860,7 +58,10 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
       const body = await res.json().catch(() => ({}))
       if (!res.ok || body.ok === false) {
         const error = body && body.error ? body.error : {}
-        throw new Error(error.message || ('HTTP ' + res.status))
+        const failure = new Error(error.message || ('HTTP ' + res.status))
+        failure.code = error.code
+        failure.hint = error.hint
+        throw failure
       }
       return body.data
     }
@@ -888,7 +89,10 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
       const body = await res.json().catch(() => ({}))
       if (!res.ok || body.ok === false) {
         const error = body && body.error ? body.error : {}
-        throw new Error(error.message || ('HTTP ' + res.status))
+        const failure = new Error(error.message || ('HTTP ' + res.status))
+        failure.code = error.code
+        failure.hint = error.hint
+        throw failure
       }
       return body.data
     }
@@ -1449,6 +653,7 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
       // 任务抽屉：长操作（克隆/快照/导出/提交）不在请求里干等，进度落在这里。
       const [jobsOpen, setJobsOpen] = React.useState(false)
       const [jobState, setJobState] = React.useState({ jobs: [], summary: null })
+      const [jobError, setJobError] = React.useState(null)
       const [jobTailId, setJobTailId] = React.useState('')
 
       // 实时占用：提前算好，容器行和概览卡都用同一份。
@@ -1493,7 +698,7 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
           setSnap(data)
           setError(null)
         } catch (e) {
-          if (alive.current) setError(e && e.message ? e.message : String(e))
+          if (alive.current) setError(e instanceof Error ? e : new Error(String(e)))
         } finally {
           if (alive.current) setLoading(false)
         }
@@ -1550,9 +755,10 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
                 const summary = data.summary || null
                 hasWork = Boolean(summary && summary.running + summary.queued > 0)
                 setJobState({ jobs: Array.isArray(data.jobs) ? data.jobs : [], summary })
+                setJobError(null)
               }
-            } catch {
-              // 队列读不到只是少一块信息，不能把主界面打成错误态
+            } catch (e) {
+              setJobError(e && e.message ? e.message : String(e))
             }
           }
           if (stopped) return
@@ -1569,6 +775,15 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
         try {
           await jpost('/jobs/' + encodeURIComponent(id) + '/cancel', {})
           setToast('已请求取消，正在收尾')
+        } catch (e) {
+          setToast({ bad: true, text: e && e.message ? e.message : String(e) })
+        }
+      }
+
+      async function retryJob(id) {
+        try {
+          await jpost('/jobs/' + encodeURIComponent(id) + '/retry', {})
+          setToast('已重新入队')
         } catch (e) {
           setToast({ bad: true, text: e && e.message ? e.message : String(e) })
         }
@@ -1682,7 +897,7 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
           const node = key.slice(0, slash)
           const ref = key.slice(slash + 1)
           try {
-            await jpost('/actions', { node, ref: name, action })
+            await jpost('/actions', { node, ref, action })
             done += 1
           } catch (e) {
             failed.push(ref + '：' + (e && e.message ? e.message : String(e)))
@@ -1698,8 +913,18 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
         load(false)
       }
 
-      function confirmPending(token) {
-        run(jpost('/actions/confirm', { token }), '已执行。')
+      async function confirmPending(token) {
+        setBusy(true)
+        try {
+          const result = await jpost('/actions/confirm', { token })
+          const queued = noteJobResult(result && result.result)
+          setToast(queued ? '已入队：' + queued : '已执行。')
+          load(false)
+        } catch (e) {
+          setToast({ bad: true, text: e && e.message ? e.message : String(e) })
+        } finally {
+          setBusy(false)
+        }
       }
 
       function cancelPending(token) {
@@ -1792,7 +1017,7 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
 
       /* ── 左侧列表 ── */
       const listChildren = []
-      listChildren.push(h('div', { 'data-cm-search': '' },
+      listChildren.push(h('div', { key: 'search', 'data-cm-search': '' },
         h('div', { 'data-cm-searchwrap': '' },
           h('span', { 'data-cm-sicon': '' }, h(Glyph, { name: 'search', size: 14 })),
           h('input', {
@@ -1882,10 +1107,14 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
           ...tabs.map(name => h('button', {
             key: name,
             'data-cm-tab': '',
+            role: 'tab',
+            'aria-selected': activeTab === name ? 'true' : 'false',
             ...(activeTab === name ? { 'data-on': '' } : {}),
             onClick: () => setTab(name),
           }, tabLabels[name]))),
-        h('div', { 'data-cm-dbody': '' }, h(PaneBoundary, { key: activeTab, label: tabLabels[activeTab] || activeTab }, h(TabContent, { render: body }))),
+        h('div', { 'data-cm-dbody': '' },
+          error && snap ? h('div', { 'data-cm-warn': '', role: 'status' }, '数据已过期：' + String(error)) : null,
+          h(PaneBoundary, { key: activeTab, label: tabLabels[activeTab] || activeTab }, h(TabContent, { render: body }))),
       )
 
       function containerRow(container, node, live) {
@@ -1895,8 +1124,18 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
         return h('div', {
           key: node.id + '/' + container.name,
           'data-cm-row': '',
+          role: 'button',
+          tabIndex: 0,
+          'aria-pressed': active ? 'true' : 'false',
           ...(active ? { 'data-active': '' } : {}),
           onClick: () => { setSelected({ node: node.id, ref: container.name }); setTab('overview') },
+          onKeyDown: event => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault()
+              setSelected({ node: node.id, ref: container.name })
+              setTab('overview')
+            }
+          },
         },
           h('input', {
             'data-cm-check': '',
@@ -1943,9 +1182,10 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
 
       /* ── 右侧内容 ── */
       function body() {
-        if (error) {
+        if (error && !snap) {
           return h('div', { 'data-cm-card': '' },
             h('div', { 'data-cm-warn': '' }, '读不到容器台数据：' + error),
+            error && error.hint ? h('div', { 'data-cm-dim': '', style: { marginTop: '6px' } }, error.hint) : null,
             h('div', { 'data-cm-dim': '', style: { marginTop: '6px' } }, '刷新一次；还不行就看 DSH 日志里的 [container-manager]。'))
         }
         if (activeTab === 'create') return createView()
@@ -2265,10 +1505,12 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
         // 22 / 3306 / 5432 这些放进浏览器只会报错，所以保持纯文本。
         const WEB_PORTS = new Set([80, 443, 3000, 3001, 4000, 5000, 5001, 5601, 7860,
           8000, 8008, 8080, 8081, 8088, 8443, 8888, 9000, 9090, 9091, 9443])
+        const networkRows = (Array.isArray(container.networks) ? container.networks : [])
+          .map(network => typeof network === 'string' ? { name: network } : network)
+          .filter(network => network && network.name)
         // 目标地址：LXC 是桥接容器、有自己的 IP，直接用；
         // Podman rootless 的端口发布在宿主上，容器内 IP 浏览器根本够不到，只能用当前 host。
-        const ownIp = (Array.isArray(container.networks) ? container.networks : [])
-          .map(net => net && net.ip).filter(Boolean)[0] || ''
+        const ownIp = networkRows.map(network => network.ip).filter(Boolean)[0] || ''
         const hereHost = typeof window !== 'undefined' && window.location ? window.location.hostname : ''
         const webHost = container.runtime === 'lxc' ? (ownIp || hereHost) : (hereHost || ownIp)
         const portChips = (container.ports || []).map((port, index) => {
@@ -2299,8 +1541,8 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
 
         const netCard = h('div', { 'data-cm-card': '' },
           h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } }, '网络'),
-          container.networks && container.networks.length > 0
-            ? h('div', { 'data-cm-kv': '' }, ...container.networks.flatMap((network, index) => [
+          networkRows.length > 0
+            ? h('div', { 'data-cm-kv': '' }, ...networkRows.flatMap((network, index) => [
               h('b', { key: 'n' + index }, network.name),
               h('span', { key: 'v' + index, 'data-cm-mono': '' }, [network.ip, network.mac, network.gateway].filter(Boolean).join('  ') || '—'),
             ]))
@@ -2484,6 +1726,11 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
             h('div', { 'data-cm-warn': '' }, '容器没在跑，进不去终端。'),
             h('div', { 'data-cm-hintbox': '' }, '先在「概览」里启动它，再回来开终端。'))
         }
+        if (selectedNode && selectedNode.transport === 'ssh') {
+          return h('div', { 'data-cm-card': '' },
+            h('div', { 'data-cm-warn': '' }, '远端 SSH 节点的终端暂未开放。'),
+            h('div', { 'data-cm-hintbox': '' }, '当前终端通道只支持本机 Podman 与 LXC，避免误连本机同名容器。'))
+        }
         return h(TerminalPane, {
           key: selectedContainer.nodeId + '/' + selectedContainer.name,
           nodeId: selectedContainer.nodeId,
@@ -2534,7 +1781,9 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
         h('span', { 'data-cm-jstate': '', 'data-tone': job.status }, JOB_STATE_TEXT[job.status] || job.status),
         job.status === 'running' || job.status === 'queued'
           ? h('button', { 'data-cm-btn': '', disabled: busy, onClick: () => cancelJob(job.id) }, '取消')
-          : null,
+          : job.status === 'failed' || job.status === 'interrupted'
+            ? h('button', { 'data-cm-btn': '', disabled: busy, onClick: () => retryJob(job.id) }, '重试')
+            : null,
         h('button', {
           'data-cm-btn': '',
           onClick: () => setJobTailId(jobTailId === job.id ? '' : job.id),
@@ -2543,6 +1792,7 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
       const jobDrawer = !jobsOpen ? null : h('div', { 'data-cm-jobs': '' },
         h('div', { 'data-cm-jhead': '' },
           '任务（' + jobsList.length + '）',
+          jobError ? h('span', { 'data-cm-warn': '' }, '读取失败：' + jobError) : null,
           h('span', { 'data-cm-dim': '', style: { fontWeight: '400' } },
             activeJobCount > 0
               ? '长操作在地板上排队，刷新页面不会打断它'
@@ -2559,7 +1809,7 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
           : null)
 
       const toastView = toast
-        ? h('div', { 'data-cm-toast': '', ...(toast && toast.bad ? { 'data-bad': '' } : {}) }, toast && toast.text ? toast.text : String(toast))
+        ? h('div', { 'data-cm-toast': '', role: toast && toast.bad ? 'alert' : 'status', 'aria-live': 'polite', ...(toast && toast.bad ? { 'data-bad': '' } : {}) }, toast && toast.text ? t(toast.text) : t(String(toast)))
         : null
 
       const podmanNode = nodes.find(item => item.kind === 'podman') || null
@@ -2605,12 +1855,13 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
         else if (pageTab === 'images') bodyPane = h(ImagesPane, { nodeId: podmanNodeId, onToast: setToast, onPending: () => { load(false) } })
         else if (pageTab === 'volumes') bodyPane = h(VolumesPane, { nodeId: podmanNodeId, onToast: setToast, onPending: () => { load(false) } })
         else if (pageTab === 'networks') bodyPane = containerNetworksView('podman')
+        else if (pageTab === 'pods') bodyPane = h(PodsPane, { nodeId: podmanNodeId, onToast: setToast, onPending: () => { load(false) } })
         else if (pageTab === 'secrets') bodyPane = h(SecretsPane, { nodeId: podmanNodeId, onToast: setToast })
         else if (pageTab === 'quadlet') bodyPane = h(QuadletPane, { nodeId: podmanNodeId, onToast: setToast })
       } else if (view === 'lxc') {
         if (pageTab === 'images') bodyPane = h(LxcImagesPane, { nodeId: lxcNodeId, onToast: setToast, onPending: () => { load(false) } })
         else if (pageTab === 'networks') bodyPane = containerNetworksView('lxc')
-        else if (pageTab === 'storage') bodyPane = h(LxcStoragePane, { nodeId: lxcNodeId })
+        else if (pageTab === 'storage') bodyPane = h(LxcStoragePane, { nodeId: lxcNodeId, onToast: setToast })
         else if (pageTab === 'backup') {
           bodyPane = h(LxcBackupPane, {
             nodeId: lxcNodeId,
@@ -2861,13 +2112,24 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
       const [error, setError] = React.useState(null)
       const [tail, setTail] = React.useState(100)
       const [loading, setLoading] = React.useState(false)
+      const [follow, setFollow] = React.useState(false)
+      const lastSince = React.useRef(null)
+      const boxRef = React.useRef(null)
 
-      const load = React.useCallback(async () => {
+      const load = React.useCallback(async (followMode = false) => {
         setLoading(true)
         try {
-          const data = await jget(`/containers/${encodeURIComponent(container.nodeId)}/${encodeURIComponent(container.name)}/logs?tail=${tail}`)
-          setText(data.text || '（没有输出）')
+          const since = followMode && lastSince.current ? '&since=' + encodeURIComponent(lastSince.current) : ''
+          const data = await jget(`/containers/${encodeURIComponent(container.nodeId)}/${encodeURIComponent(container.name)}/logs?tail=${tail}${since}`)
+          const next = data.text || ''
+          setText(previous => {
+            if (!followMode || !previous) return next || '（没有输出）'
+            const merged = previous + (previous.endsWith('\n') ? '' : '\n') + next
+            return merged.split('\n').slice(-5000).join('\n')
+          })
+          lastSince.current = new Date(Date.now() - 1000).toISOString()
           setError(null)
+          if (followMode && boxRef.current) boxRef.current.scrollTop = boxRef.current.scrollHeight
         } catch (e) {
           setError(e.message)
         } finally {
@@ -2875,11 +2137,16 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
         }
       }, [container.nodeId, container.name, tail])
 
-      React.useEffect(() => { load() }, [load])
+      React.useEffect(() => { lastSince.current = null; load(false) }, [load])
+      React.useEffect(() => {
+        if (!follow) return undefined
+        const timer = setInterval(() => { if (!document.hidden) load(true) }, 2000)
+        return () => clearInterval(timer)
+      }, [follow, load])
 
       return h('div', null,
         h('div', { 'data-cm-card': '' },
-          h('div', { style: { display: 'flex', gap: '8px', alignItems: 'center' } },
+          h('div', { style: { display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' } },
             h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } }, `${container.name} 的日志`),
             h('div', { 'data-cm-grow': '' }),
             h('select', {
@@ -2887,11 +2154,12 @@ a[data-cm-portpill]:hover{background:var(--cm-accent);color:var(--cm-on-accent);
               value: String(tail),
               onChange: event => setTail(Number(event.target.value) || 100),
             }, ...[100, 300, 1000, 2000].map(value => h('option', { key: value, value: String(value) }, `最近 ${value} 行`))),
+            h('button', { 'data-cm-btn': '', ...(follow ? { 'data-primary': '' } : {}), onClick: () => setFollow(value => !value) }, follow ? '暂停跟随' : '跟随'),
             h('button', { 'data-cm-btn': '', onClick: () => downloadText(container.name + '-log.txt', text) }, '下载'),
-            h('button', { 'data-cm-btn': '', disabled: loading, onClick: load }, loading ? '读取中…' : '刷新')),
+            h('button', { 'data-cm-btn': '', disabled: loading, onClick: () => load(false) }, loading ? '读取中…' : '刷新')),
           error ? h('div', { 'data-cm-warn': '', style: { marginTop: '8px' } }, error) : null,
-          h('pre', { 'data-cm-pre': '', style: { marginTop: '8px' } }, text)),
-        h('div', { 'data-cm-dim': '' }, '只拉一次快照，不会跟着自动刷新；点「刷新」再看最新。'))
+          h('pre', { ref: boxRef, 'data-cm-pre': '', style: { marginTop: '8px', maxHeight: '60vh', overflow: 'auto' } }, text)),
+        h('div', { 'data-cm-dim': '' }, follow ? '每 2 秒拉取增量日志；切到后台时暂停。' : '当前是快照模式；点「跟随」查看增量日志。'))
     }
 
     /**
@@ -4516,6 +3784,86 @@ function macSwapText(swaps) {
       'WantedBy=default.target',
     ].join('\n')
 
+    function PodsPane({ nodeId, onToast, onPending }) {
+      const [pods, setPods] = React.useState([])
+      const [error, setError] = React.useState('')
+      const [busy, setBusy] = React.useState(false)
+      const [name, setName] = React.useState('')
+      const [share, setShare] = React.useState('')
+
+      const load = React.useCallback(async () => {
+        if (!nodeId) return
+        try {
+          setPods(await jget('/pods?node=' + encodeURIComponent(nodeId)))
+          setError('')
+        } catch (err) {
+          setError(err && err.message ? err.message : String(err))
+        }
+      }, [nodeId])
+
+      React.useEffect(() => { load() }, [load])
+
+      async function act(action, podName) {
+        setBusy(true)
+        setError('')
+        try {
+          const result = await jpost('/pods/action', { node: nodeId, name: podName, action })
+          if (result && result.status === 'pending') {
+            if (onPending) onPending()
+            if (onToast) onToast('删除 Pod 已挂起，去待确认里点一下')
+          } else {
+            if (onToast) onToast('Pod ' + podName + '：' + action + ' 完成')
+            await load()
+          }
+        } catch (err) {
+          setError(err && err.message ? err.message : String(err))
+        } finally {
+          setBusy(false)
+        }
+      }
+
+      async function create() {
+        if (!name.trim()) { setError('先填 Pod 名。'); return }
+        setBusy(true)
+        setError('')
+        try {
+          await jpost('/pods', { node: nodeId, name: name.trim(), share: share.trim() })
+          setName('')
+          setShare('')
+          if (onToast) onToast('Pod 已创建')
+          await load()
+        } catch (err) {
+          setError(err && err.message ? err.message : String(err))
+        } finally {
+          setBusy(false)
+        }
+      }
+
+      return h('div', { 'data-cm-quadlet': '' },
+        h('div', { 'data-cm-card': '' },
+          h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0, margin: 0 } }, 'Podman Pod'),
+          h('div', { 'data-cm-dim': '' }, 'Pod 让一组容器共享网络、PID 等 namespace。当前 compose 路径仍固定 --in-pod=false。'),
+          h('div', { 'data-cm-formrow': '', style: { marginTop: '8px' } },
+            field('Pod 名', h('input', { 'data-cm-input': '', value: name, onChange: event => setName(event.target.value) })),
+            field('共享 namespace（可选）', h('input', { 'data-cm-input': '', value: share, placeholder: 'net,pid', onChange: event => setShare(event.target.value) }))),
+          h('div', { 'data-cm-actions': '' },
+            h('button', { 'data-cm-btn': '', 'data-primary': '', disabled: busy || !nodeId, onClick: create }, busy ? '处理中…' : '创建 Pod'),
+            h('button', { 'data-cm-btn': '', disabled: busy, onClick: load }, '刷新'))),
+        error ? h('div', { 'data-cm-warn': '' }, error) : null,
+        pods.length === 0
+          ? h('div', { 'data-cm-card': '' }, h('div', { 'data-cm-dim': '' }, '还没有 Pod。'))
+          : h('div', { 'data-cm-card': '' },
+            pods.map(pod => h('div', { key: pod.id || pod.name, 'data-cm-qrow': '' },
+              h('span', { 'data-cm-dot': '', ...(pod.state === 'running' ? { 'data-on': '' } : { 'data-off': '' }) }),
+              h('div', { 'data-cm-grow': '' },
+                h('div', { 'data-cm-qname': '' }, pod.name),
+                h('div', { 'data-cm-dim': '', 'data-cm-qmeta': '' }, [pod.status, pod.containers + ' 个容器', pod.infraId ? 'infra ' + pod.infraId.slice(0, 12) : ''].filter(Boolean).join(' · '))),
+              h('span', { 'data-cm-facts': '' },
+                h('button', { 'data-cm-btn': '', 'data-cm-compact': '', disabled: busy, onClick: () => act('start', pod.name) }, '启动'),
+                h('button', { 'data-cm-btn': '', 'data-cm-compact': '', disabled: busy, onClick: () => act('stop', pod.name) }, '停止'),
+                h('button', { 'data-cm-btn': '', 'data-cm-compact': '', 'data-danger': '', disabled: busy, onClick: () => act('remove', pod.name) }, '删除'))))))
+    }
+
     function QuadletPane({ nodeId, onToast }) {
       const [data, setData] = React.useState(null)
       const [error, setError] = React.useState('')
@@ -4748,6 +4096,12 @@ function macSwapText(swaps) {
         saveRules(rules)
       }
 
+      async function addRule(kind) {
+        if ((data.rules || []).some(rule => rule.kind === kind)) return
+        const threshold = kind === 'disk' ? 85 : kind === 'pending' ? 10 : 3
+        await saveRules([...(data.rules || []), { id: kind, kind, threshold, enabled: true }])
+      }
+
       async function addHook() {
         const url = hookUrl.trim()
         if (!/^https?:\/\//.test(url)) {
@@ -4756,14 +4110,13 @@ function macSwapText(swaps) {
         }
         setBusy(true)
         try {
-          const next = [...(data.webhooks || []).map(hook => ({ ...hook, url: hook.url })), {
+          await jpost('/alerts/webhooks/add', {
             id: 'hook-' + Date.now().toString(36),
             name: hookKind + ' 出口',
             url,
             kind: hookKind,
             enabled: true,
-          }]
-          await jpost('/alerts/webhooks', { webhooks: next })
+          })
           setHookUrl('')
           await load()
           onToast && onToast('出口加好了，点「发一条测试」验证')
@@ -4777,8 +4130,7 @@ function macSwapText(swaps) {
       async function removeHook(id) {
         setBusy(true)
         try {
-          const next = (data.webhooks || []).filter(hook => hook.id !== id)
-          await jpost('/alerts/webhooks', { webhooks: next })
+          await jpost('/alerts/webhooks/delete', { id })
           await load()
         } catch (err) {
           setError('删不掉：' + (err && err.message ? err.message : String(err)))
@@ -4820,7 +4172,7 @@ function macSwapText(swaps) {
           '同一件事在 ' + (data.dedupeMinutes || 30) + ' 分钟内只发一次。出口地址只显示掩码，token 不会打到面板上。'),
         h('div', { 'data-cm-facts': '', style: { marginTop: '8px', flexWrap: 'wrap' } },
           rules.length === 0
-            ? h('span', { 'data-cm-dim': '' }, '还没有规则（在配置文件的 alerts.rules 里加）。')
+            ? h('span', { 'data-cm-dim': '' }, '还没有规则，先添加一条。')
             : rules.map(rule => h('button', {
               key: rule.kind,
               'data-cm-chip': '',
@@ -4829,6 +4181,9 @@ function macSwapText(swaps) {
               disabled: busy,
               onClick: () => toggleRule(rule),
             }, (KIND_TEXT[rule.kind] || rule.kind) + ' ≥ ' + rule.threshold))),
+        h('div', { 'data-cm-facts': '', style: { marginTop: '8px', flexWrap: 'wrap' } },
+          ...Object.entries(KIND_TEXT).filter(([kind]) => !rules.some(rule => rule.kind === kind)).map(([kind, label]) =>
+            h('button', { key: 'add-' + kind, 'data-cm-btn': '', disabled: busy, onClick: () => addRule(kind) }, '＋ ' + label))),
         hooks.length === 0
           ? h('div', { 'data-cm-warn': '', style: { marginTop: '8px' } }, '还没有出口 —— 告警只会留在面板里，没人会收到通知。')
           : h('div', { style: { marginTop: '8px' } },
@@ -5326,6 +4681,39 @@ function macSwapText(swaps) {
       return !/fail|error|失败/i.test(result)
     }
 
+    function TrashPane() {
+      const [items, setItems] = React.useState([])
+      const [error, setError] = React.useState('')
+      const [busy, setBusy] = React.useState(false)
+      const load = React.useCallback(async () => {
+        try { setItems(await jget('/trash')); setError('') }
+        catch (e) { setError(e.message) }
+      }, [])
+      React.useEffect(() => { load() }, [load])
+      async function act(op, id) {
+        setBusy(true)
+        setError('')
+        try { await jpost('/trash/' + op, { id }); await load() }
+        catch (e) { setError(e.message) }
+        finally { setBusy(false) }
+      }
+      return h('div', { 'data-cm-card': '' },
+        h('div', { 'data-cm-line': '' },
+          h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0, margin: 0 } }, '回收站'),
+          h('div', { 'data-cm-grow': '' }),
+          h('button', { 'data-cm-btn': '', disabled: busy, onClick: load }, '刷新')),
+        h('div', { 'data-cm-dim': '' }, 'Podman 删除会先停容器并改名进这里；恢复会保留原运行状态，彻底删除才真的删。'),
+        error ? h('div', { 'data-cm-warn': '' }, error) : null,
+        items.length === 0
+          ? h('div', { 'data-cm-empty': '' }, '回收站是空的。')
+          : items.map(item => h('div', { key: item.id, 'data-cm-line': '' },
+              h('div', { 'data-cm-grow': '' },
+                h('div', null, item.originalName),
+                h('div', { 'data-cm-dim': '' }, item.node + ' · ' + item.createdAt)),
+              h('button', { 'data-cm-btn': '', disabled: busy, onClick: () => act('restore', item.id) }, '恢复'),
+              h('button', { 'data-cm-btn': '', 'data-danger': '', disabled: busy, onClick: () => act('purge', item.id) }, '彻底删除'))))
+    }
+
     function ActivityPane() {
       const [rows, setRows] = React.useState([])
       const [loading, setLoading] = React.useState(true)
@@ -5341,7 +4729,7 @@ function macSwapText(swaps) {
           setRows(Array.isArray(value) ? value : [])
           setError(null)
         } catch (e) {
-          if (alive.current) setError(e && e.message ? e.message : String(e))
+          if (alive.current) setError(e instanceof Error ? e : new Error(String(e)))
         } finally {
           if (alive.current) setLoading(false)
         }
@@ -5405,8 +4793,8 @@ function macSwapText(swaps) {
                           ? String(row.detail.intent) + (row.detail.reversibleText ? ' · ' + row.detail.reversibleText : '')
                           : '—'),
                       h('span', null, ok ? 'ok' : String(row.error || row.result || 'fail')))
-                  })))
-      )
+                  }))),
+        h(TrashPane))
     }
 
     // 顶部五段：两套运行时各占一页，宿主网络、能力体检、审计各自独立。
@@ -5427,6 +4815,7 @@ function macSwapText(swaps) {
       ['images', '镜像'],
       ['volumes', '卷'],
       ['networks', '网络'],
+      ['pods', 'Pod'],
       ['secrets', '密钥'],
       ['quadlet', 'Quadlet'],
     ]
@@ -5755,6 +5144,18 @@ function macSwapText(swaps) {
                     disabled: busy,
                     onClick: () => setPortTarget(portTarget === service.name ? null : service.name),
                   }, '改端口'),
+                  project.rollbacks && project.rollbacks[name + '/' + service.name]
+                    ? h('button', {
+                      'data-cm-btn': '',
+                      'data-cm-compact': '',
+                      disabled: busy,
+                      title: '回滚到上次拉新重建前的镜像',
+                      onClick: () => act(
+                        jpost('/compose/projects/' + encodeURIComponent(name) + '/services/' + encodeURIComponent(service.name) + '/rollback'),
+                        '已回滚 ' + service.name,
+                      ),
+                    }, '回滚')
+                    : null,
                   recreateTarget === service.name
                     ? h('span', { 'data-cm-facts': '' },
                       h('button', {
@@ -5794,7 +5195,7 @@ function macSwapText(swaps) {
             : h('div', null, h('div', { key: 'runtime', style: { display: 'contents' } }, runtimeCard()), h('div', { key: 'main', style: { display: 'contents' } }, detailView()))))
 
       const toastView = toast
-        ? h('div', { key: 'toast', 'data-cm-toast': '', ...(toast && toast.bad ? { 'data-bad': '' } : {}) }, toast && toast.text ? toast.text : String(toast))
+        ? h('div', { key: 'toast', 'data-cm-toast': '', ...(toast && toast.bad ? { 'data-bad': '' } : {}) }, toast && toast.text ? t(toast.text) : t(String(toast)))
         : null
 
       return h('div', { 'data-cm-body': '', style: { flex: '1', minHeight: '0' } },
@@ -7077,6 +6478,9 @@ function macSwapText(swaps) {
       const [found, setFound] = React.useState(null)
       const [updates, setUpdates] = React.useState(null)
       const [checking, setChecking] = React.useState(false)
+      const [registryHost, setRegistryHost] = React.useState('')
+      const [registryUser, setRegistryUser] = React.useState('')
+      const [registryPass, setRegistryPass] = React.useState('')
 
       const load = React.useCallback(async () => {
         if (!nodeId) {
@@ -7095,6 +6499,20 @@ function macSwapText(swaps) {
       }, [nodeId])
 
       React.useEffect(() => { load() }, [load])
+
+      async function loginRegistry() {
+        if (!registryHost.trim() || !registryUser.trim() || !registryPass) return
+        setBusy(true)
+        try {
+          await jpost('/registry/login', { node: nodeId, registry: registryHost.trim(), username: registryUser.trim(), password: registryPass })
+          setRegistryPass('')
+          onToast && onToast('registry 登录成功')
+        } catch (e) {
+          onToast && onToast({ bad: true, text: '登录失败：' + (e && e.message ? e.message : String(e)) })
+        } finally {
+          setBusy(false)
+        }
+      }
 
       async function pull() {
         const name = reference.trim()
@@ -7202,6 +6620,14 @@ function macSwapText(swaps) {
             h('button', { 'data-cm-btn': '', disabled: searching || !reference.trim(), onClick: search }, searching ? '搜…' : '搜一下')),
           h('div', { 'data-cm-hintbox': '' }, '镜像名要带 registry 或本地能解析到；拉取会走网络，慢的话多等一会。「搜一下」是去 Docker Hub 按关键词找，不通也不挡你直接填名字。'),
           searchView ? h('div', { style: { marginTop: '8px' } }, searchView) : null),
+        h('details', { 'data-cm-card': '' },
+          h('summary', null, '登录私有 registry'),
+          h('div', { 'data-cm-formrow': '', style: { marginTop: '8px' } },
+            h('input', { 'data-cm-input': '', placeholder: 'registry.example.com', value: registryHost, onChange: event => setRegistryHost(event.target.value) }),
+            h('input', { 'data-cm-input': '', placeholder: '用户名', value: registryUser, onChange: event => setRegistryUser(event.target.value) }),
+            h('input', { 'data-cm-input': '', type: 'password', placeholder: '密码', value: registryPass, onChange: event => setRegistryPass(event.target.value) }),
+            h('button', { 'data-cm-btn': '', disabled: busy || !registryHost.trim() || !registryUser.trim() || !registryPass, onClick: loginRegistry }, '登录')),
+          h('div', { 'data-cm-dim': '' }, '密码直接交给 podman login --password-stdin，不写入插件配置、审计或会话。')),
         h('div', { 'data-cm-card': '' },
           h('div', { 'data-cm-line': '', style: { marginBottom: '8px' } },
             h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } }, '镜像（' + items.length + '）'),
@@ -7340,10 +6766,12 @@ function macSwapText(swaps) {
 
     /* ── LXC 页：存储 ── */
 
-    function LxcStoragePane({ nodeId }) {
+    function LxcStoragePane({ nodeId, onToast }) {
       const [data, setData] = React.useState(null)
       const [error, setError] = React.useState(null)
       const [loading, setLoading] = React.useState(true)
+      const [policy, setPolicy] = React.useState(null)
+      const [busy, setBusy] = React.useState(false)
 
       React.useEffect(() => {
         let alive = true
@@ -7352,11 +6780,25 @@ function macSwapText(swaps) {
           return () => { alive = false }
         }
         jget('/lxc/storage?node=' + encodeURIComponent(nodeId))
-          .then(value => { if (alive) { setData(value); setError(null) } })
+          .then(value => { if (alive) { setData(value); setPolicy(value.policy || null); setError(null) } })
           .catch(e => { if (alive) setError(e && e.message ? e.message : String(e)) })
           .finally(() => { if (alive) setLoading(false) })
         return () => { alive = false }
       }, [nodeId])
+
+      async function savePolicy() {
+        if (!policy) return
+        setBusy(true)
+        try {
+          const saved = await jpost('/lxc/storage/policy', policy)
+          setPolicy(saved)
+          onToast && onToast('LXC 默认存储配置已保存')
+        } catch (e) {
+          onToast && onToast({ bad: true, text: '保存失败：' + (e && e.message ? e.message : String(e)) })
+        } finally {
+          setBusy(false)
+        }
+      }
 
       if (loading) return h('div', { 'data-cm-card': '' }, h('div', { 'data-cm-dim': '' }, '读取中…'))
       if (error) return h('div', { 'data-cm-card': '' }, h('div', { 'data-cm-warn': '' }, error))
@@ -7369,6 +6811,26 @@ function macSwapText(swaps) {
       const containersTotal = humanBytes(data && data.containersTotal) || '—'
 
       return h('div', null,
+        policy ? h('div', { 'data-cm-card': '' },
+          h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } }, '默认存储配置'),
+          h('div', { 'data-cm-dim': '' }, '当前 helper 支持 loop 虚拟磁盘与 dir 目录后端；btrfs/zfs/lvm 要装对应工具后才会有秒级快照能力。'),
+          h('div', { 'data-cm-formrow': '', style: { marginTop: '8px' } },
+            h('label', { 'data-cm-dim': '' }, '新容器后端 ',
+              h('select', {
+                'data-cm-select': '',
+                value: policy.backend,
+                onChange: event => setPolicy({ ...policy, backend: event.target.value }),
+              }, ...['loop', 'dir'].map(value => h('option', { key: value, value }, value)))),
+            h('label', { 'data-cm-dim': '' }, 'loop 大小 ',
+              h('input', {
+                'data-cm-input': '', style: { width: '90px' }, value: policy.diskSize,
+                disabled: policy.backend !== 'loop',
+                onChange: event => setPolicy({ ...policy, diskSize: event.target.value.toUpperCase() }),
+              })),
+            h('button', { 'data-cm-btn': '', 'data-primary': '', disabled: busy, onClick: savePolicy }, '保存默认值')),
+          policy.backend === 'dir'
+            ? h('div', { 'data-cm-hintbox': '' }, 'dir 后端直接使用宿主目录，磁盘大小设置不生效；空间由所在分区决定。')
+            : null) : null,
         h('div', { 'data-cm-card': '' },
           h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } }, '占位'),
           h('div', { 'data-cm-kv': '' },
@@ -7418,6 +6880,9 @@ function macSwapText(swaps) {
       const [policyError, setPolicyError] = React.useState('')
       const [due, setDue] = React.useState([])
       const [events, setEvents] = React.useState([])
+      const [snapPolicy, setSnapPolicy] = React.useState(null)
+      const [snapError, setSnapError] = React.useState('')
+      const [snapEvents, setSnapEvents] = React.useState([])
 
       const loadPolicy = React.useCallback(async () => {
         try {
@@ -7431,7 +6896,18 @@ function macSwapText(swaps) {
         }
       }, [])
 
-      React.useEffect(() => { loadPolicy() }, [loadPolicy])
+      const loadSnapPolicy = React.useCallback(async () => {
+        try {
+          const value = await jget('/snapshots/policy')
+          setSnapPolicy(value.policy)
+          setSnapEvents(Array.isArray(value.events) ? value.events : [])
+          setSnapError('')
+        } catch (err) {
+          setSnapError(err && err.message ? err.message : String(err))
+        }
+      }, [])
+
+      React.useEffect(() => { loadPolicy(); loadSnapPolicy() }, [loadPolicy, loadSnapPolicy])
 
       async function savePolicy(patch) {
         try {
@@ -7461,6 +6937,37 @@ function macSwapText(swaps) {
         } finally {
           setBusy(false)
         }
+      }
+
+      async function saveSnapPolicy(patch) {
+        try {
+          const saved = await jpost('/snapshots/policy', patch)
+          setSnapPolicy(saved)
+          setSnapError('')
+          onToast && onToast('定时快照策略已保存')
+        } catch (err) {
+          setSnapError('存不了：' + (err && err.message ? err.message : String(err)))
+        }
+      }
+
+      async function runSnapshotsNow() {
+        setBusy(true)
+        try {
+          const result = await jpost('/snapshots/run', {})
+          onToast && onToast(result.skipped ? '跳过了：' + result.skipped : '定时快照完成 ' + result.started.length + ' 个容器')
+          await loadSnapPolicy()
+        } catch (err) {
+          onToast && onToast({ bad: true, text: '跑不了：' + (err && err.message ? err.message : String(err)) })
+        } finally {
+          setBusy(false)
+        }
+      }
+
+      function toggleSnapTarget(name) {
+        if (!snapPolicy) return
+        const current = Array.isArray(snapPolicy.targets) ? snapPolicy.targets : []
+        const next = current.includes(name) ? current.filter(item => item !== name) : [...current, name]
+        saveSnapPolicy({ targets: next })
       }
 
       function toggleTarget(name) {
@@ -7577,6 +7084,55 @@ function macSwapText(swaps) {
           h('tbody', null, ...rows))
       }
 
+      const snapshotCard = !snapPolicy
+        ? null
+        : h('div', { 'data-cm-card': '' },
+          h('div', { 'data-cm-line': '' },
+            h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0, margin: 0 } }, '定时快照'),
+            h('div', { 'data-cm-grow': '' },
+            h('button', {
+              'data-cm-btn': '',
+              disabled: busy,
+              ...(snapPolicy.enabled ? { 'data-primary': '' } : {}),
+              onClick: () => saveSnapPolicy({ enabled: !snapPolicy.enabled }),
+            }, snapPolicy.enabled ? '已开启，点一下关掉' : '关着的，点一下开启')),
+          h('div', { 'data-cm-dim': '', style: { marginTop: '4px' } },
+            'ext4 上每个快照都是整份 rootfs 复制，占盘也慢；只清理本策略创建的快照，不动手工快照。'),
+          h('div', { 'data-cm-facts': '', style: { marginTop: '8px', flexWrap: 'wrap' } },
+            h('span', { 'data-cm-dim': '' }, '要快照的容器：'),
+            containers.length === 0
+              ? h('span', { 'data-cm-dim': '' }, '（没有 LXC 容器）')
+              : containers.map(container => h('button', {
+                key: container.name,
+                'data-cm-chip': '',
+                ...((snapPolicy.targets || []).includes(container.name) ? { 'data-on': '' } : {}),
+                onClick: () => toggleSnapTarget(container.name),
+              }, container.name))),
+          h('div', { 'data-cm-formrow': '', style: { marginTop: '8px' } },
+            h('label', { 'data-cm-dim': '' }, '每 ',
+              h('input', {
+                'data-cm-input': '', style: { width: '70px' }, type: 'number', min: 1, max: 720,
+                value: snapPolicy.everyHours,
+                onChange: event => setSnapPolicy({ ...snapPolicy, everyHours: Number(event.target.value) || 1 }),
+                onBlur: () => saveSnapPolicy({ everyHours: snapPolicy.everyHours }),
+              }), ' 小时一次'),
+            h('label', { 'data-cm-dim': '' }, '留 ',
+              h('input', {
+                'data-cm-input': '', style: { width: '70px' }, type: 'number', min: 1, max: 64,
+                value: snapPolicy.keepCount,
+                onChange: event => setSnapPolicy({ ...snapPolicy, keepCount: Number(event.target.value) || 1 }),
+                onBlur: () => saveSnapPolicy({ keepCount: snapPolicy.keepCount }),
+              }), ' 份'),
+            h('button', { 'data-cm-btn': '', disabled: busy, onClick: runSnapshotsNow }, busy ? '跑…' : '现在跑一轮')),
+          snapPolicy.enabled && (snapPolicy.targets || []).length === 0
+            ? h('div', { 'data-cm-warn': '', style: { marginTop: '6px' } }, '开着但一个容器都没选，等于没开。')
+            : null,
+          snapError ? h('div', { 'data-cm-warn': '', style: { marginTop: '6px' } }, snapError) : null,
+          snapEvents.length > 0
+            ? h('div', { 'data-cm-dim': '', style: { fontSize: 'var(--cm-f-xs)', marginTop: '6px' } },
+              '最近：' + snapEvents.slice(-3).map(event => event.text).join(' / '))
+            : null))
+
       const backupCard = !policy
         ? null
         : h('div', { 'data-cm-card': '' },
@@ -7650,6 +7206,7 @@ function macSwapText(swaps) {
             : null)
 
       return h('div', null,
+        snapshotCard,
         backupCard,
         h('div', { 'data-cm-card': '' },
           h('div', { 'data-cm-ghead': '', style: { paddingLeft: 0 } }, '导出容器'),
@@ -7740,6 +7297,39 @@ function macSwapText(swaps) {
 
       React.useEffect(() => { load() }, [load])
 
+      async function backup(name) {
+        const dir = window.prompt('备份目录（绝对路径）', '/home/icecat/volume-backups')
+        if (!dir) return
+        setBusy(true)
+        try {
+          const result = await jpost('/volumes/backup', { node: nodeId, name, dir })
+          onToast && onToast(result && result.message ? result.message : '卷备份已入队')
+        } catch (e) {
+          onToast && onToast({ bad: true, text: '备份失败：' + (e && e.message ? e.message : String(e)) })
+        } finally {
+          setBusy(false)
+        }
+      }
+
+      async function restore(name) {
+        const file = window.prompt('要恢复的归档绝对路径')
+        if (!file) return
+        setBusy(true)
+        try {
+          const result = await jpost('/volumes/restore', { node: nodeId, name, file })
+          if (result && result.status === 'pending') {
+            onToast && onToast('恢复已挂起，去待确认里点确认')
+            if (onPending) onPending()
+          } else {
+            onToast && onToast(result && result.message ? result.message : '卷恢复已入队')
+          }
+        } catch (e) {
+          onToast && onToast({ bad: true, text: '恢复失败：' + (e && e.message ? e.message : String(e)) })
+        } finally {
+          setBusy(false)
+        }
+      }
+
       async function remove(name) {
         setBusy(true)
         try {
@@ -7782,12 +7372,16 @@ function macSwapText(swaps) {
                   item.anonymous ? h('span', { 'data-cm-tag': '', 'data-warn': '', style: { marginLeft: '6px' } }, '匿名') : null),
                 h('td', { 'data-cm-dim': '' }, item.driver || '—'),
                 h('td', { 'data-cm-dim': '', style: { wordBreak: 'break-all' } }, item.mountpoint || '—'),
-                h('td', null, h('button', {
-                  'data-cm-btn': '',
-                  'data-danger': '',
-                  disabled: busy,
-                  onClick: () => setConfirmTarget(item.name),
-                }, '删除')))))),
+                h('td', null, h('span', { 'data-cm-facts': '' },
+                  h('button', { 'data-cm-btn': '', 'data-cm-compact': '', disabled: busy, onClick: () => backup(item.name) }, '备份'),
+                  h('button', { 'data-cm-btn': '', 'data-cm-compact': '', disabled: busy, onClick: () => restore(item.name) }, '恢复'),
+                  h('button', {
+                    'data-cm-btn': '',
+                    'data-cm-compact': '',
+                    'data-danger': '',
+                    disabled: busy,
+                    onClick: () => setConfirmTarget(item.name),
+                  }, '删除'))))))),
         confirmTarget
           ? h('div', { 'data-cm-warn': '', style: { marginTop: '8px', display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' } },
             h('span', null, '删除卷 ' + confirmTarget + '？里面的数据会一起没，找不回来。'),
